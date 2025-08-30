@@ -27,18 +27,39 @@ export class AuthService {
   }
   async login(user: any) {
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('Invalid credentials');
     }
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    const payload = { email: user.email, userId: user.id, role: user.role };
     return {
       access_token: this.jwtService.sign(payload),
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role,
+      },
     };
   }
 
-  async register(user: any) {
-    const { password, ...rest } = user;
+  async register(userData: any) {
+    const { password, ...rest } = userData;
+
+    if (!password) {
+      throw new Error('Password is required');
+    }
+
+    // Check if user already exists
+    const existingUser = await this.usersService.findByEmail(userData.email);
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
+
     const password_hash = await bcrypt.hash(password, 10);
-    return this.usersService.create({ ...rest, password_hash });
+    const newUser = await this.usersService.create({ ...rest, password_hash });
+
+    // Remove password_hash from response
+    const { password_hash: _, ...userWithoutPassword } = newUser;
+    return userWithoutPassword;
   }
 }
