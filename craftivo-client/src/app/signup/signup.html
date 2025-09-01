@@ -1,0 +1,63 @@
+<div class="signup-container">
+    <div class="signup-card">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <img src="/craftivo-logo.png" alt="Craftivo Logo" class="logo">
+        </div>
+
+        <!-- Welcome Text -->
+        <div class="welcome-section">
+            <h1>Start your journey</h1>
+            <p>Create your account and transform your freelance business</p>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div class="signup-form-container">
+            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup-form">
+                <!-- First Name Field -->
+                <div class="form-group">
+                    <p-floatLabel variant="in">
+                        <input pInputText id="firstName" formControlName="firstName" class="form-input" />
+                        <label for="firstName">First Name</label>
+                    </p-floatLabel>
+                </div>
+
+                <!-- Last Name Field -->
+                <div class="form-group">
+                    <p-floatLabel variant="in">
+                        <input pInputText id="lastName" formControlName="lastName" class="form-input" />
+                        <label for="lastName">Last Name</label>
+                    </p-floatLabel>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <p-floatLabel variant="in">
+                        <input pInputText id="email" formControlName="email" type="email" class="form-input" />
+                        <label for="email">Email</label>
+                    </p-floatLabel>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <p-floatLabel variant="in">
+                        <input pInputText type=" password" id="password" formControlName="password"
+                            class="form-input" />
+                        <label for="password">Password</label>
+                    </p-floatLabel>
+                </div>
+
+                <!-- Create Account Button -->
+                <p-button type="submit" label="Sign Up" styleClass="custom-signup-btn"
+                    [disabled]="!signupForm.valid || isLoading" [loading]="isLoading"
+                    loadingIcon="pi pi-spinner pi-spin">
+                </p-button>
+
+                <!-- Sign In Link -->
+                <div class="signin-link">
+                    <p>Already have an account? <a routerLink="/signin">Sign in</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
