@@ -9,6 +9,7 @@ import { TimeEntriesModule } from './time-entries/time-entries.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { TeamsModule } from './teams/teams.module';
 import { ContractsModule } from './contracts/contracts.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ContractsModule } from './contracts/contracts.module';
     InvoicesModule,
     TeamsModule,
     ContractsModule,
+    ConfigModule.forRoot({ isGlobal: true }),
   ],
   providers: [PrismaService],
 })
