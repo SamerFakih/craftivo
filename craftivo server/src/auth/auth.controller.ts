@@ -53,4 +53,12 @@ export class AuthController {
     const token = req.cookies['token'];
     return { token };
   }
+
+  @Post('logout')
+  @ApiOperation({ summary: 'Logout a user' })
+  @ApiResponse({ status: 200, description: 'User logged out successfully.' })
+  async logout(@Res({ passthrough: true }) res) {
+    res.clearCookie('token');
+    return { message: 'Logged out successfully' };
+  }
 }

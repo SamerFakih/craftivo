@@ -11,6 +11,13 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  // Simple CORS for Angular
+  app.enableCors({
+    origin: 'http://localhost:4200', // Your Angular app
+    credentials: true, // Important for cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  });
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -22,12 +29,6 @@ async function bootstrap() {
 
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
-
-  // Enable CORS for frontend
-  app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  });
 
   // Swagger configuration
   const config = new DocumentBuilder()

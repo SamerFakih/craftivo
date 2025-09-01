@@ -10,6 +10,8 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { TeamsModule } from './teams/teams.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -23,7 +25,21 @@ import { ConfigModule } from '@nestjs/config';
     TeamsModule,
     ContractsModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000, // 1 minute
+          limit: 50, // 50 requests per minute (generous for development)
+        },
+      ],
+    }),
   ],
-  providers: [PrismaService],
+  providers: [
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
