@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterModule } from '@angular/router'; // ← Make sure this is imported
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
@@ -8,7 +9,14 @@ import { ButtonModule } from 'primeng/button';
 @Component({
   selector: 'app-signin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FloatLabelModule, InputTextModule, ButtonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    FloatLabelModule,
+    InputTextModule,
+    ButtonModule,
+  ],
   templateUrl: './signin.html',
   styleUrl: './signin.css',
 })
