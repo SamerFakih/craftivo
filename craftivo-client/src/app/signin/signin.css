@@ -1,0 +1,173 @@
+.signin-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  padding: 2rem;
+}
+.signin-form-container {
+  gap: 1rem;
+}
+.signin-card {
+  border-radius: 16px;
+  padding: 3rem;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Logo Section */
+.logo-section {
+  margin-bottom: 2rem;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Welcome Section */
+.welcome-section {
+  margin-bottom: 2rem;
+}
+
+.welcome-section h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+  color: #6c757d;
+  font-size: 1rem;
+}
+
+/* Form Container */
+.signin-form-container {
+  background-color: teal;
+  border-radius: 12px;
+  padding: 2rem;
+  color: white;
+}
+
+.form-header {
+  margin-bottom: 1.5rem;
+}
+
+.form-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-header p {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: grey;
+  background-color: white;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #2c3e50;
+  background-color: white;
+  border: #c2c2c2 solid 1px;
+}
+
+::ng-deep .signin-btn {
+  width: 100%;
+  background-color: white !important;
+  color: teal;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.signin-btn:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+/* Custom Signin Button */
+::ng-deep .custom-signin-btn {
+  width: 100% !important;
+  background-color: white !important;
+  color: teal !important;
+  border: none !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 8px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 1.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+::ng-deep .custom-signin-btn:hover {
+  background-color: #f8f9fa !important;
+  transform: translateY(-1px) !important;
+}
+
+::ng-deep .custom-signin-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Sign Up Link */
+.signup-link {
+  text-align: center;
+}
+
+.signup-link p {
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.signup-link a {
+  color: white;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .signin-container {
+    padding: 1rem;
+  }
+
+  .signin-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .welcome-section h1 {
+    font-size: 1.5rem;
+  }
+}
