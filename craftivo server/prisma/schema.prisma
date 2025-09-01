@@ -13,6 +13,110 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ENUMS - Keep only these definitions
+enum UserRole {
+  freelancer
+  admin
+  team_member
+}
+
+enum ProjectStatus {
+  active
+  completed
+  paused
+  review
+  cancelled
+}
+
+enum ProjectPriority {
+  low
+  medium
+  high
+}
+
+enum BillingType {
+  hourly
+  fixed
+  milestone
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  completed
+  overdue
+  cancelled
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
+enum TimeEntryStatus {
+  running
+  paused
+  logged
+  billed
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  pending
+  paid
+  overdue
+  cancelled
+}
+
+enum BillableType {
+  service
+  product
+  expense
+  time
+}
+
+enum ContractStatus {
+  draft
+  sent
+  signed
+  executed
+  expired
+  cancelled
+}
+
+enum TeamRole {
+  owner
+  admin
+  member
+}
+
+enum ProjectMemberRole {
+  owner
+  manager
+  member
+}
+
+enum EmailTemplateType {
+  general
+  invoice
+  reminder
+  welcome
+  contract
+}
+
+enum EmailStatus {
+  pending
+  sent
+  delivered
+  failed
+  bounced
+}
+
+// MODELS
+
+
 model users {
   id              Int      @id @default(autoincrement())
   uuid            String   @unique @default(uuid())
@@ -500,104 +604,4 @@ model expenses {
   projects     projects? @relation(fields: [project_id], references: [id], onDelete: SetNull)
   clients      clients? @relation(fields: [client_id], references: [id], onDelete: SetNull)
   invoices     invoices? @relation(fields: [invoice_id], references: [id], onDelete: SetNull)
-}
-
-enum UserRole {
-  freelancer
-  admin
-  team_member
-}
-
-enum ProjectStatus {
-  active
-  completed
-  paused
-  review
-  cancelled
-}
-
-enum ProjectPriority {
-  low
-  medium
-  high
-}
-
-enum BillingType {
-  hourly
-  fixed
-  milestone
-}
-
-enum TaskStatus {
-  pending
-  in_progress
-  completed
-  overdue
-  cancelled
-}
-
-enum TaskPriority {
-  low
-  medium
-  high
-}
-
-enum TimeEntryStatus {
-  running
-  paused
-  logged
-  billed
-}
-
-enum InvoiceStatus {
-  draft
-  sent
-  pending
-  paid
-  overdue
-  cancelled
-}
-
-enum BillableType {
-  service
-  product
-  expense
-  time
-}
-
-enum ContractStatus {
-  draft
-  sent
-  signed
-  executed
-  expired
-  cancelled
-}
-
-enum TeamRole {
-  owner
-  admin
-  member
-}
-
-enum ProjectMemberRole {
-  owner
-  manager
-  member
-}
-
-enum EmailTemplateType {
-  general
-  invoice
-  reminder
-  welcome
-  contract
-}
-
-enum EmailStatus {
-  pending
-  sent
-  delivered
-  failed
-  bounced
 }
