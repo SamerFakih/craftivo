@@ -1,3 +1,10 @@
 {
-  "cSpell.words": ["autoincrement", "Craftivo", "metatype"]
+  "cSpell.words": [
+    "autoincrement",
+    "Craftivo",
+    "metatype",
+    "schemaname",
+    "tablename",
+    "tablenames"
+  ]
 }
