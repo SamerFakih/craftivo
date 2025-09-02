@@ -1,0 +1,130 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  color: white;
+  z-index: 100;
+  border-right: #c2c2c2 1px solid;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1.5rem;
+  margin: 0.25rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: #a0aec0;
+}
+
+.menu-item:hover {
+  background-color: teal;
+  color: white;
+  transform: translateX(4px);
+}
+
+.menu-item.active {
+  background-color: teal;
+  color: white;
+  box-shadow: 0 4px 12px rgba(32, 178, 170, 0.3);
+}
+
+.menu-item.active:hover {
+  background-color: teal;
+  transform: translateX(0);
+}
+
+.menu-item i {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.75rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-item span {
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* Alternative: Using Font Awesome or PrimeIcons */
+.menu-item .pi {
+  margin-right: 0.75rem;
+  font-size: 1rem;
+}
+
+/* For main content to not overlap sidebar */
+.sidebar + .dashboard-main {
+  margin-left: 240px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed .menu-item span {
+  display: none;
+}
+
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  margin: 0.25rem 0.5rem;
+}
+
+.sidebar.collapsed + .dashboard-main {
+  margin-left: 60px;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar + .dashboard-main {
+    margin-left: 0;
+  }
+
+  /* Overlay for mobile */
+  .sidebar-overlay {
+    width: 100%;
+    height: 100%;
+    background-color: teal;
+    z-index: 99;
+    display: none;
+  }
+
+  .sidebar.open + .sidebar-overlay {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 280px;
+  }
+}
+
+/* Scrollbar styling */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
