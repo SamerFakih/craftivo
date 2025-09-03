@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Navbar } from '../navbar/navbar';
 import { CommonModule } from '@angular/common';
 import { Footer } from '../footer/footer';
+import { RouterModule } from '@angular/router';
 
 interface Feature {
   id: string;
@@ -17,7 +18,7 @@ interface Feature {
 @Component({
   selector: 'app-landing-page',
   standalone: true,
-  imports: [Navbar, CommonModule, Footer],
+  imports: [Navbar, CommonModule, Footer, RouterModule],
   templateUrl: './landing-page.html',
   styleUrl: './landing-page.css',
 })
