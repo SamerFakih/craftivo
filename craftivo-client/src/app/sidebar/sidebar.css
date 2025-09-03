@@ -1,9 +1,14 @@
 .sidebar {
+  position: fixed;
+  top: 110px;
+  left: 0;
   width: 240px;
-  height: 100vh;
+  height: calc(100vh - 56px);
   color: white;
   z-index: 100;
   border-right: #c2c2c2 1px solid;
+  overflow-y: auto;
+  transition: width 0.3s;
 }
 
 .menu-item {
