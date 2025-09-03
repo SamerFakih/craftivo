@@ -1,1 +1,6 @@
-
+.dashboard-content {
+  margin-left: 240px;
+  padding: 24px;
+  min-height: calc(100vh - 56px);
+  background: #f9f9f9;
+}
