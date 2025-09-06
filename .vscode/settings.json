@@ -4,7 +4,10 @@
     "floatlabel",
     "inputtext",
     "inputwrapper",
+    "notif",
+    "primeicons",
     "primeng",
-    "primeuix"
+    "primeuix",
+    "wireframes"
   ]
 }
