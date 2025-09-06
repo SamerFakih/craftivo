@@ -1,1 +1,110 @@
-<p>overview works!</p>
+<section class="dashboard-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Welcome back! Here's what's happening with your freelance business.</p>
+    </div>
+    <button class="new-project-button"> + New Project</button>
+</section>
+<section class="summary">
+    <div class="card-summary">
+        <div class="summary-label">
+            <p>Total Revenue</p>
+            <i class="pi pi-dollar"></i>
+        </div>
+        <h2><strong>{{ summary.revenue }}$</strong></h2>
+    </div>
+    <div class="card-summary">
+        <div class="summary-label">
+            <p>Active Projects</p>
+            <i class="pi pi-folder"></i>
+        </div>
+        <h2><strong>{{ summary.projects }}</strong></h2>
+    </div>
+    <div class="card-summary">
+        <div class="summary-label">
+            <p>Hours This Month</p>
+            <i class="pi pi-clock"></i>
+        </div>
+        <h2><strong>{{ summary.hours }}h</strong></h2>
+    </div>
+    <div class="card-summary">
+        <div class="summary-label">
+            <p>Team Members</p>
+            <i class="pi pi-users"></i>
+        </div>
+        <h2><strong>{{ summary.team }}</strong></h2>
+    </div>
+</section>
+<div class="container1">
+    <div class="recent-projects">
+        <div class="recent-projects-label">
+            <div>
+                <h2>Recent Projects</h2>
+                <p>Your active and recent project overview</p>
+            </div>
+            <div class="view-all">
+                <a routerLink="/projects">View All <i class="pi pi-arrow-right"></i></a>
+            </div>
+        </div>
+        <section class="projects">
+            <div *ngFor="let project of projects" class="project-card">
+                <div class="project-info">
+                    <h3>{{ project.title }}</h3>
+                    <p>Client: {{ project.client }}</p>
+                    <p-progressbar [value]="value" />
+                </div>
+                <div>
+                    <p>${{ project.budget }}</p>
+                    <p>Due: {{ project.due }}</p>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="tasks-container">
+        <section class="tasks">
+            <h2>Today's Tasks</h2>
+            <p>Your upcoming deadlines</p>
+            <div *ngFor="let task of tasks" class="task-card">
+                <h3>{{ task.name }}</h3>
+                <p>{{ task.title }}</p>
+                <p>{{ task.endTime }}</p>
+            </div>
+        </section>
+    </div>
+</div>
+<div class="container2">
+    <section class="team">
+        <div>
+            <h2>Team Activity</h2>
+            <p>Recent updates from your team</p>
+        </div>
+        <div *ngFor="let activity of teamActivity" class="team-member">
+            <h3><strong>{{ activity.name }}</strong> {{ activity.status }}</h3>
+            <p>{{activity.project}}</p>
+        </div>
+    </section>
+    <section class="action-buttons-container">
+        <div class="action-buttons-header">
+            <h1>Quick Actions</h1>
+            <p>Common tasks and shortcuts</p>
+        </div>
+        <div class="action-buttons">
+            <button class="action-button">
+                <i class="pi pi-file"></i>
+                <p>New Invoice</p>
+            </button>
+            <button class="action-button">
+                <i class="pi pi-clock"></i>
+                <p>Start Timer</p>
+            </button>
+            <button class="action-button">
+                <i class="pi pi-envelope"></i>
+                <p>Email Client</p>
+            </button>
+            <button class="action-button">
+                <i class="pi pi-users"></i>
+                <p>Invite Team</p>
+            </button>
+        </div>
+    </section>
+</div>
