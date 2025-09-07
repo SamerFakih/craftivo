@@ -61,11 +61,11 @@ export class ContractsController {
   @ApiBody({ schema: { properties: { status: { type: 'string' } } } })
   @Patch(':id/status')
   updateStatus(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body('status') status: ContractStatus,
     @Request() req,
   ) {
-    return this.contractsService.updateStatus(+id, status, req.user.userId);
+    return this.contractsService.updateStatus(id, status, req.user.userId);
   }
 
   @ApiOperation({ summary: 'Sign contract' })
