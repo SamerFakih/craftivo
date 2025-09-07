@@ -18,6 +18,8 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   });
 
+  app.setGlobalPrefix('api/v1');
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
