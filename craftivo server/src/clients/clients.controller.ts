@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Controller,
   Get,
@@ -9,7 +8,6 @@ import {
   Param,
   Body,
   UseGuards,
-  Req,
   ParseIntPipe,
 } from '@nestjs/common';
 import {
@@ -23,6 +21,7 @@ import {
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-clients.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @ApiTags('clients')
 @ApiBearerAuth()
@@ -46,8 +45,11 @@ export class ClientsController {
   @ApiResponse({ status: 200, description: 'Return the client.' })
   @ApiResponse({ status: 404, description: 'Client not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.clientsService.findOne(id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('userId') userId: number,
+  ) {
+    return this.clientsService.findOne(id, userId);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -60,12 +62,8 @@ export class ClientsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createClientDto: CreateClientDto, @Req() req) {
-    const userId = req.user.userId;
-    return this.clientsService.create({
-      ...createClientDto,
-      created_by: userId,
-    });
+  create(@Body() createClientDto: CreateClientDto) {
+    return this.clientsService.create(createClientDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -79,13 +77,11 @@ export class ClientsController {
   @ApiResponse({ status: 404, description: 'Client not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @Put(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateClientDto: CreateClientDto,
-    @Req() req,
+  update(
+    @Param('id') id: number,
+    @Body() updateClientDto: UpdateClientDto,
+    @Body('userId') userId: number,
   ) {
-    const userId = req.user.userId;
-
     return this.clientsService.update(id, updateClientDto, userId);
   }
 
