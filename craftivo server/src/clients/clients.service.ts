@@ -1,6 +1,12 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateClientDto } from './dto/create-clients.dto';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Injectable()
 export class ClientsService {
@@ -11,40 +17,30 @@ export class ClientsService {
     return this.prisma.clients.findMany();
   }
 
-  findOne(id: number) {
-    return this.prisma.clients.findUnique({ where: { id } });
+  findOne(id: number, userId: number) {
+    return this.prisma.clients.findUnique({
+      where: { id, created_by: userId },
+    });
   }
 
-  async create(data: CreateClientDto & { created_by: number }) {
-    if (!data.created_by) {
+  async create(createClientDto: CreateClientDto & { created_by: number }) {
+    if (!createClientDto.created_by) {
       throw new Error('created_by is required');
     }
     try {
-      return await this.prisma.clients.create({ data });
+      return await this.prisma.clients.create({ data: createClientDto });
     } catch (error) {
       console.error('Create Client Error:', error);
       throw new Error('Failed to create client');
     }
   }
 
-  async update(id: number, data: CreateClientDto, userId: any) {
-    const client = await this.findOne(id);
-    if (!client) {
-      throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
-    }
-    if (client.created_by !== userId) {
-      throw new HttpException(
-        'You do not have permission to update this client',
-        HttpStatus.FORBIDDEN,
-      );
-    }
-    try {
-      return await this.prisma.clients.update({ where: { id }, data });
-    } catch (error) {
-      console.error('Update Client Error:', error);
-      throw new Error('Failed to update client');
-    }
+  async update(id: number, updateClientDto: UpdateClientDto, userId: number) {
+    const client = await this.findOne(id, userId);
+    Object.assign(updateClientDto);
+    return client;
   }
+
   async findByUser(userId: number) {
     return this.prisma.clients.findMany({ where: { created_by: userId } });
   }
