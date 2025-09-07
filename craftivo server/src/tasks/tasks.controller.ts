@@ -13,6 +13,7 @@ import {
   Req,
   UseGuards,
   Query,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -81,11 +82,10 @@ export class TasksController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createTaskDto: CreateTaskDto, @Req() req) {
-    const userId = req.user.userId;
+  create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
     return this.tasksService.create({
       ...createTaskDto,
-      created_by: userId,
+      created_by: req.user.userId,
     });
   }
 
