@@ -1,0 +1,46 @@
+<article class="row">
+    <div class="row__left">
+        <div class="code">
+            <span class="code__text">{{ invoice.id }}</span>
+            <span [class]="pillClass()">{{ invoice.status }}</span>
+        </div>
+
+        <div class="meta">
+            <div class="meta__line">
+                <span class="client">{{ invoice.client }}</span>
+                <span class="sep">•</span>
+                <span class="project">{{ invoice.project }}</span>
+            </div>
+
+            <div class="meta_line meta_muted">
+                <span>Issued: {{ issued }}</span>
+                <span class="dot">•</span>
+                <span>Due: {{ due }}</span>
+                <span class="dot" *ngIf="paid">•</span>
+                <span *ngIf="paid">Paid: {{ paid }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row__right">
+        <div class="amount">
+            <div class="amount__value">${{ amtLabel }}</div>
+            <div class="amount__cur">{{ invoice.currency || 'USD' }}</div>
+        </div>
+
+        <div class="actions">
+            <button class="iconbtn" title="View">
+                <i class="pi pi-eye"></i>
+            </button>
+            <button class="iconbtn" title="Edit">
+                <i class="pi pi-pencil"></i>
+            </button>
+            <button class="iconbtn" title="Download">
+                <i class="pi pi-download"></i>
+            </button>
+            <button class="iconbtn" title="Send">
+                <i class="pi pi-send"></i>
+            </button>
+        </div>
+    </div>
+</article>
