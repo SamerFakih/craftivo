@@ -1,12 +1,26 @@
 <header class="header">
     <div class="flex g-1">
+        <button (click)="toggleSidebar()" class="sidebar-toggle-btn">
+            <i class="pi pi-bars"></i>
+        </button>
         <img src="/craftivo-logo.png" alt="Logo" class="logo" />
         <h1>{{ title() }}</h1>
     </div>
     <nav class="nav">
-        <ul>
-            <li><a routerLink="/signin">SignIn</a></li>
-            <li><a routerLink="/signup">Get Started</a></li>
-        </ul>
+        <ng-container *ngIf="!isLoggedIn(); else loggedIn">
+            <ul>
+                <li><a routerLink="/signin">SignIn</a></li>
+                <li><a routerLink="/signup">Get Started</a></li>
+            </ul>
+        </ng-container>
+        <ng-template #loggedIn>
+            <div class="nav-logged-in">
+                <input type="text" class="search-bar" placeholder="Search..." />
+                <button class="notif-btn"><i class="pi pi-bell"></i></button>
+                <div class="user-info">
+                    <img [src]="userAvatar()" alt="Avatar" class="avatar" />
+                </div>
+            </div>
+        </ng-template>
     </nav>
 </header>
