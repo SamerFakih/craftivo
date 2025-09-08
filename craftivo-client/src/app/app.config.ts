@@ -51,7 +51,7 @@ export const appConfig: ApplicationConfig = {
             },
             progressbar: {
               root: {
-                background: '{teal.300}',
+                background: '#dbeafe',
                 borderRadius: '10px',
               },
               value: {
