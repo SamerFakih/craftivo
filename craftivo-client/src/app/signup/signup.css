@@ -97,35 +97,6 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
-/* Custom Signup Button */
-::ng-deep .custom-signup-btn .p-button {
-  width: 50% !important;
-  background-color: white !important;
-  color: teal !important;
-  border: none !important;
-  padding: 1rem !important;
-  border-radius: 8px !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-}
-
-::ng-deep .custom-signup-btn .p-button:hover:not(:disabled) {
-  background-color: #f8f9fa !important;
-  transform: translateY(-1px) !important;
-}
-
-::ng-deep .custom-signup-btn .p-button:disabled {
-  opacity: 0.6 !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-}
-
-/* Loading spinner color */
-::ng-deep .custom-signup-btn .p-button .pi-spinner {
-  color: white !important;
-}
-
 /* Sign In Link */
 .signin-link {
   text-align: center;
@@ -147,47 +118,6 @@
   text-decoration: none;
 }
 
-::ng-deep .signin-btn {
-  width: 100%;
-  background-color: white !important;
-  color: teal;
-  border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem;
-}
-
-.signin-btn:hover {
-  background-color: #f8f9fa;
-  transform: translateY(-1px);
-}
-/* Custom Signin Button */
-::ng-deep .custom-signup-btn {
-  width: 50% !important;
-  background-color: white !important;
-  color: teal !important;
-  border: none !important;
-  padding: 0.75rem 1rem !important;
-  border-radius: 8px !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  margin-bottom: 1.5rem !important;
-  transition: all 0.3s ease !important;
-}
-
-::ng-deep .custom-signup-btn:hover {
-  background-color: #f8f9fa !important;
-  transform: translateY(-1px) !important;
-}
-
-::ng-deep .custom-signup-btn:disabled {
-  opacity: 0.6 !important;
-  cursor: not-allowed !important;
-}
 /* Sign Up Link */
 .signup-link {
   text-align: center;
