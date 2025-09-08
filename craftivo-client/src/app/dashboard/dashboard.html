@@ -1,7 +1,9 @@
-<app-navbar></app-navbar>
-<div class="dashboard-layout">
+<div class="dashboard-container">
+    <app-navbar></app-navbar>
     <app-sidebar></app-sidebar>
-    <div class="dashboard-content">
-        <router-outlet></router-outlet>
+    <div class="dashboard-layout">
+        <div class="main-content">
+            <router-outlet></router-outlet>
+        </div>
     </div>
 </div>
