@@ -1,0 +1,66 @@
+<section class="page">
+    <header class="page__head">
+        <div>
+            <h1 class="title">Projects</h1>
+            <p class="subtitle">Manage all your freelance projects in one place</p>
+        </div>
+        <button class="btn btn--primary">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+            </svg>
+            New Project
+        </button>
+    </header>
+
+    <div class="searchbar">
+        <svg class="icon" viewBox="0 0 24 24">
+            <path
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
+        <input type="text" class="search" placeholder="Search projects, clients, or tags..." [value]="q()"
+            (input)="onSearchInput($event)">
+    </div>
+
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi__label">Total Projects</div>
+            <div class="kpi__value">{{ totalCount() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Active</div>
+            <div class="kpi__value">{{ activeCountt() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Completed</div>
+            <div class="kpi__value">{{ completedCountt() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Total Revenue</div>
+            <div class="kpi__value kpi_value--money">
+                {{ (totalRevenue() | currency:'USD':'symbol':'1.0-0') }}
+            </div>
+        </div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Projects filter">
+        <button class="tab" [class.tab--active]="activeTab()==='all'" (click)="setTab('all')">
+            All Projects <span class="tab__count">{{ allCount() }}</span>
+        </button>
+
+        <button class="tab" [class.tab--active]="activeTab()==='active'" (click)="setTab('active')">
+            Active <span class="tab__count">{{ activeCount() }}</span>
+        </button>
+
+        <button class="tab" [class.tab--active]="activeTab()==='completed'" (click)="setTab('completed')">
+            Completed <span class="tab__count">{{ completedCount() }}</span>
+        </button>
+
+        <button class="tab" [class.tab--active]="activeTab()==='other'" (click)="setTab('other')">
+            Other <span class="tab__count">{{ otherCount() }}</span>
+        </button>
+    </nav>
+    <!-- Optional: render grid/list of projects using the card component -->
+    <div class="grid">
+        <app-project-card *ngFor="let pr of filtered()" [project]="pr"></app-project-card>
+    </div>
+</section>
