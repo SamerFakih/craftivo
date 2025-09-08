@@ -158,9 +158,8 @@
 }
 
 @media (max-width: 430px) {
-  .summary-label {
-    justify-content: space-between;
-    min-width: 80vw;
+  .summary {
+    padding: 0px;
   }
   .container1 {
     flex-direction: column;

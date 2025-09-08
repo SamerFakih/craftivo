@@ -6,34 +6,8 @@
     <button class="new-project-button"> + New Project</button>
 </section>
 <section class="summary">
-    <div class="card-summary">
-        <div class="summary-label">
-            <p>Total Revenue</p>
-            <i class="pi pi-dollar"></i>
-        </div>
-        <h2><strong>{{ summary.revenue }}$</strong></h2>
-    </div>
-    <div class="card-summary">
-        <div class="summary-label">
-            <p>Active Projects</p>
-            <i class="pi pi-folder"></i>
-        </div>
-        <h2><strong>{{ summary.projects }}</strong></h2>
-    </div>
-    <div class="card-summary">
-        <div class="summary-label">
-            <p>Hours This Month</p>
-            <i class="pi pi-clock"></i>
-        </div>
-        <h2><strong>{{ summary.hours }}h</strong></h2>
-    </div>
-    <div class="card-summary">
-        <div class="summary-label">
-            <p>Team Members</p>
-            <i class="pi pi-users"></i>
-        </div>
-        <h2><strong>{{ summary.team }}</strong></h2>
-    </div>
+    <app-summary-cards *ngFor="let summary of summarys" [key]="summary.key" [value]="summary.value"
+        [icon]="summary.icon"></app-summary-cards>
 </section>
 <div class="container1">
     <div class="recent-projects">

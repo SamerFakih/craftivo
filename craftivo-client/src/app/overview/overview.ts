@@ -3,10 +3,11 @@ import { Component, NgZone } from '@angular/core';
 import { ProgressBar } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { SummaryCards } from '../components/summary-cards/summary-cards';
 
 @Component({
   selector: 'app-overview',
-  imports: [CommonModule, ProgressBar, ToastModule],
+  imports: [CommonModule, ProgressBar, ToastModule, SummaryCards],
   templateUrl: './overview.html',
   styleUrls: ['./overview.css'],
   standalone: true,
@@ -43,12 +44,6 @@ export class Overview {
       clearInterval(this.interval);
     }
   }
-  summary = {
-    revenue: 24580,
-    projects: 8,
-    hours: 187,
-    team: 5,
-  };
 
   projects = [
     {
@@ -74,6 +69,12 @@ export class Overview {
     },
   ];
 
+  summarys = [
+    { key: 'Total Revenue', value: 24580, icon: 'pi pi-dollar' },
+    { key: 'Active Projects', value: 5, icon: 'pi pi-check-circle' },
+    { key: 'Hours This Month', value: 187, icon: 'pi pi-clock' },
+    { key: 'Team Members', value: 3, icon: 'pi pi-users' },
+  ];
   tasks = [
     { name: 'Client presentation prep', title: 'E-commerce Redesign', endTime: '4:00' },
     { name: 'Review wireframes', title: 'E-commerce Redesign', endTime: '6:00' },
