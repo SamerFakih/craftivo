@@ -1,16 +1,15 @@
 .sidebar {
-  position: fixed;
-  top: 110px;
-  left: 0;
+  position: absolute;
+  top: 108px;
   width: 240px;
-  height: calc(100vh - 56px);
+  height: calc(100% - 108px);
+  z-index: 1000;
   color: white;
-  z-index: 100;
-  border-right: #c2c2c2 1px solid;
-  overflow-y: auto;
-  transition: width 0.3s;
+  background-color: white;
 }
-
+.sidebar:not(.open) {
+  transform: translateX(-100%);
+}
 .menu-item {
   display: flex;
   align-items: center;
@@ -22,7 +21,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
-  color: #a0aec0;
+  color: black;
 }
 
 .menu-item:hover {
@@ -50,36 +49,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.menu-item span {
-  flex: 1;
-  white-space: nowrap;
-}
-
-/* Alternative: Using Font Awesome or PrimeIcons */
-.menu-item .pi {
-  margin-right: 0.75rem;
-  font-size: 1rem;
-}
-
-/* For main content to not overlap sidebar */
-.sidebar + .dashboard-main {
-  margin-left: 240px;
-  transition: margin-left 0.3s ease;
-}
-
-.sidebar.collapsed .menu-item span {
-  display: none;
-}
-
-.sidebar.collapsed .menu-item {
-  justify-content: center;
-  margin: 0.25rem 0.5rem;
-}
-
-.sidebar.collapsed + .dashboard-main {
-  margin-left: 60px;
 }
 
 /* Responsive design */

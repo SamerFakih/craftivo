@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { SidebarService } from './sidebar.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -11,14 +12,10 @@ import { RouterModule } from '@angular/router';
 })
 export class Sidebar {
   isCollapsed = signal(false);
-  isOpen = signal(false);
+  isOpen = signal(true);
   projectCount = signal(8);
 
-  toggleSidebar() {
-    if (window.innerWidth <= 1024) {
-      this.isOpen.update((value) => !value);
-    } else {
-      this.isCollapsed.update((value) => !value);
-    }
+  constructor(private sidebarService: SidebarService) {
+    this.sidebarService.isOpen$.subscribe((open) => this.isOpen.set(open));
   }
 }
