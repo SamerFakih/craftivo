@@ -1,1 +1,71 @@
-<p>invoice works!</p>
+<section class="page">
+    <header class="head">
+        <div>
+            <h1 class="title">Invoices</h1>
+            <p class="subtitle">Create, send, and track your invoices with automated calculations</p>
+        </div>
+        <button class="btn btn--primary">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+            </svg>
+            New Invoice
+        </button>
+    </header>
+
+    <div class="searchbar">
+        <svg class="icon" viewBox="0 0 24 24">
+            <path
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" />
+        </svg>
+        <input class="search" type="text" placeholder="Search invoices, clients, or projects..." [value]="q()"
+            (input)="onSearchInput($event)">
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi__label">Total Revenue</div>
+            <div class="kpi__value">${{ fmtMoney(totalRevenue()) }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Pending</div>
+            <div class="kpi__value">${{ fmtMoney(pendingAmt()) }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Overdue</div>
+            <div class="kpi__value">${{ fmtMoney(overdueAmt()) }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">This Month</div>
+            <div class="kpi__value">${{ (thisMonthAmt()/1000) | number:'1.0-1' }}K</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist" aria-label="Invoice filters">
+        <button class="tab" [class.tab--active]="tab()==='all'" (click)="setTab('all')">
+            All Invoices ({{ allCount() }})
+        </button>
+        <button class="tab" [class.tab--active]="tab()==='paid'" (click)="setTab('paid')">
+            Paid ({{ paidCount() }})
+        </button>
+        <button class="tab" [class.tab--active]="tab()==='pending'" (click)="setTab('pending')">
+            Pending ({{ pendingCount() }})
+        </button>
+        <button class="tab" [class.tab--active]="tab()==='overdue'" (click)="setTab('overdue')">
+            Overdue ({{ overdueCount() }})
+        </button>
+    </nav>
+
+    <!-- List container -->
+    <section class="panel">
+        <div class="panel__head">
+            <h2>All Invoices</h2>
+            <p class="muted">Complete list of your invoices</p>
+        </div>
+
+        <div class="list">
+            <app-invoice-card *ngFor="let inv of filtered()" [invoice]="inv"></app-invoice-card>
+        </div>
+    </section>
+</section>
