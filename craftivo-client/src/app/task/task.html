@@ -1,1 +1,55 @@
-<p>task works!</p>
+<section class="page">
+    <header class="page__head">
+        <div>
+            <h1 class="title">Tasks</h1>
+            <p class="subtitle">Manage your tasks with smart email integration</p>
+        </div>
+        <button class="btn btn--primary">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+            </svg>
+            New Task
+        </button>
+    </header>
+
+    <div class="searchbar">
+        <svg class="icon" viewBox="0 0 24 24">
+            <path
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
+        <input type="text" class="search" placeholder="Search tasks, projects, or clients..." [value]="q()"
+            (input)="setQ($any($event.target).value)" />
+    </div>
+
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi__label">Total Tasks</div>
+            <div class="kpi__value">{{ totalCnt() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">In Progress</div>
+            <div class="kpi__value">{{ inProgressCnt() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Completed</div>
+            <div class="kpi__value">{{ completedCnt() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Overdue</div>
+            <div class="kpi__value">{{ overdueCnt() }}</div>
+        </div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Task filters">
+        <button class="tab" [class.tab--active]="tab()==='all'" (click)="setTab('all')">All Tasks ({{ totalCnt()
+            }})</button>
+        <button class="tab" [class.tab--active]="tab()==='today'" (click)="setTab('today')">Today</button>
+        <button class="tab" [class.tab--active]="tab()==='upcoming'" (click)="setTab('upcoming')">Upcoming</button>
+        <button class="tab" [class.tab--active]="tab()==='overdue'" (click)="setTab('overdue')">Overdue ({{ overdueCnt()
+            }})</button>
+    </nav>
+
+    <div class="list">
+        <app-task-card *ngFor="let t of filtered()" [task]="t"></app-task-card>
+    </div>
+</section>
