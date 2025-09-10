@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
@@ -10,7 +9,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Req,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -28,10 +27,10 @@ import { AuthGuard } from '@nestjs/passport';
 @ApiTags('projects')
 @ApiBearerAuth()
 @Controller('projects')
+@UseGuards(AuthGuard('jwt'))
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   @ApiOperation({ summary: 'Get all projects' })
   @ApiResponse({ status: 200, description: 'Return all projects.' })
@@ -40,7 +39,6 @@ export class ProjectsController {
     return this.projectsService.findAll();
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   @ApiOperation({ summary: 'Get a project by id' })
   @ApiParam({ name: 'id', type: 'number', description: 'Project ID' })
@@ -51,7 +49,6 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: 'Create a new project' })
   @ApiBody({ type: CreateProjectDto })
@@ -61,7 +58,7 @@ export class ProjectsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createProjectDto: CreateProjectDto, @Req() req) {
+  create(@Body() createProjectDto: CreateProjectDto, @Request() req) {
     const userId = req.user.userId;
     return this.projectsService.create({
       ...createProjectDto,
@@ -69,7 +66,6 @@ export class ProjectsController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   @ApiOperation({ summary: 'Update a project' })
   @ApiParam({ name: 'id', type: 'number', description: 'Project ID' })
@@ -95,7 +91,7 @@ export class ProjectsController {
     description: 'The project has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Project not found.' })
-  delete(@Param('id') id: number) {
+  delete(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.delete(id);
   }
 }
