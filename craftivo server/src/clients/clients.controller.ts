@@ -1,4 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Get,
@@ -9,6 +11,7 @@ import {
   Body,
   UseGuards,
   ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,39 +23,32 @@ import {
 } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-clients.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('clients')
 @ApiBearerAuth()
 @Controller('clients')
+@UseGuards(AuthGuard('jwt'))
 export class ClientsController {
   constructor(private clientsService: ClientsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   @ApiOperation({ summary: 'Get all clients' })
   @ApiResponse({ status: 200, description: 'Return all clients.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   findAll() {
     return this.clientsService.findAll();
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   @ApiOperation({ summary: 'Get a client by id' })
   @ApiParam({ name: 'id', type: 'number', description: 'Client ID' })
   @ApiResponse({ status: 200, description: 'Return the client.' })
   @ApiResponse({ status: 404, description: 'Client not found.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('userId') userId: number,
-  ) {
-    return this.clientsService.findOne(id, userId);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.clientsService.findOne(id, req.user.userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: 'Create a new client' })
   @ApiBody({ type: CreateClientDto })
@@ -61,37 +57,35 @@ export class ClientsController {
     description: 'The client has been successfully created.',
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.create(createClientDto);
+  create(@Body() createClientDto: CreateClientDto, @Request() req) {
+    return this.clientsService.create({
+      ...createClientDto,
+      created_by: req.user.userId,
+    });
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @Put(':id')
   @ApiOperation({ summary: 'Update a client' })
   @ApiParam({ name: 'id', type: 'number', description: 'Client ID' })
-  @ApiBody({ type: CreateClientDto })
+  @ApiBody({ type: UpdateClientDto })
   @ApiResponse({
     status: 200,
     description: 'The client has been successfully updated.',
   })
   @ApiResponse({ status: 404, description: 'Client not found.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  @Put(':id')
   update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateClientDto: UpdateClientDto,
-    @Body('userId') userId: number,
+    @Request() req,
   ) {
-    return this.clientsService.update(id, updateClientDto, userId);
+    return this.clientsService.update(id, updateClientDto, req.user.userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('user/:userId')
   @ApiOperation({ summary: 'Get clients by user ID' })
   @ApiParam({ name: 'userId', type: 'number', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'Return clients for the user.' })
   @ApiResponse({ status: 404, description: 'No clients found for the user.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   findByUser(@Param('userId', ParseIntPipe) userId: number) {
     return this.clientsService.findByUser(userId);
   }
@@ -104,8 +98,7 @@ export class ClientsController {
     description: 'The client has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Client not found.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  delete(@Param('id') id: number) {
+  delete(@Param('id', ParseIntPipe) id: number) {
     return this.clientsService.delete(id);
   }
 }
