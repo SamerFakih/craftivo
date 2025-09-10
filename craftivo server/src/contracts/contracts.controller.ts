@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
   Put,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,6 +18,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBody,
+  ApiParam,
 } from '@nestjs/swagger';
 import { ContractsService } from './contracts.service';
 import { CreateContractDto } from './dto/create-contract.dto';
@@ -31,67 +33,106 @@ import { ContractStatus } from '@prisma/client';
 export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}
 
+  @Post()
   @ApiOperation({ summary: 'Create a new contract' })
   @ApiResponse({
     status: 201,
     description: 'The contract has been successfully created.',
   })
-  @Post()
   create(@Body() createContractDto: CreateContractDto, @Request() req) {
     return this.contractsService.create(createContractDto, req.user.userId);
   }
 
+  @Get()
   @ApiOperation({ summary: 'Get all contracts' })
   @ApiResponse({
     status: 200,
     description: 'List of all contracts',
   })
-  @Get()
   findAll(@Request() req) {
     return this.contractsService.findAll(req.user.userId);
   }
 
-  @ApiOperation({ summary: 'Get contract by ID' })
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.contractsService.findOne(+id, req.user.userId);
+  @ApiOperation({ summary: 'Get contract by ID' })
+  @ApiParam({ name: 'id', type: 'number', description: 'Contract ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'The contract has been successfully retrieved.',
+  })
+  @ApiResponse({ status: 404, description: 'Contract not found.' })
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.contractsService.findOne(id, req.user.userId);
   }
 
-  @ApiOperation({ summary: 'Update contract status' })
-  @ApiBody({ schema: { properties: { status: { type: 'string' } } } })
   @Patch(':id/status')
+  @ApiOperation({ summary: 'Update contract status' })
+  @ApiParam({ name: 'id', type: 'number', description: 'Contract ID' })
+  @ApiBody({
+    schema: {
+      properties: {
+        status: { type: 'string', enum: Object.values(ContractStatus) },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The contract status has been successfully updated.',
+  })
   updateStatus(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body('status') status: ContractStatus,
     @Request() req,
   ) {
     return this.contractsService.updateStatus(id, status, req.user.userId);
   }
 
-  @ApiOperation({ summary: 'Sign contract' })
   @Put(':id/sign')
+  @ApiOperation({ summary: 'Sign contract' })
+  @ApiParam({ name: 'id', type: 'number', description: 'Contract ID' })
+  @ApiBody({ type: SignContractDto })
+  @ApiResponse({
+    status: 200,
+    description: 'The contract has been successfully signed.',
+  })
   signContract(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() signData: SignContractDto,
     @Request() req,
   ) {
     return this.contractsService.signContract(
-      +id,
+      id,
       signData.signature,
       signData.signedBy,
       req.user.userId,
     );
   }
 
-  @ApiOperation({ summary: 'Get contracts by client ID' })
   @Get('client/:clientId')
-  getByClient(@Param('clientId') clientId: string, @Request() req) {
-    return this.contractsService.findByClient(+clientId, req.user.userId);
+  @ApiOperation({ summary: 'Get contracts by client ID' })
+  @ApiParam({ name: 'clientId', type: 'number', description: 'Client ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of contracts for the specified client',
+  })
+  getByClient(
+    @Param('clientId', ParseIntPipe) clientId: number,
+    @Request() req,
+  ) {
+    return this.contractsService.findByClient(clientId, req.user.userId);
   }
 
-  @ApiOperation({ summary: 'Get contracts by project ID' })
   @Get('project/:projectId')
-  getByProject(@Param('projectId') projectId: string, @Request() req) {
-    return this.contractsService.findByProject(+projectId, req.user.userId);
+  @ApiOperation({ summary: 'Get contracts by project ID' })
+  @ApiParam({ name: 'projectId', type: 'number', description: 'Project ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of contracts for the specified project',
+  })
+  getByProject(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Request() req,
+  ) {
+    return this.contractsService.findByProject(projectId, req.user.userId);
   }
 }
