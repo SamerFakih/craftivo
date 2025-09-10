@@ -6,6 +6,8 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,21 +19,20 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { UseGuards } from '@nestjs/common';
-import { UpdateClientDto } from 'src/clients/dto/update-client.dto';
 
+@ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
+@UseGuards(AuthGuard('jwt'))
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @ApiTags('users')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'Return all users.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  @Get()
   findAll() {
     return this.usersService.findAll();
   }
@@ -42,8 +43,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Return the user.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
   }
 
   @Post()
@@ -58,10 +59,11 @@ export class UsersController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user' })
   @ApiParam({ name: 'id', type: 'number', description: 'User ID' })
-  @ApiBody({ type: CreateUserDto })
+  @ApiBody({ type: UpdateUserDto })
   @ApiResponse({
     status: 200,
     description: 'The user has been successfully updated.',
@@ -69,10 +71,10 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   update(
-    @Param('id') id: string,
-    @Body() updateUserDto: Partial<UpdateClientDto>,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: Partial<UpdateUserDto>,
   ) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -84,7 +86,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  delete(@Param('id') id: string) {
-    return this.usersService.delete(+id);
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.delete(id);
   }
 }
