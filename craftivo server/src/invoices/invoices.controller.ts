@@ -9,12 +9,15 @@ import {
   Param,
   UseGuards,
   Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
+  ApiBody,
 } from '@nestjs/swagger';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -28,67 +31,75 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
+  @Post()
   @ApiOperation({ summary: 'Create invoice' })
+  @ApiBody({ type: CreateInvoiceDto })
   @ApiResponse({
     status: 201,
     description: 'The invoice has been successfully created.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @Post()
   create(@Body() createInvoiceDto: CreateInvoiceDto, @Request() req) {
     return this.invoicesService.create(createInvoiceDto, req.user.userId);
   }
 
+  @Get()
   @ApiOperation({ summary: 'Get all invoices' })
   @ApiResponse({
     status: 200,
     description: 'List of all invoices',
   })
-  @Get()
   findAll(@Request() req) {
     return this.invoicesService.findAll(req.user.userId);
   }
 
+  @Get(':id')
   @ApiOperation({ summary: 'Get invoice by ID' })
+  @ApiParam({ name: 'id', type: 'number', description: 'Invoice ID' })
   @ApiResponse({
     status: 200,
     description: 'The invoice has been successfully retrieved.',
   })
   @ApiResponse({ status: 404, description: 'Invoice not found.' })
-  @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.invoicesService.findOne(+id, req.user.userId);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.invoicesService.findOne(id, req.user.userId);
   }
 
+  @Patch(':id/status')
   @ApiOperation({ summary: 'Update invoice status' })
+  @ApiParam({ name: 'id', type: 'number', description: 'Invoice ID' })
+  @ApiBody({ type: UpdateStatusDto })
   @ApiResponse({
     status: 200,
     description: 'The invoice status has been successfully updated.',
   })
   @ApiResponse({ status: 404, description: 'Invoice not found.' })
-  @Patch(':id/status')
   updateStatus(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateStatusDto: UpdateStatusDto,
     @Request() req,
   ) {
     return this.invoicesService.updateStatus(
-      +id,
+      id,
       updateStatusDto.status,
       req.user.userId,
     );
   }
 
+  @Get('project/:projectId')
   @ApiOperation({ summary: 'Get invoices by project ID' })
+  @ApiParam({ name: 'projectId', type: 'number', description: 'Project ID' })
   @ApiResponse({
     status: 200,
     description: 'List of invoices for the specified project',
   })
   @ApiResponse({ status: 404, description: 'Project not found.' })
-  @Get('project/:projectId')
-  getByProject(@Param('projectId') projectId: string, @Request() req) {
+  getByProject(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Request() req,
+  ) {
     return this.invoicesService.getInvoicesByProject(
-      +projectId,
+      projectId,
       req.user.userId,
     );
   }
