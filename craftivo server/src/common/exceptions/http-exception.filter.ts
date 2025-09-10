@@ -13,7 +13,8 @@ import { Request, Response } from 'express';
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
-
+  // This method is called when an exception is thrown
+  // It handles the exception and sends an appropriate HTTP response
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -21,7 +22,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-
+    // Handle different types of exceptions
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
@@ -41,7 +42,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = 'Invalid reference provided';
       }
     }
-
+    // Construct a consistent error response
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
@@ -49,7 +50,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       method: request.method,
       message,
     };
-
+    // Log the error details
     this.logger.error(
       `${request.method} ${request.url}`,
       exception instanceof Error ? exception.stack : exception,
