@@ -1,74 +1,114 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import type { Response } from 'express'; // ✅ Use 'import type'
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+import { LoginUserDto, AuthResponseDto, UserProfileDto } from './dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.users.findUnique({
-      where: { email },
-    });
+  async register(
+    createUserDto: CreateUserDto,
+    response: Response,
+  ): Promise<AuthResponseDto> {
+    this.logger.log(`Registering user: ${createUserDto.email}`);
 
-    if (user && (await bcrypt.compare(password, user.password_hash))) {
-      const { password_hash, ...result } = user;
-      return result;
-    }
-    return null;
-  }
-
-  async login(user: any) {
-    const payload = { email: user.email, sub: user.id, role: user.role };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
-  }
-
-  async register(userData: any) {
-    // Check if user already exists
+    // Check if user exists
     const existingUser = await this.prisma.users.findUnique({
-      where: { email: userData.email },
+      where: { email: createUserDto.email },
     });
 
     if (existingUser) {
-      throw new Error('User with this email already exists');
+      throw new ConflictException('User with this email already exists');
     }
 
-    // Hash the password
+    // Hash password
     const saltRounds = 12;
-    const password_hash = await bcrypt.hash(userData.password, saltRounds);
+    const password_hash = await bcrypt.hash(createUserDto.password, saltRounds);
 
-    // Create user without password, add password_hash
-    const { password, ...rest } = userData;
-    const newUser = await this.prisma.users.create({
+    // Create user
+    const { password, ...userData } = createUserDto;
+    const user = await this.prisma.users.create({
       data: {
-        ...rest,
+        email: userData.email,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
         password_hash,
       },
     });
 
-    // Remove password_hash from response
-    const { password_hash: _, ...userResponse } = newUser;
-    return userResponse;
+    // Generate JWT and set cookie
+    const tokens = await this.generateTokens(user);
+    this.setAuthCookie(response, tokens.access_token);
+
+    this.logger.log(`User registered successfully: ${user.id}`);
+
+    return {
+      message: 'User registered successfully',
+      user: this.sanitizeUser(user),
+      access_token: tokens.access_token,
+    };
   }
 
-  async findUserById(id: number) {
-    return this.prisma.users.findUnique({
-      where: { id },
+  async login(
+    loginDto: LoginUserDto,
+    response: Response,
+  ): Promise<AuthResponseDto> {
+    this.logger.log(`Login attempt: ${loginDto.email}`);
+
+    // Find user
+    const user = await this.prisma.users.findUnique({
+      where: { email: loginDto.email },
+    });
+
+    if (
+      !user ||
+      !(await bcrypt.compare(loginDto.password, user.password_hash))
+    ) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.active) {
+      throw new UnauthorizedException('Account is deactivated');
+    }
+
+    // Generate JWT and set cookie
+    const tokens = await this.generateTokens(user);
+    this.setAuthCookie(response, tokens.access_token);
+
+    this.logger.log(`User logged in successfully: ${user.id}`);
+
+    return {
+      message: 'User logged in successfully',
+      user: this.sanitizeUser(user),
+      access_token: tokens.access_token,
+    };
+  }
+
+  async getProfile(userId: number): Promise<UserProfileDto> {
+    const user = await this.prisma.users.findUnique({
+      where: { id: userId },
       select: {
         id: true,
-        uuid: true,
         email: true,
         first_name: true,
         last_name: true,
@@ -76,18 +116,62 @@ export class AuthService {
         profile_image: true,
         timezone: true,
         business_name: true,
-        business_address: true,
         website: true,
         phone: true,
-        bio: true,
         location: true,
         hourly_rate: true,
         email_verified: true,
         active: true,
         created_at: true,
-        updated_at: true,
-        // password_hash excluded for security
       },
     });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // ✅ Fix Decimal conversion
+    return {
+      ...user,
+      hourly_rate: user.hourly_rate ? user.hourly_rate.toString() : undefined,
+    } as UserProfileDto;
+  }
+
+  async logout(response: Response): Promise<{ message: string }> {
+    response.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    return { message: 'Logged out successfully' };
+  }
+
+  private async generateTokens(user: any) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  private setAuthCookie(response: Response, token: string): void {
+    response.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
+  }
+
+  private sanitizeUser(user: any) {
+    const { password_hash, ...sanitizedUser } = user;
+    return sanitizedUser;
   }
 }
