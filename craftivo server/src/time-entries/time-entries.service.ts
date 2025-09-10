@@ -1,9 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Injectable,
   NotFoundException,
@@ -113,7 +111,7 @@ export class TimeEntriesService {
   }
 
   // Get a single time entry by ID
-  async findOne(id: number) {
+  async findOne(id: number, userId: number) {
     const timeEntry = await this.prisma.time_entries.findUnique({
       where: { id },
       include: {
@@ -128,12 +126,21 @@ export class TimeEntriesService {
       throw new NotFoundException('Time entry not found');
     }
 
+    // Optional: check if the user owns the entry
+    if (timeEntry.user_id !== userId) {
+      throw new NotFoundException('Time entry not found');
+    }
+
     return timeEntry;
   }
 
   // Update a time entry
-  async update(id: number, updateTimeEntriesDto: UpdateTimeEntriesDto) {
-    const timeEntry = await this.findOne(id);
+  async update(
+    id: number,
+    userId: number,
+    updateTimeEntriesDto: UpdateTimeEntriesDto,
+  ) {
+    const timeEntry = await this.findOne(id, userId);
 
     const { start_time, end_time, duration, ...rest } = updateTimeEntriesDto;
 
@@ -164,8 +171,8 @@ export class TimeEntriesService {
   }
 
   // Delete a time entry
-  async remove(id: number) {
-    await this.findOne(id); // Check if exists
+  async remove(id: number, p0: { user_id: any }) {
+    await this.findOne(id, p0.user_id); // Check if exists
     return this.prisma.time_entries.delete({ where: { id } });
   }
 
@@ -190,8 +197,8 @@ export class TimeEntriesService {
   }
 
   // Stop a running timer
-  async stopTimer(id: number) {
-    const timeEntry = await this.findOne(id);
+  async stopTimer(id: number, userId: number) {
+    const timeEntry = await this.findOne(id, userId);
 
     if (timeEntry.status !== TimeEntryStatus.running) {
       throw new BadRequestException('Time entry is not running');
