@@ -10,10 +10,9 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Req,
-  UseGuards,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,10 +30,10 @@ import { AuthGuard } from '@nestjs/passport';
 @ApiTags('tasks')
 @ApiBearerAuth()
 @Controller('tasks')
+@UseGuards(AuthGuard('jwt'))
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   @ApiOperation({ summary: 'Get all tasks' })
   @ApiQuery({
@@ -51,17 +50,14 @@ export class TasksController {
     return this.tasksService.findAll();
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('my-tasks')
   @ApiOperation({ summary: 'Get tasks assigned to or created by current user' })
   @ApiResponse({ status: 200, description: 'Return user tasks.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findMyTasks(@Req() req) {
-    const userId = req.user.userId;
-    return this.tasksService.findByUser(userId);
+  findMyTasks(@Request() req) {
+    return this.tasksService.findByUser(req.user.userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   @ApiOperation({ summary: 'Get a task by id' })
   @ApiParam({ name: 'id', type: 'number', description: 'Task ID' })
@@ -72,7 +68,6 @@ export class TasksController {
     return this.tasksService.findOne(id);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: 'Create a new task' })
   @ApiBody({ type: CreateTaskDto })
@@ -89,7 +84,6 @@ export class TasksController {
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   @ApiOperation({ summary: 'Update a task' })
   @ApiParam({ name: 'id', type: 'number', description: 'Task ID' })
@@ -107,7 +101,6 @@ export class TasksController {
     return this.tasksService.update(id, updateTaskDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a task' })
   @ApiParam({ name: 'id', type: 'number', description: 'Task ID' })
