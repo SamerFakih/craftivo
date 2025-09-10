@@ -12,11 +12,6 @@ export interface User {
   avatar?: string;
 }
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
 export interface AuthResponse {
   user: User;
   message?: string;
@@ -26,7 +21,7 @@ export interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = 'http://localhost:3000/api/v1/auth';
 
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   private currentUserSubject = new BehaviorSubject<User | null>(null);
@@ -43,11 +38,15 @@ export class AuthService {
   }
 
   // Login with HTTP-only cookies
-  login(credentials: LoginRequest): Observable<AuthResponse> {
+  login(email: string, password: string): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, credentials, {
-        withCredentials: true, // Important: sends cookies with request
-      })
+      .post<AuthResponse>(
+        `${this.apiUrl}/login`,
+        { email, password },
+        {
+          withCredentials: true, // Important: sends cookies with request
+        }
+      )
       .pipe(
         tap((response) => this.handleAuthSuccess(response.user)),
         catchError(this.handleError)
@@ -88,7 +87,7 @@ export class AuthService {
   // Check auth status by calling backend
   checkAuthStatus(): void {
     this.http
-      .get<{ user: User }>(`${this.apiUrl}/me`, {
+      .get<{ user: User }>(`${this.apiUrl}`, {
         withCredentials: true,
       })
       .subscribe({
@@ -104,7 +103,7 @@ export class AuthService {
   // Get current user from backend
   getCurrentUser(): Observable<User> {
     return this.http
-      .get<{ user: User }>(`${this.apiUrl}/me`, {
+      .get<{ user: User }>(`${this.apiUrl}`, {
         withCredentials: true,
       })
       .pipe(
@@ -119,8 +118,10 @@ export class AuthService {
 
   // Handle successful authentication
   private handleAuthSuccess(user: User): void {
-    // Only store non-sensitive user data in localStorage
-    localStorage.setItem('currentUser', JSON.stringify(user));
+    // Only store non-sensitive user data in localStorage (browser only)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
 
     // Update subjects and signals
     this.currentUserSubject.next(user);
@@ -131,8 +132,10 @@ export class AuthService {
 
   // Handle logout
   private handleLogout(): void {
-    // Clear only user data (no tokens to clear)
-    localStorage.removeItem('currentUser');
+    // Clear only user data (no tokens to clear, browser only)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('currentUser');
+    }
 
     // Reset subjects and signals
     this.currentUserSubject.next(null);
