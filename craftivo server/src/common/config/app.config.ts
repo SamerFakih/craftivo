@@ -14,7 +14,7 @@ export interface AppConfig {
   database: DatabaseConfig;
   jwt: JwtConfig;
 }
-
+// Function to get the application configuration from environment variables
 export const getConfig = (): AppConfig => {
   return {
     port: parseInt(process.env.PORT || '3000'),
