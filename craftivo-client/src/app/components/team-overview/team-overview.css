@@ -1,0 +1,74 @@
+.panel {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 14px;
+}
+.panel__head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0b0f14;
+}
+.panel__head .muted {
+  margin: 4px 0 10px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.table {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tr {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 2fr;
+  border-bottom: 1px solid #c2c2c2;
+}
+.tr:last-child {
+  border-bottom: none;
+}
+.td {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.th {
+  font-weight: 700;
+}
+.name {
+  font-weight: 700;
+}
+
+.progress {
+  gap: 10px;
+}
+.bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.fill {
+  height: 100%;
+  background: teal;
+}
+.pct {
+  font-size: 12px;
+  color: #475569;
+  min-width: 36px;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .tr {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  }
+  .tr .progress {
+    grid-column: 1 / -1;
+    padding-top: 0;
+  }
+}

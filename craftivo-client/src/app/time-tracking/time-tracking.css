@@ -1,0 +1,142 @@
+.page {
+  padding: 14px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0b0f14;
+}
+.subtitle {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.btn--primary {
+  background: teal;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+}
+.btn--ghost {
+  background: teal;
+  border: none;
+  color: white;
+  font-weight: 700;
+}
+.icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.timer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 12px;
+}
+.chk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #111827;
+}
+.time {
+  font-size: 18px;
+  font-weight: 800;
+  margin-left: 14px;
+}
+.select {
+  height: 36px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 0 10px;
+  margin-right: 10px;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+.kpi {
+  grid-column: span 3;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 14px;
+}
+.kpi__label {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 6px;
+}
+.kpi__value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0b0f14;
+}
+
+/* Tabs */
+.tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 6px;
+}
+.tab {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+}
+.tab--active {
+  background: teal;
+  color: #fff;
+  border-color: teal;
+}
+
+@media (max-width: 900px) {
+  .kpi {
+    grid-column: span 6;
+  }
+}
+@media (max-width: 560px) {
+  .kpi {
+    grid-column: span 12;
+  }
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .timer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

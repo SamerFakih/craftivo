@@ -1,0 +1,8 @@
+.sidebar:not(.open) ~ .dashboard-layout {
+  margin-left: 0;
+}
+
+.main-content {
+  padding: 10px;
+  border-left: #c2c2c2 1px solid;
+}

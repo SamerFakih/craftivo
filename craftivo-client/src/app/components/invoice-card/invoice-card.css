@@ -1,0 +1,118 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 16px;
+}
+.row + .row {
+  margin-top: 12px;
+}
+
+.row__left {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.code__text {
+  font-weight: 800;
+  color: #0b0f14;
+  border: 1px solid #c2c2c2;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+.pill {
+  text-transform: capitalize;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 700;
+}
+.pill--paid {
+  color: #0f766e;
+  border-color: #0f766e;
+}
+.pill--pending {
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+.pill--overdue {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.meta__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.meta__muted {
+  color: #6b7280;
+  font-size: 13px;
+}
+.client,
+.project {
+  color: #374151;
+  font-size: 14px;
+}
+.sep {
+  color: #94a3b8;
+}
+.dot {
+  color: #94a3b8;
+}
+
+.row__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.amount {
+  text-align: right;
+  margin-right: 8px;
+}
+.amount__value {
+  font-weight: 800;
+  color: #0b0f14;
+}
+.amount__cur {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+.iconbtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #c2c2c2;
+  background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.iconbtn svg {
+  width: 18px;
+  height: 18px;
+  fill: #111827;
+}
+.iconbtn:hover {
+  background: #f1f5f9;
+}

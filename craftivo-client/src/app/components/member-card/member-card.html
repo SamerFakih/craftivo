@@ -1,0 +1,42 @@
+<article class="row">
+    <div class="left">
+        <img class="avatar" [src]="member.avatarUrl || 'https://via.placeholder.com/44'" [alt]="member.name">
+        <div class="id">
+            <div class="name">
+                <strong>{{ member.name }}</strong>
+                <span [class]="pillClass()">{{ member.status }}</span>
+            </div>
+            <div class="title muted">{{ member.title }}</div>
+            <div class="meta">
+                <span class="chip">
+                    <i class="pi pi-envelope"></i>
+                    {{ member.email }}
+                </span>
+                <span class="chip">
+                    <i class="pi pi-map-marker"></i>
+                    {{ member.location }}
+                </span>
+            </div>
+
+            <div class="skills">
+                <span class="tag" *ngFor="let s of member.skills">{{ s }}</span>
+            </div>
+
+            <div class="stats">
+                <span class="muted">Hourly Rate</span><strong>{{ rateLabel }}</strong>
+                <span class="muted">Hours/Month</span><strong>{{ hoursLabel }}</strong>
+                <span class="muted">Active Projects</span><strong>{{ projectsLabel }}</strong>
+                <span class="muted">Tasks Done</span><strong>{{ tasksLabel }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="right">
+        <button class="iconbtn" title="Edit">
+            <i class="pi pi-pencil"></i>
+        </button>
+        <button class="iconbtn" title="More">
+            <i class="pi pi-ellipsis-v"></i>
+        </button>
+    </div>
+</article>

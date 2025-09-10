@@ -7,14 +7,22 @@
   align-items: center;
 }
 
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
 .header h1 {
   margin: 0;
   font-size: 1.8rem;
 }
 
 .logo {
-  height: 76px;
-  width: 76px;
+  height: 48px;
+  width: 48px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -35,4 +43,75 @@
 
 .nav a:hover {
   color: grey;
+}
+
+.nav-logged-in {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.search-bar {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.notif-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.logout-btn {
+  background: #fff;
+  color: teal;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 1rem;
+  transition: background 0.2s;
+}
+.logout-btn:hover {
+  background: #f0f0f0;
+}
+
+.demo-login-btn {
+  background: #fff;
+  color: teal;
+  border: none;
+  border-radius: 20px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 1rem;
+  transition: background 0.2s;
+}
+.demo-login-btn:hover {
+  background: #f0f0f0;
 }

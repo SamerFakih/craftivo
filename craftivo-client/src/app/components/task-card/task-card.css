@@ -1,0 +1,75 @@
+.task {
+  border: 1px solid #c2c2c2;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.task__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  color: #0b0f14;
+}
+.task__sub {
+  margin: 6px 0 10px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.task__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.meta__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.meta__text {
+  font-size: 13px;
+  color: #374151;
+}
+.meta__sep {
+  width: 12px;
+  display: inline-block;
+}
+.meta__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+  display: inline-block;
+}
+.icon {
+  width: 16px;
+  height: 16px;
+  fill: #64748b;
+}
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  background: #e5e7eb;
+}
+
+.tags {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.tag {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #374151;
+  border: 1px solid #c2c2c2;
+}
+
+/* card spacing like the screenshot */
+.task + .task {
+  margin-top: 12px;
+}
