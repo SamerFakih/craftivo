@@ -19,6 +19,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UseGuards } from '@nestjs/common';
+import { UpdateClientDto } from 'src/clients/dto/update-client.dto';
 
 @Controller('users')
 export class UsersController {
@@ -69,7 +70,7 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   update(
     @Param('id') id: string,
-    @Body() updateUserDto: Partial<CreateUserDto>,
+    @Body() updateUserDto: Partial<UpdateClientDto>,
   ) {
     return this.usersService.update(+id, updateUserDto);
   }
