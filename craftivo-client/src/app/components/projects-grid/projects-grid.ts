@@ -1,7 +1,8 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Project } from '../../models/project';
 import { ProjectCard } from '../project-card/project-card';
+import { ProjectService } from '../../services/project.service';
+import { Project } from '../../models/project';
 
 type TabKey = 'all' | 'active' | 'completed' | 'other';
 
@@ -12,107 +13,41 @@ type TabKey = 'all' | 'active' | 'completed' | 'other';
   templateUrl: './projects-grid.html',
   styleUrls: ['./projects-grid.css'],
 })
-export class ProjectsGrid {
-  // Demo data — replace with API data
-  projects = signal<Project[]>([
-    {
-      id: '1',
-      title: 'E-commerce Website Redesign',
-      client: 'TechCorp Inc.',
-      description: "Complete redesign of the company's e-commerce platform",
-      status: 'active',
-      progressPct: 75,
-      budgetUsed: 9000,
-      budgetTotal: 12000,
-      dueDateISO: '2024-09-15',
-      team: [{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }],
-      tags: ['Web Design', 'E-commerce'],
-      progress: function (progress: any, arg1: number): number {
-        throw new Error('Function not implemented.');
+export class ProjectsGrid implements OnInit {
+  constructor(private projectService: ProjectService) {}
+  ngOnInit() {
+    this.projectService.getProjects().subscribe({
+      next: (data) => {
+        // The API returns projects array directly, not wrapped in data.projects
+        const projectsArray = Array.isArray(data) ? data : data.projects || [];
+
+        if (Array.isArray(projectsArray) && projectsArray.length > 0) {
+          const mappedProjects: Project[] = projectsArray.map((pr: any): Project => {
+            return {
+              ...pr,
+              budget: Number(pr.budget),
+              hourly_rate: Number(pr.hourly_rate),
+              spent_amount: Number(pr.spent_amount),
+              client: pr.clients?.name || '',
+              team: (pr.project_members || []).map((m: any) => ({
+                name: `${m.users?.first_name || ''} ${m.users?.last_name || ''}`.trim(),
+                avatarUrl: m.users?.profile_image || 'https://via.placeholder.com/28',
+              })),
+            };
+          });
+
+          this.projects.set(mappedProjects);
+        } else {
+          this.projects.set([]);
+        }
       },
-    },
-    // Duplicate a few for layout like screenshot
-    {
-      id: '2',
-      title: 'E-commerce Website Redesign',
-      client: 'TechCorp Inc.',
-      description: "Complete redesign of the company's e-commerce platform",
-      status: 'active',
-      progressPct: 75,
-      budgetUsed: 9000,
-      budgetTotal: 12000,
-      dueDateISO: '2024-09-15',
-      team: [{ name: 'A' }, { name: 'B' }, { name: 'C' }],
-      tags: ['Web Design', 'E-commerce'],
-      progress: function (progress: any, arg1: number): number {
-        throw new Error('Function not implemented.');
+      error: (error) => {
+        console.error('Error fetching projects:', error);
+        this.projects.set([]);
       },
-    },
-    {
-      id: '3',
-      title: 'E-commerce Website Redesign',
-      client: 'TechCorp Inc.',
-      description: "Complete redesign of the company's e-commerce platform",
-      status: 'active',
-      progressPct: 75,
-      budgetUsed: 9000,
-      budgetTotal: 12000,
-      dueDateISO: '2024-09-15',
-      team: [{ name: 'A' }, { name: 'B' }],
-      tags: ['Web Design', 'E-commerce'],
-      progress: function (progress: any, arg1: number): number {
-        throw new Error('Function not implemented.');
-      },
-    },
-    {
-      id: '4',
-      title: 'E-commerce Website Redesign',
-      client: 'TechCorp Inc.',
-      description: "Complete redesign of the company's e-commerce platform",
-      status: 'active',
-      progressPct: 75,
-      budgetUsed: 9000,
-      budgetTotal: 12000,
-      dueDateISO: '2024-09-15',
-      team: [{ name: 'A' }, { name: 'B' }, { name: 'C' }],
-      tags: ['Web Design', 'E-commerce'],
-      progress: function (progress: any, arg1: number): number {
-        throw new Error('Function not implemented.');
-      },
-    },
-    {
-      id: '5',
-      title: 'E-commerce Website Redesign',
-      client: 'TechCorp Inc.',
-      description: "Complete redesign of the company's e-commerce platform",
-      status: 'active',
-      progressPct: 75,
-      budgetUsed: 9000,
-      budgetTotal: 12000,
-      dueDateISO: '2024-09-15',
-      team: [{ name: 'A' }],
-      tags: ['Web Design', 'E-commerce'],
-      progress: function (progress: any, arg1: number): number {
-        throw new Error('Function not implemented.');
-      },
-    },
-    {
-      id: '6',
-      title: 'E-commerce Website Redesign',
-      client: 'TechCorp Inc.',
-      description: "Complete redesign of the company's e-commerce platform",
-      status: 'active',
-      progressPct: 75,
-      budgetUsed: 9000,
-      budgetTotal: 12000,
-      dueDateISO: '2024-09-15',
-      team: [{ name: 'A' }, { name: 'B' }, { name: 'C' }],
-      tags: ['Web Design', 'E-commerce'],
-      progress: function (progress: any, arg1: number): number {
-        throw new Error('Function not implemented.');
-      },
-    },
-  ]);
+    });
+  }
+  projects = signal<Project[]>([]);
 
   activeTab = signal<TabKey>('all');
 
@@ -158,11 +93,15 @@ export class ProjectsGrid {
   activeCountt = computed(() => this.projects().filter((p) => p.status === 'active').length);
   completedCountt = computed(() => this.projects().filter((p) => p.status === 'completed').length);
   totalRevenue = computed(() => {
-    // sum of budgetUsed; adjust to budgetTotal if you want
-    return this.projects().reduce((sum, p) => sum + (p.budgetUsed || 0), 0);
+    // sum of spent_amount; adjust to budget if you want total budget
+    return this.projects().reduce((sum, p) => sum + Number(p.spent_amount || 0), 0);
   });
 
   setTab(tab: TabKey) {
     this.activeTab.set(tab);
+  }
+
+  trackByProjectId(index: number, project: Project): number {
+    return project.id;
   }
 }
