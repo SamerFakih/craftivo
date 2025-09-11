@@ -4,6 +4,7 @@ import { TimeEntries } from '../components/time-entries/time-entries';
 import { TeamOverview } from '../components/team-overview/team-overview';
 import { ProjectSummary } from '../components/project-summary/project-summary';
 import { MemberSummary, ProjectHoursCard, TimeEntry } from '../models/time-tracking';
+import { TimeTrackingService } from '../services/time-tracking.service';
 
 type TabKey = 'entries' | 'team' | 'projects';
 
@@ -15,6 +16,20 @@ type TabKey = 'entries' | 'team' | 'projects';
   styleUrls: ['./time-tracking.css'],
 })
 export class TimeTracking {
+  constructor(private timeTrackingService: TimeTrackingService) {}
+  // fetch time entries from API
+  entries = signal<TimeEntry[]>([]);
+  totalCnt = computed(() => this.entries().length);
+  ngOnInit() {
+    this.timeTrackingService.getTimeEntries().subscribe({
+      next: (data) => {
+        console.log('Fetched time entries raw data:', data);
+        // The API returns time entries array directly, not wrapped in data.entries
+        const entriesArray = Array.isArray(data) ? data : data.entries || [];
+        this.entries.set(entriesArray);
+      },
+    });
+  }
   // demo timer header
   currentTime = signal('00:00:00');
   selectedProject = signal('Select project');
@@ -32,47 +47,47 @@ export class TimeTracking {
   }
 
   // Demo data
-  entries = signal<TimeEntry[]>([
-    {
-      id: 't1',
-      title: 'Homepage wireframes',
-      project: 'E-commerce Redesign',
-      client: 'TechCorp Inc.',
-      note: 'Created detailed wireframes for the new homepage layout',
-      dateISO: '2024-08-25',
-      startTime: '09:00',
-      endTime: '12:30',
-      hours: 3.5,
-      amountUSD: 297.5,
-      status: 'completed',
-    },
-    {
-      id: 't2',
-      title: 'Homepage wireframes',
-      project: 'E-commerce Redesign',
-      client: 'TechCorp Inc.',
-      note: '',
-      dateISO: '2024-08-25',
-      startTime: '08:00',
-      endTime: '12:30',
-      hours: 3.5,
-      amountUSD: 297.5,
-      status: 'completed',
-    },
-    {
-      id: 't3',
-      title: 'Homepage wireframes',
-      project: 'E-commerce Redesign',
-      client: 'TechCorp Inc.',
-      note: '',
-      dateISO: '2024-08-25',
-      startTime: '09:00',
-      endTime: '12:30',
-      hours: 3.5,
-      amountUSD: 297.5,
-      status: 'completed',
-    },
-  ]);
+  // entries = signal<TimeEntry[]>([
+  //   {
+  //     id: 't1',
+  //     title: 'Homepage wireframes',
+  //     project: 'E-commerce Redesign',
+  //     client: 'TechCorp Inc.',
+  //     note: 'Created detailed wireframes for the new homepage layout',
+  //     dateISO: '2024-08-25',
+  //     startTime: '09:00',
+  //     endTime: '12:30',
+  //     hours: 3.5,
+  //     amountUSD: 297.5,
+  //     status: 'completed',
+  //   },
+  //   {
+  //     id: 't2',
+  //     title: 'Homepage wireframes',
+  //     project: 'E-commerce Redesign',
+  //     client: 'TechCorp Inc.',
+  //     note: '',
+  //     dateISO: '2024-08-25',
+  //     startTime: '08:00',
+  //     endTime: '12:30',
+  //     hours: 3.5,
+  //     amountUSD: 297.5,
+  //     status: 'completed',
+  //   },
+  //   {
+  //     id: 't3',
+  //     title: 'Homepage wireframes',
+  //     project: 'E-commerce Redesign',
+  //     client: 'TechCorp Inc.',
+  //     note: '',
+  //     dateISO: '2024-08-25',
+  //     startTime: '09:00',
+  //     endTime: '12:30',
+  //     hours: 3.5,
+  //     amountUSD: 297.5,
+  //     status: 'completed',
+  //   },
+  // ]);
 
   members = signal<MemberSummary[]>([
     {
