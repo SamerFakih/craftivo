@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
@@ -33,8 +33,23 @@ export class AuthService {
   isLoggedIn = signal(false);
   currentUser = signal<User | null>(null);
 
-  constructor(private http: HttpClient, private router: Router) {
-    this.checkAuthStatus();
+  constructor(private http: HttpClient, private router: Router) {}
+
+  // Used by AuthGuard to check auth status and return Observable<boolean>
+  public checkAuthStatusGuard(): Observable<boolean> {
+    return this.http.get<any>(`${this.apiUrl}/profile`, { withCredentials: true }).pipe(
+      map((response: any) => {
+        const user = response.user ? response.user : response;
+        this.isLoggedIn.set(true);
+        this.currentUser.set(user);
+        return true;
+      }),
+      catchError(() => {
+        this.isLoggedIn.set(false);
+        this.currentUser.set(null);
+        return of(false);
+      })
+    );
   }
 
   // Login with HTTP-only cookies
@@ -65,85 +80,39 @@ export class AuthService {
       );
   }
 
-  // Logout
-  logout(): Observable<any> {
-    return this.http
-      .post(
-        `${this.apiUrl}/logout`,
-        {},
-        {
-          withCredentials: true,
-        }
-      )
-      .pipe(
-        tap(() => this.handleLogout()),
-        catchError(() => {
-          this.handleLogout();
-          return throwError('Logout failed');
-        })
-      );
-  }
-
-  // Check auth status by calling backend
-  checkAuthStatus(): void {
-    this.http
-      .get<{ user: User }>(`${this.apiUrl}`, {
-        withCredentials: true,
-      })
-      .subscribe({
-        next: (response) => {
-          this.handleAuthSuccess(response.user);
-        },
-        error: () => {
-          this.handleLogout();
-        },
-      });
-  }
-
-  // Get current user from backend
-  getCurrentUser(): Observable<User> {
-    return this.http
-      .get<{ user: User }>(`${this.apiUrl}`, {
-        withCredentials: true,
-      })
-      .pipe(
-        map((response) => response.user),
-        tap((user) => {
-          this.currentUserSubject.next(user);
-          this.currentUser.set(user);
-        }),
-        catchError(this.handleError)
-      );
-  }
-
   // Handle successful authentication
   private handleAuthSuccess(user: User): void {
-    // Only store non-sensitive user data in localStorage (browser only)
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
-    }
-
-    // Update subjects and signals
-    this.currentUserSubject.next(user);
-    this.isLoggedInSubject.next(true);
-    this.currentUser.set(user);
     this.isLoggedIn.set(true);
+    this.currentUser.set(user);
   }
 
-  // Handle logout
+  // Check authentication status from backend (restore state)
+  checkAuthStatus(): void {
+    this.http.get<any>(`${this.apiUrl}/profile`, { withCredentials: true }).subscribe({
+      next: (response) => {
+        // Support both { user: ... } and plain user object
+        const user = response.user ? response.user : response;
+        this.isLoggedIn.set(true);
+        this.currentUser.set(user);
+      },
+      error: () => {
+        this.isLoggedIn.set(false);
+        this.currentUser.set(null);
+      },
+    });
+  }
+
+  // Logout and clear state
+  logout(): void {
+    this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({
+      next: () => this.handleLogout(),
+      error: () => this.handleLogout(),
+    });
+  }
+
   private handleLogout(): void {
-    // Clear only user data (no tokens to clear, browser only)
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem('currentUser');
-    }
-
-    // Reset subjects and signals
-    this.currentUserSubject.next(null);
-    this.isLoggedInSubject.next(false);
-    this.currentUser.set(null);
     this.isLoggedIn.set(false);
-
-    // Redirect to login
+    this.currentUser.set(null);
     this.router.navigate(['/signin']);
   }
 
