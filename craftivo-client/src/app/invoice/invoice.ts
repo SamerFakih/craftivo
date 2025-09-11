@@ -2,6 +2,7 @@ import { Component, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvoiceModel, InvoiceStatus } from '../models/invoice';
 import { InvoiceCard } from '../components/invoice-card/invoice-card';
+import { InvoiceService } from '../services/invoice.service';
 
 type TabKey = 'all' | 'paid' | 'pending' | 'overdue';
 
@@ -13,51 +14,64 @@ type TabKey = 'all' | 'paid' | 'pending' | 'overdue';
   styleUrls: ['./invoice.css'],
 })
 export class Invoice {
+  constructor(private invoiceService: InvoiceService) {}
+  // fetch invoices from API
+  invoices = signal<InvoiceModel[]>([]);
+  ngOnInit() {
+    console.log('Invoice ngOnInit called');
+    this.invoiceService.getInvoices().subscribe({
+      next: (data) => {
+        console.log('Fetched invoices raw data:', data);
+        this.invoices.set(data);
+      },
+    });
+  }
+
   // demo data — replace with API
-  invoices = signal<InvoiceModel[]>([
-    {
-      id: 'INV-001',
-      client: 'TechCorp Inc.',
-      project: 'E-commerce Redesign',
-      amountUSD: 8500,
-      issuedISO: '2024-08-01',
-      dueISO: '2024-08-31',
-      paidISO: '2024-08-28',
-      status: 'paid',
-      currency: 'USD',
-    },
-    {
-      id: 'INV-002',
-      client: 'TechCorp Inc.',
-      project: 'E-commerce Redesign',
-      amountUSD: 8500,
-      issuedISO: '2024-08-01',
-      dueISO: '2024-08-31',
-      status: 'pending',
-      currency: 'USD',
-    },
-    {
-      id: 'INV-003',
-      client: 'TechCorp Inc.',
-      project: 'E-commerce Redesign',
-      amountUSD: 8500,
-      issuedISO: '2024-08-01',
-      dueISO: '2024-08-31',
-      paidISO: '2024-08-28',
-      status: 'paid',
-      currency: 'USD',
-    },
-    {
-      id: 'INV-004',
-      client: 'TechCorp Inc.',
-      project: 'E-commerce Redesign',
-      amountUSD: 3400,
-      issuedISO: '2024-08-01',
-      dueISO: '2024-08-15',
-      status: 'overdue',
-      currency: 'USD',
-    },
-  ]);
+  // invoices = signal<InvoiceModel[]>([
+  //   {
+  //     id: 'INV-001',
+  //     client: 'TechCorp Inc.',
+  //     project: 'E-commerce Redesign',
+  //     amountUSD: 8500,
+  //     issuedISO: '2024-08-01',
+  //     dueISO: '2024-08-31',
+  //     paidISO: '2024-08-28',
+  //     status: 'paid',
+  //     currency: 'USD',
+  //   },
+  //   {
+  //     id: 'INV-002',
+  //     client: 'TechCorp Inc.',
+  //     project: 'E-commerce Redesign',
+  //     amountUSD: 8500,
+  //     issuedISO: '2024-08-01',
+  //     dueISO: '2024-08-31',
+  //     status: 'pending',
+  //     currency: 'USD',
+  //   },
+  //   {
+  //     id: 'INV-003',
+  //     client: 'TechCorp Inc.',
+  //     project: 'E-commerce Redesign',
+  //     amountUSD: 8500,
+  //     issuedISO: '2024-08-01',
+  //     dueISO: '2024-08-31',
+  //     paidISO: '2024-08-28',
+  //     status: 'paid',
+  //     currency: 'USD',
+  //   },
+  //   {
+  //     id: 'INV-004',
+  //     client: 'TechCorp Inc.',
+  //     project: 'E-commerce Redesign',
+  //     amountUSD: 3400,
+  //     issuedISO: '2024-08-01',
+  //     dueISO: '2024-08-15',
+  //     status: 'overdue',
+  //     currency: 'USD',
+  //   },
+  // ]);
 
   // search text
   q = signal('');
