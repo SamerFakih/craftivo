@@ -1,7 +1,9 @@
-<div class="card-summary">
-    <div class="summary-label">
-        <p>{{key}}</p>
-        <i [class]="icon"></i>
+<section class="summary">
+    <div class="card-summary" *ngFor="let summary of summarys">
+        <div class="summary-label">
+            <p>{{ summary.key }}</p>
+            <i [class]="summary.icon"></i>
+        </div>
+        <h2><strong>{{ summary.value }}</strong></h2>
     </div>
-    <h2><strong>{{ value }}</strong></h2>
-</div>
+</section>
