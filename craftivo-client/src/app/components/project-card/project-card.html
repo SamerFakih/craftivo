@@ -1,6 +1,6 @@
 <article class="card" aria-label="Project card">
     <header class="card__head">
-        <h3 class="card__title">{{ project.title }}</h3>
+        <h3 class="card__title">{{ project.name }}</h3>
         <span class="pill pill--status" [class.pill--active]="project.status==='active'">
             {{ project.status }}
         </span>
@@ -10,7 +10,7 @@
         </button>
     </header>
 
-    <p class="client">{{ project.client }}</p>
+    <p class="client">{{ project.client || 'No client assigned' }}</p>
     <p class="desc">{{ project.description }}</p>
 
     <!-- <div class="progress" role="progressbar" [attr.aria-valuenow]="project.progressPct" aria-valuemin="0"
@@ -18,17 +18,17 @@
         <div class="progress__bar" [ngStyle]="progressStyle"></div>
         <div class="progress__label">{{ project.progressPct }}%</div>
     </div> -->
-    <p-progressbar [value]="value" />
+    <p-progressbar [value]="project.progress" />
 
     <div class="meta">
         <div class="meta__item" title="Budget">
             <i class="pi pi-wallet"></i>
-            <span>${{ project.budgetUsed | number:'1.0-0' }} / ${{ project.budgetTotal | number:'1.0-0' }}</span>
+            <span>${{ project.spent_amount | number:'1.0-0' }} / ${{ project.budget | number:'1.0-0' }}</span>
         </div>
 
         <div class="meta__item" title="Due date">
             <i class="pi pi-calendar"></i>
-            <span>Due {{ dueDateLabel }}</span>
+            <span>Due {{ project.end_date | date:'MMM d' }}</span>
         </div>
     </div>
 
@@ -36,7 +36,7 @@
         <div class="avatars">
             <img *ngFor="let m of project.team | slice:0:3; index as i" class="avatar"
                 [src]="m.avatarUrl ?? 'https://via.placeholder.com/28'" [alt]="m.name" />
-            <span *ngIf="project.team.length>3" class="avatar avatar--more">
+            <span *ngIf="project.team && project.team.length>3" class="avatar avatar--more">
                 +{{ project.team.length-3 }}
             </span>
         </div>
