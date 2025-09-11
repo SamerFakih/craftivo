@@ -16,11 +16,11 @@ export class ProjectCard {
   value: number = 70;
 
   get dueDateLabel(): string {
-    const d = new Date(this.project.dueDateISO);
+    const d = new Date(this.project.end_date);
     return d.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
   }
 
   get progressStyle() {
-    return { width: `${Math.min(Math.max(this.project.progressPct, 0), 100)}%` };
+    return { width: `${Math.min(Math.max(this.project.progress, 0), 100)}%` };
   }
 }
