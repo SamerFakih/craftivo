@@ -6,8 +6,7 @@
     <button class="new-project-button"> + New Project</button>
 </section>
 <section class="summary">
-    <app-summary-cards *ngFor="let summary of summarys" [key]="summary.key" [value]="summary.value"
-        [icon]="summary.icon"></app-summary-cards>
+    <app-summary-cards [summarys]="summarys"></app-summary-cards>
 </section>
 <div class="container1">
     <div class="recent-projects">
@@ -17,15 +16,15 @@
                 <p>Your active and recent project overview</p>
             </div>
             <div class="view-all">
-                <a routerLink="/projects">View All <i class="pi pi-arrow-right"></i></a>
+                <a routerLink="dashboard/projects">View All <i class="pi pi-arrow-right"></i></a>
             </div>
         </div>
         <section class="projects">
             <div *ngFor="let project of projects" class="project-card">
                 <div class="project-info">
-                    <h3>{{ project.title }}</h3>
-                    <p>Client: {{ project.client }}</p>
-                    <p-progressbar [value]="value" />
+                    <h3>{{ project.name }}</h3>
+                    <p>{{ project.client?.name || 'No client assigned' }}</p>
+                    <p-progressbar [value]="project.progress" />
                 </div>
                 <div>
                     <p>${{ project.budget }}</p>
@@ -39,9 +38,9 @@
             <h2>Today's Tasks</h2>
             <p>Your upcoming deadlines</p>
             <div *ngFor="let task of tasks" class="task-card">
-                <h3>{{ task.name }}</h3>
-                <p>{{ task.title }}</p>
-                <p>{{ task.endTime }}</p>
+                <h3>{{ task.title }}</h3>
+                <p>{{ task.projects?.name || 'No project assigned' }}</p>
+                <p>Due: {{ task.due_time }} | Status: {{ task.status }}</p>
             </div>
         </section>
     </div>
