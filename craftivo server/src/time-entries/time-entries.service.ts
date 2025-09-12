@@ -7,7 +7,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateTimeEntriesDto } from './dto/create-time-entries.dto';
 import { UpdateTimeEntriesDto } from './dto/update-time-entries.dto';
 import { TimeEntryStatus } from '@prisma/client';
@@ -99,15 +99,34 @@ export class TimeEntriesService {
       if (filters.end_date) where.start_time.lte = new Date(filters.end_date);
     }
 
-    return this.prisma.time_entries.findMany({
+    const entries = await this.prisma.time_entries.findMany({
       where,
       include: {
         users: { select: { id: true, first_name: true, last_name: true } },
-        projects: { select: { id: true, name: true } },
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            clients: { select: { name: true } },
+          },
+        },
         tasks: { select: { id: true, title: true } },
       },
       orderBy: { start_time: 'desc' },
     });
+    return entries.map((e) => ({
+      id: `t${e.id}`,
+      title: e.tasks?.title || '',
+      project: e.projects?.name || '',
+      client: e.projects?.clients?.name || '',
+      note: e.description || '',
+      dateISO: e.start_time ? e.start_time.toISOString().slice(0, 10) : '',
+      startTime: e.start_time ? e.start_time.toISOString().slice(11, 16) : '',
+      endTime: e.end_time ? e.end_time.toISOString().slice(11, 16) : '',
+      hours: e.duration ? +(e.duration / 3600).toFixed(2) : 0,
+      amountUSD: e.amount ? Number(e.amount) : 0,
+      status: e.status,
+    }));
   }
 
   // Get a single time entry by ID
