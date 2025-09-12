@@ -8,8 +8,10 @@ export class ClientsService {
   clientsService: any;
   constructor(private prisma: PrismaService) {}
 
-  findAll() {
-    return this.prisma.clients.findMany();
+  findAll(userId: number) {
+    return this.prisma.clients.findMany({
+      where: { created_by: userId },
+    });
   }
 
   findOne(id: number, userId: number) {
@@ -31,15 +33,42 @@ export class ClientsService {
   }
 
   async update(id: number, updateClientDto: UpdateClientDto, userId: number) {
-    const client = await this.findOne(id, userId);
-    Object.assign(updateClientDto);
-    return client;
+    // First check if the client exists and user has permission
+    const existingClient = await this.findOne(id, userId);
+
+    if (!existingClient) {
+      throw new Error('Client not found or unauthorized');
+    }
+
+    try {
+      return await this.prisma.clients.update({
+        where: { id },
+        data: updateClientDto,
+      });
+    } catch (error) {
+      console.error('Update Client Error:', error);
+      throw new Error('Failed to update client');
+    }
   }
 
   async findByUser(userId: number) {
     return this.prisma.clients.findMany({ where: { created_by: userId } });
   }
-  async delete(id: number) {
+  async delete(id: number, userId: number, userRole: string) {
+    // First check if the client exists and user has permission
+    const client = await this.prisma.clients.findUnique({
+      where: { id },
+    });
+
+    if (!client) {
+      throw new Error('Client not found');
+    }
+
+    // Only the creator or admin can delete
+    if (client.created_by !== userId && userRole !== 'admin') {
+      throw new Error('Unauthorized to delete this client');
+    }
+
     return this.prisma.clients.delete({ where: { id } });
   }
 }
