@@ -40,7 +40,7 @@ export class InvoicesController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   create(@Body() createInvoiceDto: CreateInvoiceDto, @Request() req) {
-    return this.invoicesService.create(createInvoiceDto, req.user.userId);
+    return this.invoicesService.create(createInvoiceDto, req.user.user_id);
   }
 
   @Get()
@@ -50,7 +50,7 @@ export class InvoicesController {
     description: 'List of all invoices',
   })
   findAll(@Request() req) {
-    return this.invoicesService.findAll(req.user.userId);
+    return this.invoicesService.findAll(req.user.user_id);
   }
 
   @Get(':id')
@@ -62,7 +62,7 @@ export class InvoicesController {
   })
   @ApiResponse({ status: 404, description: 'Invoice not found.' })
   findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.invoicesService.findOne(id, req.user.userId);
+    return this.invoicesService.findOne(id, req.user.user_id);
   }
 
   @Patch(':id/status')
@@ -82,7 +82,7 @@ export class InvoicesController {
     return this.invoicesService.updateStatus(
       id,
       updateStatusDto.status,
-      req.user.userId,
+      req.user.user_id,
     );
   }
 
@@ -100,7 +100,7 @@ export class InvoicesController {
   ) {
     return this.invoicesService.getInvoicesByProject(
       projectId,
-      req.user.userId,
+      req.user.user_id,
     );
   }
 }
