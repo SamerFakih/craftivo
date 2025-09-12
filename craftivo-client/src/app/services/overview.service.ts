@@ -1,16 +1,20 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DataCacheService } from './data-cache.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class OverviewService {
-  private apiUrl = 'http://localhost:3000/api/v1/overview';
-
-  constructor(private http: HttpClient) {}
+  constructor(private dataCacheService: DataCacheService) {}
 
   getOverviewData(): Observable<any> {
-    return this.http.get<any>(this.apiUrl, { withCredentials: true });
+    // Use cached data instead of direct HTTP calls
+    return this.dataCacheService.getOverview();
+  }
+
+  // Add method to invalidate cache when overview data needs refresh
+  invalidateCache(): void {
+    this.dataCacheService.clearAllCaches();
   }
 }
