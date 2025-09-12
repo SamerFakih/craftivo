@@ -1,16 +1,20 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DataCacheService } from './data-cache.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TeamService {
-  private apiUrl = 'http://localhost:3000/api/v1';
-
-  constructor(private http: HttpClient) {}
+  constructor(private dataCacheService: DataCacheService) {}
 
   getTeamMembers(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/teams`);
+    // Use cached data instead of direct HTTP calls
+    return this.dataCacheService.getTeamMembers();
+  }
+
+  // Add method to invalidate cache when team data is updated
+  invalidateCache(): void {
+    this.dataCacheService.invalidateTeam();
   }
 }
