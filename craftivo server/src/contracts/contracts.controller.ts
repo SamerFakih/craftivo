@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Controller,
   Get,
@@ -26,6 +24,12 @@ import { SignContractDto } from './dto/sign-contract.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ContractStatus } from '@prisma/client';
 
+interface AuthenticatedUser {
+  user_id: number;
+  email: string;
+  role: string;
+}
+
 @ApiTags('contracts')
 @ApiBearerAuth()
 @Controller('contracts')
@@ -39,8 +43,11 @@ export class ContractsController {
     status: 201,
     description: 'The contract has been successfully created.',
   })
-  create(@Body() createContractDto: CreateContractDto, @Request() req) {
-    return this.contractsService.create(createContractDto, req.user.userId);
+  create(
+    @Body() createContractDto: CreateContractDto,
+    @Request() req: { user: AuthenticatedUser },
+  ) {
+    return this.contractsService.create(createContractDto, req.user.user_id);
   }
 
   @Get()
@@ -49,8 +56,8 @@ export class ContractsController {
     status: 200,
     description: 'List of all contracts',
   })
-  findAll(@Request() req) {
-    return this.contractsService.findAll(req.user.userId);
+  findAll(@Request() req: { user: AuthenticatedUser }) {
+    return this.contractsService.findAll(req.user.user_id);
   }
 
   @Get(':id')
@@ -61,8 +68,11 @@ export class ContractsController {
     description: 'The contract has been successfully retrieved.',
   })
   @ApiResponse({ status: 404, description: 'Contract not found.' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.contractsService.findOne(id, req.user.userId);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: AuthenticatedUser },
+  ) {
+    return this.contractsService.findOne(id, req.user.user_id);
   }
 
   @Patch(':id/status')
@@ -82,9 +92,9 @@ export class ContractsController {
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body('status') status: ContractStatus,
-    @Request() req,
+    @Request() req: { user: AuthenticatedUser },
   ) {
-    return this.contractsService.updateStatus(id, status, req.user.userId);
+    return this.contractsService.updateStatus(id, status, req.user.user_id);
   }
 
   @Put(':id/sign')
@@ -98,13 +108,13 @@ export class ContractsController {
   signContract(
     @Param('id', ParseIntPipe) id: number,
     @Body() signData: SignContractDto,
-    @Request() req,
+    @Request() req: { user: AuthenticatedUser },
   ) {
     return this.contractsService.signContract(
       id,
       signData.signature,
       signData.signedBy,
-      req.user.userId,
+      req.user.user_id,
     );
   }
 
@@ -117,9 +127,9 @@ export class ContractsController {
   })
   getByClient(
     @Param('clientId', ParseIntPipe) clientId: number,
-    @Request() req,
+    @Request() req: { user: AuthenticatedUser },
   ) {
-    return this.contractsService.findByClient(clientId, req.user.userId);
+    return this.contractsService.findByClient(clientId, req.user.user_id);
   }
 
   @Get('project/:projectId')
@@ -131,8 +141,8 @@ export class ContractsController {
   })
   getByProject(
     @Param('projectId', ParseIntPipe) projectId: number,
-    @Request() req,
+    @Request() req: { user: AuthenticatedUser },
   ) {
-    return this.contractsService.findByProject(projectId, req.user.userId);
+    return this.contractsService.findByProject(projectId, req.user.user_id);
   }
 }
