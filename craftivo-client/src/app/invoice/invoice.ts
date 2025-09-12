@@ -1,8 +1,10 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvoiceModel, InvoiceStatus } from '../models/invoice';
 import { InvoiceCard } from '../components/invoice-card/invoice-card';
 import { InvoiceService } from '../services/invoice.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type TabKey = 'all' | 'paid' | 'pending' | 'overdue';
 
@@ -13,18 +15,30 @@ type TabKey = 'all' | 'paid' | 'pending' | 'overdue';
   templateUrl: './invoice.html',
   styleUrls: ['./invoice.css'],
 })
-export class Invoice {
+export class Invoice implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   constructor(private invoiceService: InvoiceService) {}
+
   // fetch invoices from API
   invoices = signal<InvoiceModel[]>([]);
+
   ngOnInit() {
     console.log('Invoice ngOnInit called');
-    this.invoiceService.getInvoices().subscribe({
-      next: (data) => {
-        console.log('Fetched invoices raw data:', data);
-        this.invoices.set(data);
-      },
-    });
+    this.invoiceService
+      .getInvoices()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          console.log('Fetched invoices raw data:', data);
+          this.invoices.set(data);
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // demo data — replace with API
@@ -134,5 +148,9 @@ export class Invoice {
 
   fmtMoney(n: number) {
     return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  trackByInvoiceId(index: number, invoice: InvoiceModel): string {
+    return invoice.id;
   }
 }
