@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { ProgressBar } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -23,7 +23,11 @@ export class Overview {
   tasks: any[] = [];
   teamActivity: any[] = [];
 
-  constructor(private overviewService: OverviewService, private authService: AuthService) {}
+  constructor(
+    private overviewService: OverviewService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.overviewService.getOverviewData().subscribe((data: any) => {
@@ -37,6 +41,7 @@ export class Overview {
       this.projects = data.recentProjects;
       this.teamActivity = data.teamActivity;
       this.tasks = data.todayTasks;
+      this.cdr.detectChanges(); // Manually trigger change detection
     });
   }
 
@@ -87,4 +92,16 @@ export class Overview {
   //   { name: 'Mike Chen', status: 'logged 4.5 hours', project: 'E-commerce Redesign' },
   //   { name: 'Emma Davis', status: 'submitted invoice', project: 'E-commerce Redesign' },
   // ];
+
+  trackByTaskId(index: number, task: any): any {
+    return task.id || index;
+  }
+
+  trackByProjectId(index: number, project: any): any {
+    return project.id || index;
+  }
+
+  trackByActivityName(index: number, activity: any): string {
+    return activity.name || index;
+  }
 }
