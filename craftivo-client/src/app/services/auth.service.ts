@@ -84,6 +84,9 @@ export class AuthService {
   private handleAuthSuccess(user: User): void {
     this.isLoggedIn.set(true);
     this.currentUser.set(user);
+    // Keep BehaviorSubjects in sync
+    this.isLoggedInSubject.next(true);
+    this.currentUserSubject.next(user);
   }
 
   // Check authentication status from backend (restore state)
@@ -94,10 +97,16 @@ export class AuthService {
         const user = response.user ? response.user : response;
         this.isLoggedIn.set(true);
         this.currentUser.set(user);
+        // Keep BehaviorSubjects in sync
+        this.isLoggedInSubject.next(true);
+        this.currentUserSubject.next(user);
       },
       error: () => {
         this.isLoggedIn.set(false);
         this.currentUser.set(null);
+        // Keep BehaviorSubjects in sync
+        this.isLoggedInSubject.next(false);
+        this.currentUserSubject.next(null);
       },
     });
   }
@@ -113,6 +122,9 @@ export class AuthService {
   private handleLogout(): void {
     this.isLoggedIn.set(false);
     this.currentUser.set(null);
+    // Keep BehaviorSubjects in sync
+    this.isLoggedInSubject.next(false);
+    this.currentUserSubject.next(null);
     this.router.navigate(['/signin']);
   }
 
