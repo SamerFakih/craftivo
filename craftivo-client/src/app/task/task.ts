@@ -1,8 +1,9 @@
-import { Component, computed, signal, OnInit } from '@angular/core';
+import { Component, computed, signal, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TaskItem } from '../models/tasks';
 import { TaskCard } from '../components/task-card/task-card';
 import { TaskService } from '../services/task.service';
+import { Subject, takeUntil } from 'rxjs';
 
 type TabKey = 'all' | 'today' | 'upcoming' | 'overdue';
 
@@ -13,54 +14,64 @@ type TabKey = 'all' | 'today' | 'upcoming' | 'overdue';
   templateUrl: './task.html',
   styleUrls: ['./task.css'],
 })
-export class Task implements OnInit {
-  constructor(private taskService: TaskService) {}
+export class Task implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
+  constructor(private taskService: TaskService, private cdr: ChangeDetectorRef) {}
   // fetch tasks from API
   tasks = signal<TaskItem[]>([]);
   ngOnInit() {
     console.log('Tasks ngOnInit called');
-    this.taskService.getTasks().subscribe({
-      next: (data) => {
-        console.log('Fetched tasks raw data:', data);
+    this.taskService
+      .getTasks()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          console.log('Fetched tasks raw data:', data);
 
-        // Handle both direct array and wrapped data
-        const tasksArray = Array.isArray(data) ? data : data.tasks || [];
+          // Handle both direct array and wrapped data
+          const tasksArray = Array.isArray(data) ? data : data.tasks || [];
 
-        if (Array.isArray(tasksArray) && tasksArray.length > 0) {
-          const mappedTasks: TaskItem[] = tasksArray.map((task: any): TaskItem => {
-            console.log('Processing task:', task);
-            return {
-              id: task.id.toString(),
-              title: task.title,
-              subtitle: task.subtitle,
-              project: task.project,
-              client: task.client,
-              dueISO: task.dueISO,
-              assignee: task.assignee || { name: 'Unassigned', avatarUrl: '' },
-              emailReminder: task.emailReminder || false,
-              attachmentsCount: task.attachmentsCount || 0,
-              commentsCount: task.commentsCount || 0,
-              tags: task.tags || [],
-              status: this.mapTaskStatus(task.status),
-            };
-          });
+          if (Array.isArray(tasksArray) && tasksArray.length > 0) {
+            const mappedTasks: TaskItem[] = tasksArray.map((task: any): TaskItem => {
+              console.log('Processing task:', task);
+              return {
+                id: task.id.toString(),
+                title: task.title,
+                subtitle: task.subtitle,
+                project: task.project,
+                client: task.client,
+                dueISO: task.dueISO,
+                assignee: task.assignee || { name: 'Unassigned', avatarUrl: '' },
+                emailReminder: task.emailReminder || false,
+                attachmentsCount: task.attachmentsCount || 0,
+                commentsCount: task.commentsCount || 0,
+                tags: task.tags || [],
+                status: this.mapTaskStatus(task.status),
+              };
+            });
 
-          console.log('Mapped tasks:', mappedTasks);
-          this.tasks.set(mappedTasks);
-          console.log('Tasks signal after set:', this.tasks());
-        } else {
-          console.warn('No tasks data found or data is not an array:', data);
+            console.log('Mapped tasks:', mappedTasks);
+            this.tasks.set(mappedTasks);
+            this.cdr.detectChanges(); // Manually trigger change detection
+            console.log('Tasks signal after set:', this.tasks());
+          } else {
+            console.warn('No tasks data found or data is not an array:', data);
+            this.tasks.set([]);
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching tasks:', error);
           this.tasks.set([]);
-        }
-      },
-      error: (error) => {
-        console.error('Error fetching tasks:', error);
-        this.tasks.set([]);
-      },
-    });
+          this.cdr.detectChanges(); // Ensure error state updates
+        },
+      });
   }
 
-  // Map API status to our TaskStatus type
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  } // Map API status to our TaskStatus type
   private mapTaskStatus(status: string): TaskItem['status'] {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -205,4 +216,8 @@ export class Task implements OnInit {
       (t.title + ' ' + t.project + ' ' + t.client).toLowerCase().includes(txt)
     );
   });
+
+  trackByTaskId(index: number, task: TaskItem): string {
+    return task.id;
+  }
 }
