@@ -8,6 +8,8 @@ import {
   Post,
   UseGuards,
   ParseIntPipe,
+  Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +24,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 
+interface AuthenticatedUser {
+  user_id: number;
+  email: string;
+  role: string;
+}
+
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
@@ -30,25 +38,46 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
   @ApiResponse({ status: 200, description: 'Return all users.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findAll() {
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required.',
+  })
+  findAll(@Request() req: { user: AuthenticatedUser }) {
+    // Only admins can view all users
+    if (req.user?.role !== 'admin') {
+      throw new ForbiddenException('Admin access required');
+    }
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a user by id' })
-  @ApiParam({ name: 'id', type: 'number', description: 'User ID' })
-  @ApiResponse({ status: 200, description: 'Return the user.' })
-  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiOperation({ summary: 'Get user by ID (Self or Admin)' })
+  @ApiResponse({ status: 200, description: 'Return user data.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Cannot access other user data.',
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  findOne(
+    @Param('id') id: string,
+    @Request() req: { user: AuthenticatedUser },
+  ) {
+    const userId = parseInt(id);
+
+    // Users can only view their own profile, admins can view any profile
+    if (req.user?.user_id !== userId && req.user?.role !== 'admin') {
+      throw new ForbiddenException('You can only access your own profile');
+    }
+
+    return this.usersService.findOne(userId);
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new user' })
+  @ApiOperation({ summary: 'Create a new user (Admin only)' })
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({
     status: 201,
@@ -56,12 +85,23 @@ export class UsersController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createUserDto: CreateUserDto) {
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required.',
+  })
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @Request() req: { user: AuthenticatedUser },
+  ) {
+    // Only admins can create new users
+    if (req.user?.role !== 'admin') {
+      throw new ForbiddenException('Admin access required');
+    }
     return this.usersService.create(createUserDto);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a user' })
+  @ApiOperation({ summary: 'Update a user (Self or Admin)' })
   @ApiParam({ name: 'id', type: 'number', description: 'User ID' })
   @ApiBody({ type: UpdateUserDto })
   @ApiResponse({
@@ -70,15 +110,25 @@ export class UsersController {
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Cannot update other user data.',
+  })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: Partial<UpdateUserDto>,
+    @Request() req: { user: AuthenticatedUser },
   ) {
+    // Users can only update their own profile, admins can update any profile
+    if (req.user?.user_id !== id && req.user?.role !== 'admin') {
+      throw new ForbiddenException('You can only update your own profile');
+    }
+
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a user' })
+  @ApiOperation({ summary: 'Delete a user (Admin only)' })
   @ApiParam({ name: 'id', type: 'number', description: 'User ID' })
   @ApiResponse({
     status: 200,
@@ -86,7 +136,19 @@ export class UsersController {
   })
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  delete(@Param('id', ParseIntPipe) id: number) {
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required.',
+  })
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: AuthenticatedUser },
+  ) {
+    // Only admins can delete users
+    if (req.user?.role !== 'admin') {
+      throw new ForbiddenException('Admin access required');
+    }
+
     return this.usersService.delete(id);
   }
 }
