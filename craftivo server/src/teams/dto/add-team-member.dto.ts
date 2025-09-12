@@ -4,8 +4,8 @@ import {
   IsEnum,
   IsOptional,
   IsObject,
-  IsDecimal,
   Min,
+  IsNumber,
 } from 'class-validator';
 import { TeamRole } from '@prisma/client';
 
@@ -32,7 +32,7 @@ export class AddTeamMemberDto {
     example: 50.0,
   })
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   @Min(0)
   hourly_rate?: number;
 
