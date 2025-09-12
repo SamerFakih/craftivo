@@ -47,7 +47,7 @@ export class TimeEntriesController {
   ) {
     return this.timeEntriesService.create({
       ...createTimeEntriesDto,
-      user_id: req.user.userId,
+      user_id: req.user.user_id,
     });
   }
 
@@ -57,7 +57,7 @@ export class TimeEntriesController {
   async findAll(@Query() filters: TimeEntriesFiltersDto, @Request() req) {
     return this.timeEntriesService.findAll({
       ...filters,
-      user_id: req.user.userId,
+      user_id: req.user.user_id,
     });
   }
 
@@ -67,7 +67,7 @@ export class TimeEntriesController {
   @ApiResponse({ status: 404, description: 'Time entry not found' })
   @ApiParam({ name: 'id', type: 'number' })
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.timeEntriesService.findOne(id, req.user.userId);
+    return this.timeEntriesService.findOne(id, req.user.user_id);
   }
 
   @Patch(':id')
@@ -83,7 +83,7 @@ export class TimeEntriesController {
   ) {
     return this.timeEntriesService.update(
       id,
-      req.user.userId,
+      req.user.user_id,
       updateTimeEntriesDto,
     );
   }
@@ -95,6 +95,6 @@ export class TimeEntriesController {
   @ApiParam({ name: 'id', type: 'number' })
   @HttpCode(204)
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.timeEntriesService.remove(id, { user_id: req.user.userId });
+    return this.timeEntriesService.remove(id, { user_id: req.user.user_id });
   }
 }
