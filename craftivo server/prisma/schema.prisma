@@ -119,7 +119,6 @@ enum EmailStatus {
 
 model users {
   id              Int      @id @default(autoincrement())
-  uuid            String   @unique @default(uuid())
   email           String   @unique
   password_hash   String
   first_name      String
@@ -165,7 +164,6 @@ model users {
 
 model clients {
   id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
   name        String
   email       String?
   phone       String?
@@ -222,7 +220,6 @@ model projects {
 
 model tasks {
   id                 Int       @id @default(autoincrement())
-  uuid               String    @unique @default(uuid())
   title              String
   description        String?
   project_id         Int?
@@ -254,7 +251,6 @@ model tasks {
 
 model time_entries {
   id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
   user_id     Int
   project_id  Int
   task_id     Int?
@@ -278,7 +274,6 @@ model time_entries {
 
 model invoices {
   id              Int      @id @default(autoincrement())
-  uuid            String   @unique @default(uuid())
   invoice_number  String   @unique
   client_id       Int?
   project_id      Int?
@@ -327,7 +322,6 @@ model invoice_items {
 
 model contracts {
   id                    Int      @id @default(autoincrement())
-  uuid                  String   @unique @default(uuid())
   title                 String
   client_id             Int?
   project_id            Int?
@@ -356,7 +350,6 @@ model contracts {
 
 model contract_templates {
   id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
   name        String
   description String?
   content     String
@@ -375,7 +368,6 @@ model contract_templates {
 
 model teams {
   id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
   name        String
   description String?
   owner_id    Int
@@ -453,7 +445,6 @@ model task_tags {
 // Comments and Attachments
 model task_comments {
   id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
   task_id    Int
   user_id    Int?
   content    String
@@ -471,7 +462,6 @@ model task_comments {
 
 model task_attachments {
   id                Int      @id @default(autoincrement())
-  uuid              String   @unique @default(uuid())
   task_id           Int
   uploaded_by       Int?
   filename          String
@@ -489,7 +479,6 @@ model task_attachments {
 
 model project_attachments {
   id                Int      @id @default(autoincrement())
-  uuid              String   @unique @default(uuid())
   project_id        Int
   uploaded_by       Int?
   filename          String
@@ -523,7 +512,6 @@ model user_settings {
 // Email and Communication
 model email_templates {
   id         Int      @id @default(autoincrement())
-  uuid       String   @unique @default(uuid())
   name       String
   subject    String
   content    String
@@ -542,7 +530,6 @@ model email_templates {
 
 model email_logs {
   id              Int      @id @default(autoincrement())
-  uuid            String   @unique @default(uuid())
   user_id         Int?
   recipient_email String
   recipient_name  String?
@@ -565,7 +552,6 @@ model email_logs {
 // Audit and Activity Tracking
 model activity_logs {
   id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
   user_id     Int?
   action      String
   entity_type String?  // 'project', 'task', 'invoice', etc.
@@ -583,7 +569,6 @@ model activity_logs {
 // Financial Tracking
 model expenses {
   id           Int      @id @default(autoincrement())
-  uuid         String   @unique @default(uuid())
   user_id      Int
   project_id   Int?
   client_id    Int?
