@@ -12,6 +12,9 @@ import { ContractsModule } from './contracts/contracts.module';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { OverviewController } from './overview/overview.controller';
+import { OverviewModule } from './overview/overview.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -33,6 +36,8 @@ import { APP_GUARD } from '@nestjs/core';
         },
       ],
     }),
+    OverviewModule,
+    PrismaModule,
   ],
   providers: [
     PrismaService,
@@ -41,5 +46,6 @@ import { APP_GUARD } from '@nestjs/core';
       useClass: ThrottlerGuard,
     },
   ],
+  controllers: [OverviewController],
 })
 export class AppModule {}
