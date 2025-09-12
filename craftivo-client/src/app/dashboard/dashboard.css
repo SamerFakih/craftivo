@@ -1,8 +1,35 @@
-.sidebar:not(.open) ~ .dashboard-layout {
-  margin-left: 0;
+/* Dashboard container */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
+/* Main layout */
+.dashboard-layout {
+  display: flex;
+  flex: 1;
+  position: relative;
+  padding-top: 64px; /* Height of fixed navbar */
+}
+
+/* Main content area */
 .main-content {
-  padding: 10px;
-  border-left: #c2c2c2 1px solid;
+  flex: 1;
+  margin-left: 240px; /* Width of sidebar on desktop */
+  padding: 0;
+  transition: margin-left 0.3s ease;
+  overflow-x: auto;
+}
+
+/* Mobile and tablet adjustments */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0; /* No sidebar margin on mobile */
+  }
+}
+
+/* Remove the old border */
+.main-content {
+  border-left: none;
 }
