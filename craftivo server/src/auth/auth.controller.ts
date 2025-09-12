@@ -20,11 +20,12 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import type { Response } from 'express'; // ✅ Use 'import type'
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginUserDto, AuthResponseDto, UserProfileDto } from './dto';
+import { LoginUserDto, AuthResponseDto } from './dto/index';
+import { UserProfileDto } from './dto/user-profile.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -94,7 +95,7 @@ export class AuthController {
     description: 'Invalid or missing authentication token',
   })
   async getProfile(@Request() req): Promise<UserProfileDto> {
-    return this.authService.getProfile(req.user.userId);
+    return this.authService.getProfile(req.user.user_id);
   }
 
   @Post('logout')
@@ -135,7 +136,7 @@ export class AuthController {
     return {
       valid: true,
       user: {
-        id: req.user.userId,
+        id: req.user.user_id,
         email: req.user.email,
         role: req.user.role,
       },
