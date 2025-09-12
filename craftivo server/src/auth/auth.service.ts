@@ -14,8 +14,9 @@ import { JwtService } from '@nestjs/jwt';
 import type { Response } from 'express'; // ✅ Use 'import type'
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginUserDto, AuthResponseDto, UserProfileDto } from './dto';
+import { LoginUserDto, AuthResponseDto } from './dto';
 import * as bcrypt from 'bcrypt';
+import { UserProfileDto } from './dto/user-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -63,8 +64,11 @@ export class AuthService {
     this.logger.log(`User registered successfully: ${user.id}`);
 
     return {
-      message: 'User registered successfully',
-      user: this.sanitizeUser(user),
+      user_id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      role: user.role,
       access_token: tokens.access_token,
     };
   }
@@ -98,8 +102,11 @@ export class AuthService {
     this.logger.log(`User logged in successfully: ${user.id}`);
 
     return {
-      message: 'User logged in successfully',
-      user: this.sanitizeUser(user),
+      user_id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      role: user.role,
       access_token: tokens.access_token,
     };
   }
