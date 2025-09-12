@@ -10,7 +10,6 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -24,6 +23,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -43,11 +43,9 @@ export class TasksController {
   })
   @ApiResponse({ status: 200, description: 'Return all tasks.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findAll(@Query('project_id') projectId?: string) {
-    if (projectId) {
-      return this.tasksService.findByProject(parseInt(projectId));
-    }
-    return this.tasksService.findAll();
+  findAll(@Request() req) {
+    const userId = req.user.user_id;
+    return this.tasksService.findAllByUser(userId);
   }
 
   @Get('my-tasks')
@@ -55,7 +53,8 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Return user tasks.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   findMyTasks(@Request() req) {
-    return this.tasksService.findByUser(req.user.userId);
+    const userId = req.user.user_id;
+    return this.tasksService.findByUser(userId);
   }
 
   @Get(':id')
@@ -64,8 +63,9 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Return the task.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.tasksService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const userId = req.user.user_id;
+    return this.tasksService.findOne(id, userId);
   }
 
   @Post()
@@ -80,14 +80,14 @@ export class TasksController {
   create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
     return this.tasksService.create({
       ...createTaskDto,
-      created_by: req.user.userId,
+      created_by: req.user.user_id,
     });
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a task' })
   @ApiParam({ name: 'id', type: 'number', description: 'Task ID' })
-  @ApiBody({ type: CreateTaskDto })
+  @ApiBody({ type: UpdateTaskDto })
   @ApiResponse({
     status: 200,
     description: 'The task has been successfully updated.',
@@ -96,9 +96,11 @@ export class TasksController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateTaskDto: CreateTaskDto,
+    @Body() updateTaskDto: UpdateTaskDto,
+    @Request() req,
   ) {
-    return this.tasksService.update(id, updateTaskDto);
+    const userId = req.user.user_id;
+    return this.tasksService.update(id, updateTaskDto, userId);
   }
 
   @Delete(':id')
@@ -109,7 +111,8 @@ export class TasksController {
     description: 'The task has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Task not found.' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.tasksService.delete(id);
+  delete(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const userId = req.user.user_id;
+    return this.tasksService.delete(id, userId);
   }
 }
