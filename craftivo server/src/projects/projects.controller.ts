@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
@@ -21,6 +22,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectsService } from './projects.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -32,11 +34,15 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all projects' })
-  @ApiResponse({ status: 200, description: 'Return all projects.' })
+  @ApiOperation({ summary: 'Get all projects for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all projects for the user.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Request() req) {
+    const userId = req.user.user_id;
+    return this.projectsService.findAll(userId);
   }
 
   @Get(':id')
@@ -45,8 +51,9 @@ export class ProjectsController {
   @ApiResponse({ status: 200, description: 'Return the project.' })
   @ApiResponse({ status: 404, description: 'Project not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const userId = req.user.user_id;
+    return this.projectsService.findOne(id, userId);
   }
 
   @Post()
@@ -59,17 +66,15 @@ export class ProjectsController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   create(@Body() createProjectDto: CreateProjectDto, @Request() req) {
-    const userId = req.user.userId;
-    return this.projectsService.create({
-      ...createProjectDto,
-      owner_id: userId,
-    });
+    const userId = req.user.user_id;
+    console.log('Creating project for user ID:', userId);
+    return this.projectsService.create(createProjectDto, userId);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a project' })
   @ApiParam({ name: 'id', type: 'number', description: 'Project ID' })
-  @ApiBody({ type: CreateProjectDto })
+  @ApiBody({ type: UpdateProjectDto })
   @ApiResponse({
     status: 200,
     description: 'The project has been successfully updated.',
@@ -78,9 +83,11 @@ export class ProjectsController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateProjectDto: CreateProjectDto,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @Request() req,
   ) {
-    return this.projectsService.update(id, updateProjectDto);
+    const userId = req.user.user_id;
+    return this.projectsService.update(id, updateProjectDto, userId);
   }
 
   @Delete(':id')
@@ -91,7 +98,8 @@ export class ProjectsController {
     description: 'The project has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Project not found.' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.delete(id);
+  delete(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const userId = req.user.user_id;
+    return this.projectsService.delete(id, userId);
   }
 }
