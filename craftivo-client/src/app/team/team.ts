@@ -1,8 +1,10 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Member } from '../models/team';
 import { MemberCard } from '../components/member-card/member-card';
 import { TeamService } from '../services/team.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-team-page',
@@ -11,16 +13,28 @@ import { TeamService } from '../services/team.service';
   templateUrl: './team.html',
   styleUrls: ['./team.css'],
 })
-export class Team implements OnInit {
+export class Team implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   constructor(private teamService: TeamService) {}
+
   members = signal<Member[]>([]);
+
   ngOnInit() {
-    this.teamService.getTeamMembers().subscribe({
-      next: (data) => {
-        console.log('Fetched members raw data:', data);
-        this.members.set(data);
-      },
-    });
+    this.teamService
+      .getTeamMembers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          console.log('Fetched members raw data:', data);
+          this.members.set(data);
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // // demo data – replace with API
@@ -98,4 +112,8 @@ export class Team implements OnInit {
       (m.name + ' ' + m.title + ' ' + m.skills.join(' ')).toLowerCase().includes(term)
     );
   });
+
+  trackByMemberId(index: number, member: Member): string {
+    return member.id;
+  }
 }
