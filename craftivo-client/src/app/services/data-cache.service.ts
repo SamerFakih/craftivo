@@ -183,7 +183,7 @@ export class DataCacheService {
       loading: true,
     });
 
-    const request$ = this.http.get<any>(`${this.apiUrl}/team`, { withCredentials: true }).pipe(
+    const request$ = this.http.get<any>(`${this.apiUrl}/teams`, { withCredentials: true }).pipe(
       tap((data) => {
         const teamArray = Array.isArray(data) ? data : data.team || [];
 
