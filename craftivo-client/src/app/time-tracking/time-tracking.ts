@@ -1,10 +1,12 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TimeEntries } from '../components/time-entries/time-entries';
 import { TeamOverview } from '../components/team-overview/team-overview';
 import { ProjectSummary } from '../components/project-summary/project-summary';
 import { MemberSummary, ProjectHoursCard, TimeEntry } from '../models/time-tracking';
 import { TimeTrackingService } from '../services/time-tracking.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type TabKey = 'entries' | 'team' | 'projects';
 
@@ -15,20 +17,32 @@ type TabKey = 'entries' | 'team' | 'projects';
   templateUrl: './time-tracking.html',
   styleUrls: ['./time-tracking.css'],
 })
-export class TimeTracking {
+export class TimeTracking implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   constructor(private timeTrackingService: TimeTrackingService) {}
+
   // fetch time entries from API
   entries = signal<TimeEntry[]>([]);
   totalCnt = computed(() => this.entries().length);
+
   ngOnInit() {
-    this.timeTrackingService.getTimeEntries().subscribe({
-      next: (data) => {
-        console.log('Fetched time entries raw data:', data);
-        // The API returns time entries array directly, not wrapped in data.entries
-        const entriesArray = Array.isArray(data) ? data : data.entries || [];
-        this.entries.set(entriesArray);
-      },
-    });
+    this.timeTrackingService
+      .getTimeEntries()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          console.log('Fetched time entries raw data:', data);
+          // The API returns time entries array directly, not wrapped in data.entries
+          const entriesArray = Array.isArray(data) ? data : data.entries || [];
+          this.entries.set(entriesArray);
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
   // demo timer header
   currentTime = signal('00:00:00');
