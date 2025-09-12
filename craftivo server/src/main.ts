@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -37,20 +38,17 @@ async function bootstrap() {
     .setTitle('Craftivo API')
     .setDescription('The Craftivo freelancer management platform API')
     .setVersion('1.0')
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('users', 'User management')
-    .addTag('clients', 'Client management')
-    .addTag('projects', 'Project management')
-    .addTag('tasks', 'Task management')
-    .addTag('teams', 'Team collaboration')
-    .addTag('contracts', 'Contract management')
-    .addTag('invoices', 'Invoice management')
-    .addTag('time-entries', 'Time tracking')
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  // Disable caching
+  app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
