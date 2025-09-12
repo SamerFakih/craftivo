@@ -35,7 +35,7 @@
     <div class="team">
         <div class="avatars">
             <img *ngFor="let m of project.team | slice:0:3; index as i" class="avatar"
-                [src]="m.avatarUrl ?? 'https://via.placeholder.com/28'" [alt]="m.name" />
+                [src]="m.avatarUrl ?? '/assets/craftivo-logo.png'" [alt]="m.name" />
             <span *ngIf="project.team && project.team.length>3" class="avatar avatar--more">
                 +{{ project.team.length-3 }}
             </span>
