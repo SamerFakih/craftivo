@@ -9,20 +9,47 @@ export class InvoicesService {
   constructor(private prisma: PrismaService) {}
 
   async create(createInvoiceDto: CreateInvoiceDto, userId: number) {
-    const { items, issue_date, due_date, status, ...invoiceData } =
-      createInvoiceDto;
+    const {
+      items,
+      issue_date,
+      due_date,
+      status,
+      tax_rate = 0,
+      discount_amount = 0,
+      invoice_number,
+      ...invoiceData
+    } = createInvoiceDto;
 
+    const generatedInvoiceNumber = invoice_number || `INV-${Date.now()}`;
+    // Calculate subtotal from items
+    const subtotal = items.reduce(
+      (sum, item) => sum + Number(item.quantity) * Number(item.unit_price),
+      0,
+    );
+    const taxAmount = subtotal * Number(tax_rate);
+    const total = subtotal + taxAmount - Number(discount_amount || 0);
+    console.log({ 'invoice items': items, subtotal, taxAmount, total });
     return this.prisma.invoices.create({
       data: {
         ...invoiceData,
+        invoice_number: generatedInvoiceNumber,
         issue_date: new Date(issue_date),
         due_date: new Date(due_date),
         status: status ? (status.toLowerCase() as InvoiceStatus) : 'pending',
         user_id: userId,
+        subtotal: subtotal.toString(),
+        tax_rate: tax_rate.toString(),
+        tax_amount: taxAmount.toString(),
+        discount_amount: discount_amount?.toString() ?? '0',
+        total_amount: total.toString(),
         invoice_items: {
-          create: items.map((item) => ({
+          create: items.map(({ id, ...item }) => ({
             ...item,
-            total_amount: item.quantity * item.unit_price,
+            quantity: item.quantity.toString(),
+            unit_price: item.unit_price.toString(),
+            total_amount: (
+              Number(item.quantity) * Number(item.unit_price)
+            ).toString(),
           })),
         },
       },
@@ -35,7 +62,7 @@ export class InvoicesService {
   }
 
   async findAll(userId: number) {
-    return this.prisma.invoices.findMany({
+    const invoices = await this.prisma.invoices.findMany({
       where: { user_id: userId },
       include: {
         invoice_items: true,
@@ -44,6 +71,19 @@ export class InvoicesService {
       },
       orderBy: { created_at: 'desc' },
     });
+    return invoices.map((inv) => ({
+      id: inv.invoice_number,
+      client: inv.clients?.name || '',
+      project: inv.projects?.name || '',
+      amountUSD: Number(inv.total_amount),
+      issuedISO: inv.issue_date
+        ? inv.issue_date.toISOString().slice(0, 10)
+        : '',
+      dueISO: inv.due_date ? inv.due_date.toISOString().slice(0, 10) : '',
+      paidISO: inv.paid_date ? inv.paid_date.toISOString().slice(0, 10) : '',
+      status: inv.status,
+      currency: inv.currency || 'USD',
+    }));
   }
 
   async findOne(id: number, userId: number) {
