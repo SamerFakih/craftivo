@@ -53,7 +53,7 @@ export class UpdateUserDto {
   })
   @IsString()
   @MinLength(8)
-  password: string; // ✅ Add this field
+  password_hash: string; // ✅ Add this field
 
   @ApiProperty({
     enum: UserRole,
