@@ -10,6 +10,52 @@ import { TeamRole } from '@prisma/client';
 export class TeamsService {
   constructor(private prisma: PrismaService) {}
 
+  // Get all team members for the current user (owner or member)
+  async getMembers(userId: number): Promise<any[]> {
+    // Find all teams the user is part of
+    const teams = await this.prisma.teams.findMany({
+      where: {
+        OR: [
+          { owner_id: userId },
+          { team_members: { some: { user_id: userId } } },
+        ],
+        active: true,
+      },
+      include: {
+        team_members: {
+          include: {
+            users: true,
+          },
+        },
+      },
+    });
+
+    // Flatten all members from all teams, deduplicate by user id
+    const memberMap = new Map();
+    for (const team of teams) {
+      for (const tm of team.team_members) {
+        const u = tm.users;
+        if (!memberMap.has(u.id)) {
+          memberMap.set(u.id, {
+            id: `m${u.id}`,
+            name: `${u.first_name} ${u.last_name}`.trim(),
+            title: u.role || '',
+            status: u.active ? 'active' : 'inactive',
+            email: u.email,
+            location: u.location || '',
+            avatarUrl: u.profile_image || '',
+            hourlyRateUSD: u.hourly_rate ? Number(u.hourly_rate) : 0,
+            hoursMonth: 0, // Placeholder, needs aggregation
+            activeProjects: 0, // Placeholder, needs aggregation
+            tasksDone: 0, // Placeholder, needs aggregation
+            skills: [], // Placeholder, needs aggregation
+          });
+        }
+      }
+    }
+    return Array.from(memberMap.values());
+  }
+
   async create(createTeamDto: CreateTeamDto, userId: number) {
     const { slug, settings, ...teamData } = createTeamDto;
 
