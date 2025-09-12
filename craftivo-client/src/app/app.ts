@@ -1,6 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterModule, RouterOutlet } from '@angular/router';
-import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -9,10 +8,7 @@ import { AuthService } from './services/auth.service';
   template: '<router-outlet></router-outlet>',
   styleUrl: './app.css',
 })
-export class App implements OnInit {
-  constructor(private authService: AuthService) {}
-
-  ngOnInit() {
-    this.authService.checkAuthStatus();
-  }
+export class App {
+  // Removed redundant auth check - AuthGuard handles authentication
+  // This prevents duplicate API calls on app initialization
 }
