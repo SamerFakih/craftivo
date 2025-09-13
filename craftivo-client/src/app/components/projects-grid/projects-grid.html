@@ -62,5 +62,12 @@
     <!-- Optional: render grid/list of projects using the card component -->
     <div class="grid">
         <app-project-card *ngFor="let pr of filtered()" [project]="pr"></app-project-card>
+
+        <!-- Show message when no projects are found -->
+        <div *ngIf="filtered().length === 0" style="text-align: center; padding: 40px; color: #666;">
+            <h3>No projects found</h3>
+            <p *ngIf="projects().length === 0">No projects loaded yet...</p>
+            <p *ngIf="projects().length > 0">No projects match the current filter.</p>
+        </div>
     </div>
 </section>

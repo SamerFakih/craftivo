@@ -1,6 +1,6 @@
 <article class="row">
     <div class="left">
-        <img class="avatar" [src]="member.avatarUrl || 'https://via.placeholder.com/44'" [alt]="member.name">
+        <img class="avatar" [src]="member.avatarUrl || '/assets/craftivo-logo.png'" [alt]="member.name">
         <div class="id">
             <div class="name">
                 <strong>{{ member.name }}</strong>
@@ -19,7 +19,9 @@
             </div>
 
             <div class="skills">
-                <span class="tag" *ngFor="let s of member.skills">{{ s }}</span>
+                @for (skill of member.skills; track skill) {
+                <span class="tag">{{ skill }}</span>
+                }
             </div>
 
             <div class="stats">

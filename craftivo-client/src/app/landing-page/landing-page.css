@@ -7,6 +7,7 @@
 .main-content {
   flex: 1;
   padding: 2rem;
+  padding-top: calc(64px + 2rem); /* Fixed navbar height + original padding */
 }
 
 .hero {

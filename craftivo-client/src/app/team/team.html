@@ -41,6 +41,6 @@
 
     <!-- Members list -->
     <div class="list">
-        <app-member-card *ngFor="let m of filtered()" [member]="m"></app-member-card>
+        <app-member-card *ngFor="let m of filtered(); trackBy: trackByMemberId" [member]="m"></app-member-card>
     </div>
 </section>

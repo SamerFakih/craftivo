@@ -129,3 +129,125 @@
   color: #6b7280;
   font-size: 13px;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .left {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    align-self: flex-start;
+  }
+
+  .id {
+    gap: 10px;
+  }
+
+  .name {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .name strong {
+    font-size: 15px;
+  }
+
+  .meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .chip svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .skills {
+    gap: 4px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 12px;
+    font-size: 12px;
+  }
+
+  .stats .muted {
+    font-size: 11px;
+  }
+
+  .right {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .iconbtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .iconbtn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  .row {
+    padding: 10px;
+  }
+
+  .left {
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .name strong {
+    font-size: 14px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .stats .muted {
+    font-weight: 600;
+  }
+
+  .iconbtn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .iconbtn svg {
+    width: 14px;
+    height: 14px;
+  }
+}

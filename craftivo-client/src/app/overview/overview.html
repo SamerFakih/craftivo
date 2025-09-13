@@ -1,84 +1,113 @@
-<section class="dashboard-header">
-    <div>
-        <h1>Dashboard</h1>
-        <p>Welcome back! Here's what's happening with your freelance business.</p>
-    </div>
-    <button class="new-project-button"> + New Project</button>
-</section>
-<section class="summary">
-    <app-summary-cards *ngFor="let summary of summarys" [key]="summary.key" [value]="summary.value"
-        [icon]="summary.icon"></app-summary-cards>
-</section>
-<div class="container1">
-    <div class="recent-projects">
-        <div class="recent-projects-label">
-            <div>
-                <h2>Recent Projects</h2>
-                <p>Your active and recent project overview</p>
-            </div>
-            <div class="view-all">
-                <a routerLink="/projects">View All <i class="pi pi-arrow-right"></i></a>
-            </div>
-        </div>
-        <section class="projects">
-            <div *ngFor="let project of projects" class="project-card">
-                <div class="project-info">
-                    <h3>{{ project.title }}</h3>
-                    <p>Client: {{ project.client }}</p>
-                    <p-progressbar [value]="value" />
-                </div>
-                <div>
-                    <p>${{ project.budget }}</p>
-                    <p>Due: {{ project.due }}</p>
-                </div>
-            </div>
-        </section>
-    </div>
-    <div class="tasks-container">
-        <section class="tasks">
-            <h2>Today's Tasks</h2>
-            <p>Your upcoming deadlines</p>
-            <div *ngFor="let task of tasks" class="task-card">
-                <h3>{{ task.name }}</h3>
-                <p>{{ task.title }}</p>
-                <p>{{ task.endTime }}</p>
-            </div>
-        </section>
-    </div>
-</div>
-<div class="container2">
-    <section class="team">
+<section class="page">
+    <header class="head">
         <div>
-            <h2>Team Activity</h2>
-            <p>Recent updates from your team</p>
+            <h1 class="title">Dashboard</h1>
+            <p class="subtitle">Welcome back! Here's what's happening with your freelance business.</p>
         </div>
-        <div *ngFor="let activity of teamActivity" class="team-member">
-            <h3><strong>{{ activity.name }}</strong> {{ activity.status }}</h3>
-            <p>{{activity.project}}</p>
+        <button class="btn btn--primary">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+            </svg>
+            New Project
+        </button>
+    </header>
+
+    <!-- KPI cards -->
+    <div class="kpis">
+        <app-summary-cards [summarys]="summarys"></app-summary-cards>
+    </div>
+
+    <!-- Main content grid -->
+    <div class="content-grid">
+        <div class="content-panel">
+            <div class="panel__head">
+                <div>
+                    <h2>Recent Projects</h2>
+                    <p class="muted">Your active and recent project overview</p>
+                </div>
+                <a routerLink="dashboard/projects" class="view-all-link">
+                    View All
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M5 12h14m-7-7l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+            <div class="list">
+                <div *ngFor="let project of projects; trackBy: trackByProjectId" class="project-card">
+                    <div class="project-info">
+                        <h3>{{ project.name }}</h3>
+                        <p class="muted">{{ project.client?.name || 'No client assigned' }}</p>
+                        <div>
+                            <p-progressbar [value]="project.progress" />
+                        </div>
+                    </div>
+                    <div class="project-meta">
+                        <p class="budget">${{ project.budget | number }}</p>
+                        <p class="due-date">Due: {{ project.due }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </section>
-    <section class="action-buttons-container">
-        <div class="action-buttons-header">
-            <h1>Quick Actions</h1>
-            <p>Common tasks and shortcuts</p>
+
+        <div class="content-panel">
+            <div class="panel__head">
+                <div>
+                    <h2>Today's Tasks</h2>
+                    <p class="muted">Your upcoming deadlines</p>
+                </div>
+            </div>
+            <div class="list">
+                <div *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-card">
+                    <h3>{{ task.title }}</h3>
+                    <p class="muted">{{ task.projects?.name || 'No project assigned' }}</p>
+                    <p class="task-meta">Due: {{ task.due_time }} | Status: {{ task.status }}</p>
+                </div>
+            </div>
         </div>
-        <div class="action-buttons">
-            <button class="action-button">
-                <i class="pi pi-file"></i>
-                <p>New Invoice</p>
-            </button>
-            <button class="action-button">
-                <i class="pi pi-clock"></i>
-                <p>Start Timer</p>
-            </button>
-            <button class="action-button">
-                <i class="pi pi-envelope"></i>
-                <p>Email Client</p>
-            </button>
-            <button class="action-button">
-                <i class="pi pi-users"></i>
-                <p>Invite Team</p>
-            </button>
+    </div>
+
+    <!-- Bottom section -->
+    <div class="content-grid">
+        <div class="content-panel">
+            <div class="panel__head">
+                <div>
+                    <h2>Team Activity</h2>
+                    <p class="muted">Recent updates from your team</p>
+                </div>
+            </div>
+            <div class="list">
+                <div *ngFor="let activity of teamActivity; trackBy: trackByActivityName" class="activity-card">
+                    <h3><strong>{{ activity.name }}</strong> {{ activity.status }}</h3>
+                    <p class="muted">{{ activity.project }}</p>
+                </div>
+            </div>
         </div>
-    </section>
-</div>
+
+        <div class="content-panel">
+            <div class="panel__head">
+                <div>
+                    <h2>Quick Actions</h2>
+                    <p class="muted">Common tasks and shortcuts</p>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="action-button">
+                    <i class="pi pi-file"></i>
+                    <span>New Invoice</span>
+                </button>
+                <button class="action-button">
+                    <i class="pi pi-clock"></i>
+                    <span>Start Timer</span>
+                </button>
+                <button class="action-button">
+                    <i class="pi pi-envelope"></i>
+                    <span>Email Client</span>
+                </button>
+                <button class="action-button">
+                    <i class="pi pi-user-plus"></i>
+                    <span>Invite Team</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>

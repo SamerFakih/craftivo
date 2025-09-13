@@ -50,6 +50,13 @@
     </nav>
 
     <div class="list">
-        <app-task-card *ngFor="let t of filtered()" [task]="t"></app-task-card>
+        <app-task-card *ngFor="let t of filtered(); trackBy: trackByTaskId" [task]="t"></app-task-card>
+
+        <!-- Show message when no tasks are found -->
+        <div *ngIf="filtered().length === 0" style="text-align: center; padding: 40px; color: #666;">
+            <h3>No tasks found</h3>
+            <p *ngIf="totalCnt() === 0">No tasks loaded yet...</p>
+            <p *ngIf="totalCnt() > 0">No tasks match the current filter.</p>
+        </div>
     </div>
 </section>

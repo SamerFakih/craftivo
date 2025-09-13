@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './auth.guard';
 import { LandingPage } from './landing-page/landing-page';
 import { SignIn } from './signin/signin';
 import { SignUp } from './signup/signup';
@@ -19,15 +20,16 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: Dashboard,
+    canActivate: [AuthGuard],
     children: [
-      { path: 'overview', component: Overview },
-      { path: 'projects', component: Project },
-      { path: 'tasks', component: Task },
-      { path: 'invoices', component: Invoice },
-      { path: 'time-tracking', component: TimeTracking },
-      { path: 'teams', component: Team },
-      { path: 'clients', component: Client },
-      { path: 'contracts', component: Contract },
+      { path: 'overview', component: Overview, canActivate: [AuthGuard] },
+      { path: 'projects', component: Project, canActivate: [AuthGuard] },
+      { path: 'tasks', component: Task, canActivate: [AuthGuard] },
+      { path: 'invoices', component: Invoice, canActivate: [AuthGuard] },
+      { path: 'time-tracking', component: TimeTracking, canActivate: [AuthGuard] },
+      { path: 'teams', component: Team, canActivate: [AuthGuard] },
+      { path: 'clients', component: Client, canActivate: [AuthGuard] },
+      { path: 'contracts', component: Contract, canActivate: [AuthGuard] },
     ],
   },
   { path: '**', redirectTo: '' },
