@@ -19,7 +19,9 @@
             </div>
 
             <div class="skills">
-                <span class="tag" *ngFor="let s of member.skills">{{ s }}</span>
+                @for (skill of member.skills; track skill) {
+                <span class="tag">{{ skill }}</span>
+                }
             </div>
 
             <div class="stats">
