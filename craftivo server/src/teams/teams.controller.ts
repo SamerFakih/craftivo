@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Request,
   ParseIntPipe,
 } from '@nestjs/common';
 import {
@@ -24,12 +23,7 @@ import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { AddTeamMemberDto } from './dto/add-team-member.dto';
 import { TeamRole } from '@prisma/client';
-
-interface AuthenticatedUser {
-  user_id: number;
-  email: string;
-  role: string;
-}
+import { UserId } from '../common/decorators/user-id.decorator';
 
 @ApiTags('teams')
 @ApiBearerAuth()
@@ -45,11 +39,8 @@ export class TeamsController {
     description: 'The team has been successfully created.',
   })
   @ApiResponse({ status: 400, description: 'Bad request.' })
-  create(
-    @Body() createTeamDto: CreateTeamDto,
-    @Request() req: { user: AuthenticatedUser },
-  ) {
-    return this.teamsService.create(createTeamDto, req.user.user_id);
+  create(@Body() createTeamDto: CreateTeamDto, @UserId() userId: number) {
+    return this.teamsService.create(createTeamDto, userId);
   }
 
   @Get()
@@ -58,8 +49,21 @@ export class TeamsController {
     status: 200,
     description: 'List of teams where user is owner or member.',
   })
-  findAll(@Request() req: { user: AuthenticatedUser }) {
-    return this.teamsService.findAll(req.user.user_id);
+  findAll(@UserId() userId: number) {
+    return this.teamsService.findAll(userId);
+  }
+
+  @Get('members')
+  @ApiOperation({
+    summary: 'Get all team members across user teams (normalized)',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Flat list of unique members across all teams accessible to the user.',
+  })
+  getAllMembers(@UserId() userId: number) {
+    return this.teamsService.getMembers(userId);
   }
 
   @Get(':id')
@@ -67,11 +71,8 @@ export class TeamsController {
   @ApiParam({ name: 'id', description: 'Team ID', type: Number })
   @ApiResponse({ status: 200, description: 'Team details with members.' })
   @ApiResponse({ status: 404, description: 'Team not found.' })
-  findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: { user: AuthenticatedUser },
-  ) {
-    return this.teamsService.findOne(id, req.user.user_id);
+  findOne(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.teamsService.findOne(id, userId);
   }
 
   @Patch(':id')
@@ -86,9 +87,9 @@ export class TeamsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTeamDto: UpdateTeamDto,
-    @Request() req: { user: AuthenticatedUser },
+    @UserId() userId: number,
   ) {
-    return this.teamsService.update(id, updateTeamDto, req.user.user_id);
+    return this.teamsService.update(id, updateTeamDto, userId);
   }
 
   @Delete(':id')
@@ -100,11 +101,8 @@ export class TeamsController {
   })
   @ApiResponse({ status: 404, description: 'Team not found.' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions.' })
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: { user: AuthenticatedUser },
-  ) {
-    return this.teamsService.remove(id, req.user.user_id);
+  remove(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.teamsService.remove(id, userId);
   }
 
   @Get(':id/members')
@@ -112,11 +110,8 @@ export class TeamsController {
   @ApiParam({ name: 'id', description: 'Team ID', type: Number })
   @ApiResponse({ status: 200, description: 'List of team members.' })
   @ApiResponse({ status: 404, description: 'Team not found.' })
-  getMembers(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: { user: AuthenticatedUser },
-  ) {
-    return this.teamsService.getTeamMembers(id, req.user.user_id);
+  getMembers(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.teamsService.getTeamMembers(id, userId);
   }
 
   @Post(':id/members')
@@ -131,9 +126,9 @@ export class TeamsController {
   addMember(
     @Param('id', ParseIntPipe) id: number,
     @Body() addMemberDto: AddTeamMemberDto,
-    @Request() req: { user: AuthenticatedUser },
+    @UserId() userId: number,
   ) {
-    return this.teamsService.addMember(id, addMemberDto, req.user.user_id);
+    return this.teamsService.addMember(id, addMemberDto, userId);
   }
 
   @Delete(':id/members/:memberId')
@@ -149,9 +144,9 @@ export class TeamsController {
   removeMember(
     @Param('id', ParseIntPipe) id: number,
     @Param('memberId', ParseIntPipe) memberId: number,
-    @Request() req: { user: AuthenticatedUser },
+    @UserId() userId: number,
   ) {
-    return this.teamsService.removeMember(id, memberId, req.user.user_id);
+    return this.teamsService.removeMember(id, memberId, userId);
   }
 
   @Patch(':id/members/:memberId/role')
@@ -180,13 +175,8 @@ export class TeamsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('memberId', ParseIntPipe) memberId: number,
     @Body('role') role: TeamRole,
-    @Request() req: { user: AuthenticatedUser },
+    @UserId() userId: number,
   ) {
-    return this.teamsService.updateMemberRole(
-      id,
-      memberId,
-      role,
-      req.user.user_id,
-    );
+    return this.teamsService.updateMemberRole(id, memberId, role, userId);
   }
 }
