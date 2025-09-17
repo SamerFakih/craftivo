@@ -12,12 +12,14 @@
                 <span class="project">{{ invoice.project }}</span>
             </div>
 
-            <div class="meta_line meta_muted">
+            <div class="meta__line meta__muted">
                 <span>Issued: {{ issued }}</span>
                 <span class="dot">•</span>
                 <span>Due: {{ due }}</span>
-                <span class="dot" *ngIf="paid">•</span>
-                <span *ngIf="paid">Paid: {{ paid }}</span>
+                @if (paid) {
+                <span class="dot">•</span>
+                <span>Paid: {{ paid }}</span>
+                }
             </div>
         </div>
     </div>
@@ -29,10 +31,10 @@
         </div>
 
         <div class="actions">
-            <button class="iconbtn" title="View">
+            <button class="iconbtn" title="View" (click)="onView($event)">
                 <i class="pi pi-eye"></i>
             </button>
-            <button class="iconbtn" title="Edit">
+            <button class="iconbtn" title="Edit" (click)="onEdit($event)">
                 <i class="pi pi-pencil"></i>
             </button>
             <button class="iconbtn" title="Download">
