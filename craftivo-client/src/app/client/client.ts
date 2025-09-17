@@ -1,91 +1,162 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ClientModel } from '../models/client';
 import { ClientCard } from '../components/client-card/client-card';
+import { ClientService } from '../services/client.service';
 
 @Component({
   selector: 'app-clients-page',
   standalone: true,
-  imports: [CommonModule, ClientCard],
+  imports: [CommonModule, ClientCard, ReactiveFormsModule],
   templateUrl: './client.html',
   styleUrls: ['./client.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Client {
-  // demo data – replace with API
-  clients = signal<ClientModel[]>([
-    {
-      id: 'c1',
-      name: 'TechCorp Inc.',
+  private readonly clientService = inject(ClientService);
+  private readonly fb = inject(FormBuilder);
+
+  clients = signal<ClientModel[]>([]);
+  isLoading = signal(false);
+  error = signal<string | null>(null);
+  isSubmitting = signal(false);
+  submitError = signal<string | null>(null);
+
+  // Form / modal state
+  showForm = signal(false);
+  formMode = signal<'create' | 'edit'>('create');
+  current = signal<ClientModel | null>(null);
+
+  clientForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2)]],
+    email: ['', [Validators.email]],
+    primaryContact: [''],
+    industry: [''],
+    location: [''],
+    tags: [''], // comma separated input -> array
+    status: ['active' as 'active' | 'inactive' | 'prospect'],
+  });
+
+  ngOnInit() {
+    this.isLoading.set(true);
+    this.clientService.getClients().subscribe({
+      next: (items) => {
+        this.clients.set(items);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.error.set(typeof err === 'string' ? err : 'Failed to load clients');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  // Open create modal
+  openCreate() {
+    this.formMode.set('create');
+    this.current.set(null);
+    this.clientForm.reset({
+      name: '',
+      email: '',
+      primaryContact: '',
+      industry: '',
+      location: '',
+      tags: '',
       status: 'active',
-      email: 'sarah@techcorp.com',
-      location: 'San Francisco, CA',
-      primaryContact: 'Sarah Williams',
-      industry: 'Technology',
-      joinedISO: '2024-01-15',
-      tags: ['Technology', 'Long-term', 'High-value'],
-      stats: {
-        totalProjects: 4,
-        activeProjects: 1,
-        totalRevenueUSD: 12800,
-        lastContactISO: '2024-08-20',
+    });
+    this.submitError.set(null);
+    this.showForm.set(true);
+  }
+
+  // Open edit modal
+  openEdit(c: ClientModel) {
+    this.formMode.set('edit');
+    this.current.set(c);
+    this.clientForm.reset({
+      name: c.name,
+      email: c.email,
+      primaryContact: c.primaryContact,
+      industry: c.industry,
+      location: c.location,
+      tags: c.tags.join(', '),
+      status: c.status,
+    });
+    this.submitError.set(null);
+    this.showForm.set(true);
+  }
+
+  closeForm() {
+    this.showForm.set(false);
+  }
+
+  private parseTags(raw: string): string[] {
+    return raw
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => !!t);
+  }
+
+  submitForm() {
+    if (this.clientForm.invalid) {
+      this.clientForm.markAllAsTouched();
+      return;
+    }
+    this.isSubmitting.set(true);
+    this.submitError.set(null);
+    const v = this.clientForm.getRawValue();
+    const payload = {
+      name: v.name.trim(),
+      email: v.email?.trim() || undefined,
+      primaryContact: v.primaryContact?.trim() || undefined,
+      industry: v.industry?.trim() || undefined,
+      location: v.location?.trim() || undefined,
+      tags: this.parseTags(v.tags),
+      status: v.status,
+    } as any;
+
+    if (this.formMode() === 'edit' && this.current()) {
+      const id = this.current()!.id;
+      this.clientService.updateClient(id, payload).subscribe({
+        next: (updated) => {
+          this.clients.update((list) => list.map((c) => (c.id === id ? updated : c)));
+          this.isSubmitting.set(false);
+          this.closeForm();
+        },
+        error: (err) => {
+          this.submitError.set(typeof err === 'string' ? err : 'Failed to update client');
+          this.isSubmitting.set(false);
+        },
+      });
+      return;
+    }
+
+    this.clientService.createClient(payload).subscribe({
+      next: (created) => {
+        this.clients.update((list) => [created, ...list]);
+        this.isSubmitting.set(false);
+        this.closeForm();
       },
-      rating: 4.9,
-    },
-    {
-      id: 'c2',
-      name: 'NorthPeak Co.',
-      status: 'active',
-      email: 'ops@northpeak.com',
-      location: 'Seattle, WA',
-      primaryContact: 'Tina Park',
-      industry: 'SaaS',
-      joinedISO: '2023-12-10',
-      tags: ['B2B', 'Subscription'],
-      stats: {
-        totalProjects: 6,
-        activeProjects: 2,
-        totalRevenueUSD: 22500,
-        lastContactISO: '2024-08-18',
+      error: (err) => {
+        this.submitError.set(typeof err === 'string' ? err : 'Failed to create client');
+        this.isSubmitting.set(false);
       },
-      rating: 4.7,
-    },
-    {
-      id: 'c3',
-      name: 'FlowBoard',
-      status: 'inactive',
-      email: 'cto@flowboard.io',
-      location: 'Remote',
-      primaryContact: 'R. Patel',
-      industry: 'Analytics',
-      joinedISO: '2023-11-02',
-      tags: ['Analytics', 'Startup'],
-      stats: {
-        totalProjects: 2,
-        activeProjects: 0,
-        totalRevenueUSD: 5400,
-        lastContactISO: '2024-07-28',
+    });
+  }
+
+  // Delete with confirm
+  deleteClient(c: ClientModel) {
+    if (!confirm(`Delete client "${c.name}"? This cannot be undone.`)) return;
+    const prev = this.clients();
+    this.clients.update((list) => list.filter((x) => x.id !== c.id));
+    this.clientService.deleteClient(c.id).subscribe({
+      next: () => {},
+      error: () => {
+        this.clients.set(prev);
+        alert('Failed to delete client');
       },
-      rating: 4.6,
-    },
-    {
-      id: 'c4',
-      name: 'Salesify',
-      status: 'active',
-      email: 'pm@salesify.com',
-      location: 'New York, NY',
-      primaryContact: 'Greg Rowe',
-      industry: 'Commerce',
-      joinedISO: '2024-03-01',
-      tags: ['E-commerce', 'Marketing'],
-      stats: {
-        totalProjects: 3,
-        activeProjects: 1,
-        totalRevenueUSD: 16800,
-        lastContactISO: '2024-08-19',
-      },
-      rating: 5,
-    },
-  ]);
+    });
+  }
 
   // search
   q = signal('');

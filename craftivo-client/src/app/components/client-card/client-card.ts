@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClientModel } from '../../models/client';
 
@@ -11,6 +11,8 @@ import { ClientModel } from '../../models/client';
 })
 export class ClientCard {
   @Input({ required: true }) client!: ClientModel;
+  @Output() edit = new EventEmitter<ClientModel>();
+  @Output() remove = new EventEmitter<ClientModel>();
 
   pillClass() {
     return this.client.status === 'active' ? 'pill pill--active' : 'pill pill--inactive';
@@ -18,5 +20,12 @@ export class ClientCard {
 
   money(n: number) {
     return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  onEdit() {
+    this.edit.emit(this.client);
+  }
+  onRemove() {
+    this.remove.emit(this.client);
   }
 }
