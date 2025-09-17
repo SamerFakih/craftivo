@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -97,20 +95,26 @@ export class OverviewService {
       },
     });
 
+    const toNumber = (v: unknown): number => {
+      if (v == null) return 0;
+      if (typeof v === 'object' && 'toNumber' in (v as any)) {
+        try {
+          return (v as { toNumber: () => number }).toNumber();
+        } catch {
+          return 0;
+        }
+      }
+      const n = Number(v);
+      return Number.isNaN(n) ? 0 : n;
+    };
+
+    const totalRevenueNumber = toNumber(totalRevenue._sum.total_amount);
+    const hoursThisMonthHours = toNumber(hoursThisMonth._sum.duration) / 3600;
+
     return {
-      totalRevenue: totalRevenue._sum.total_amount
-        ? typeof totalRevenue._sum.total_amount === 'object' &&
-          'toNumber' in totalRevenue._sum.total_amount
-          ? totalRevenue._sum.total_amount.toNumber()
-          : totalRevenue._sum.total_amount
-        : 0,
+      totalRevenue: totalRevenueNumber,
       activeProjects,
-      hoursThisMonth: hoursThisMonth._sum.duration
-        ? typeof hoursThisMonth._sum.duration === 'object' &&
-          typeof (hoursThisMonth._sum.duration as any).toNumber === 'function'
-          ? (hoursThisMonth._sum.duration as any).toNumber() / 3600
-          : Number(hoursThisMonth._sum.duration) / 3600
-        : 0,
+      hoursThisMonth: hoursThisMonthHours,
       teamMembers: teamMembers.map((m) => ({
         id: m.users.id,
         name: `${m.users.first_name} ${m.users.last_name}`,
