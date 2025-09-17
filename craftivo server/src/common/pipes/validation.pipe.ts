@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-function-type */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   PipeTransform,
   Injectable,
@@ -12,29 +8,46 @@ import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
 @Injectable()
-export class ValidationPipe implements PipeTransform<any> {
-  // This method transforms and validates incoming data
-  async transform(value: any, { metatype }: ArgumentMetadata) {
-    // If no metatype is provided or it's a primitive type, return the value as is
-    if (!metatype || !this.toValidate(metatype)) {
+export class ValidationPipe implements PipeTransform {
+  async transform<T = unknown>(
+    value: T,
+    { metatype }: ArgumentMetadata,
+  ): Promise<T> {
+    if (!metatype || !this.requiresValidation(metatype)) {
       return value;
     }
-    const object = plainToInstance(metatype, value);
-    const errors = await validate(object);
-    // If validation errors exist, throw a BadRequestException with details
+    const objectInstance = plainToInstance(
+      metatype as new (...args: unknown[]) => unknown,
+      value as object,
+    );
+    const errors = await validate(objectInstance as Record<string, unknown>);
     if (errors.length > 0) {
-      const messages = errors.map((error) => {
-        return Object.values(error.constraints || {}).join(', ');
-      });
+      const messages = errors
+        .map((error) => Object.values(error.constraints || {}).join(', '))
+        .filter(Boolean);
       throw new BadRequestException(
         `Validation failed: ${messages.join('; ')}`,
       );
     }
     return value;
   }
-  // This method checks if the metatype is a class that requires validation
-  private toValidate(metatype: Function): boolean {
-    const types: Function[] = [String, Boolean, Number, Array, Object];
-    return !types.includes(metatype);
+
+  private requiresValidation(metatype: unknown): boolean {
+    if (typeof metatype !== 'function') return false;
+    const primitives: ReadonlyArray<
+      | StringConstructor
+      | BooleanConstructor
+      | NumberConstructor
+      | ArrayConstructor
+      | ObjectConstructor
+    > = [String, Boolean, Number, Array, Object];
+    return !primitives.includes(
+      metatype as
+        | StringConstructor
+        | BooleanConstructor
+        | NumberConstructor
+        | ArrayConstructor
+        | ObjectConstructor,
+    );
   }
 }
