@@ -1,0 +1,82 @@
+/* Semantic layer maps roles to base tokens */
+:root {
+  /* Text */
+  --text-color: var(--color-gray-800);
+  --text-color-muted: var(--color-gray-600);
+  --text-on-primary: #ffffff;
+  --text-on-danger: #ffffff;
+  --text-on-success: #ffffff;
+  --text-link: var(--color-primary-600);
+  --text-link-hover: var(--color-primary-700);
+
+  /* Buttons */
+  --btn-font-weight: var(--weight-medium);
+  --btn-radius: var(--radius-sm);
+
+  --btn-primary-bg: var(--color-primary-500);
+  --btn-primary-bg-hover: var(--color-primary-600);
+  --btn-primary-bg-active: var(--color-primary-700);
+  --btn-primary-text: var(--text-on-primary);
+
+  --btn-secondary-bg: var(--color-gray-200);
+  --btn-secondary-bg-hover: var(--color-gray-300);
+  --btn-secondary-bg-active: var(--color-gray-400);
+  --btn-secondary-text: var(--text-color);
+
+  --btn-danger-bg: var(--color-danger-500);
+  --btn-danger-bg-hover: var(--color-danger-600);
+  --btn-danger-bg-active: #a92f2f;
+  --btn-danger-text: var(--text-on-danger);
+
+  --btn-subtle-bg: transparent;
+  --btn-subtle-bg-hover: var(--color-gray-150);
+  --btn-subtle-bg-active: var(--color-gray-200);
+  --btn-subtle-text: var(--color-gray-700);
+
+  --btn-ghost-bg: transparent;
+  --btn-ghost-bg-hover: rgba(0, 0, 0, 0.04);
+  --btn-ghost-bg-active: rgba(0, 0, 0, 0.08);
+  --btn-ghost-text: var(--color-gray-700);
+
+  /* Status / Badge */
+  --badge-radius: var(--radius-pill);
+  --badge-font-size: var(--font-size-xs);
+  --badge-bg-neutral: var(--color-gray-200);
+  --badge-text-neutral: var(--color-gray-700);
+  --badge-bg-success: var(--color-success-500);
+  --badge-text-success: #fff;
+  --badge-bg-danger: var(--color-danger-500);
+  --badge-text-danger: #fff;
+  --badge-bg-warning: var(--color-warning-500);
+  --badge-text-warning: #222;
+  --badge-bg-info: var(--color-info-500);
+  --badge-text-info: #fff;
+
+  /* Field */
+  --field-border: var(--color-gray-300);
+  --field-border-hover: var(--color-gray-400);
+  --field-border-focus: var(--color-primary-500);
+  --field-bg: #fff;
+  --field-bg-disabled: var(--color-gray-150);
+  --field-radius: var(--radius-sm);
+  --field-error-border: var(--color-danger-500);
+
+  /* Card */
+  --card-bg: var(--color-surface);
+  --card-border: var(--color-gray-200);
+  --card-radius: var(--radius-md);
+  --card-padding: var(--space-7);
+  --card-shadow: var(--shadow-1);
+  --card-shadow-hover: var(--shadow-2);
+
+  /* Modal */
+  --modal-bg: var(--color-surface);
+  --modal-radius: var(--radius-lg);
+  --modal-shadow: var(--shadow-3);
+  --modal-header-padding: var(--space-6) var(--space-7) var(--space-4);
+  --modal-body-padding: 0 var(--space-7) var(--space-6);
+  --modal-footer-padding: var(--space-5) var(--space-7) var(--space-6);
+
+  /* Focus */
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-focus-ring);
+}
