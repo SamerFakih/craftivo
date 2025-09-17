@@ -1,3 +1,22 @@
 {
-  "cSpell.words": ["autoincrement", "craftivo", "fkey", "pkey", "timetrackers"]
+  "cSpell.words": [
+    "autoincrement",
+    "checkmark",
+    "craftivo",
+    "Financials",
+    "fkey",
+    "frontends",
+    "globex",
+    "INCOICES",
+    "metatype",
+    "MTTR",
+    "pkey",
+    "timetrackers",
+    "tsvector",
+    "unblocker",
+    "uuidv"
+  ],
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
