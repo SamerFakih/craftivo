@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, tap, share, map } from 'rxjs/operators';
+import { API_BASE } from './api.config';
 
 export interface CacheItem<T> {
   data: T;
@@ -13,7 +14,7 @@ export interface CacheItem<T> {
   providedIn: 'root',
 })
 export class DataCacheService {
-  private readonly apiUrl = 'http://localhost:3000/api/v1';
+  private readonly apiUrl = API_BASE;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   // Cache subjects
@@ -183,30 +184,32 @@ export class DataCacheService {
       loading: true,
     });
 
-    const request$ = this.http.get<any>(`${this.apiUrl}/teams`, { withCredentials: true }).pipe(
-      tap((data) => {
-        const teamArray = Array.isArray(data) ? data : data.team || [];
+    const request$ = this.http
+      .get<any>(`${this.apiUrl}/teams/members`, { withCredentials: true })
+      .pipe(
+        tap((data) => {
+          const teamArray = Array.isArray(data) ? data : data.team || [];
 
-        this.teamCache$.next({
-          data: teamArray,
-          timestamp: Date.now(),
-          loading: false,
-        });
+          this.teamCache$.next({
+            data: teamArray,
+            timestamp: Date.now(),
+            loading: false,
+          });
 
-        console.log('✅ Team data cached successfully');
-        this.ongoingRequests.delete('team');
-      }),
-      catchError((error) => {
-        this.teamCache$.next({
-          ...cache,
-          loading: false,
-        });
-        this.ongoingRequests.delete('team');
-        console.error('❌ Error fetching team:', error);
-        return throwError(error);
-      }),
-      share()
-    );
+          console.log('✅ Team data cached successfully');
+          this.ongoingRequests.delete('team');
+        }),
+        catchError((error) => {
+          this.teamCache$.next({
+            ...cache,
+            loading: false,
+          });
+          this.ongoingRequests.delete('team');
+          console.error('❌ Error fetching team:', error);
+          return throwError(error);
+        }),
+        share()
+      );
 
     this.ongoingRequests.set('team', request$);
     return request$;
@@ -236,9 +239,89 @@ export class DataCacheService {
     });
 
     const request$ = this.http.get<any>(`${this.apiUrl}/overview`, { withCredentials: true }).pipe(
-      tap((data) => {
+      map((raw) => {
+        const root = raw?.overview ?? raw ?? {};
+
+        const num = (v: any, fallback = 0) => {
+          const n = Number(v);
+          return Number.isFinite(n) ? n : fallback;
+        };
+
+        const normalizeProject = (p: any) => ({
+          id: p?.id ?? p?._id ?? p?.project_id ?? undefined,
+          name: p?.name ?? p?.title ?? 'Untitled Project',
+          client: p?.client || { name: p?.client_name ?? p?.clientName ?? '—' },
+          budget: num(p?.budget ?? p?.budgetUSD ?? p?.budget_usd ?? 0),
+          due: p?.due ?? p?.due_date ?? p?.deadline ?? '',
+          progress: num(p?.progress ?? p?.progressPct ?? p?.progress_pct ?? 0),
+        });
+
+        const normalizeTask = (t: any) => ({
+          id: t?.id ?? t?._id ?? t?.task_id ?? undefined,
+          title: t?.title ?? t?.name ?? 'Untitled Task',
+          // Bind supports template's task.projects?.name
+          projects: t?.projects || t?.project || { name: t?.project_name ?? t?.projectName ?? '—' },
+          due_time: t?.due_time ?? t?.due ?? t?.due_date ?? '',
+          status: t?.status ?? t?.state ?? 'pending',
+        });
+
+        const normalizeActivity = (a: any) => ({
+          name: a?.name ?? a?.member_name ?? a?.user ?? '—',
+          status: a?.status ?? a?.action ?? '',
+          project: a?.project ?? a?.project_name ?? '',
+        });
+
+        const totalRevenue = num(
+          root.totalRevenue ??
+            root.total_revenue ??
+            root.metrics?.totalRevenue ??
+            root.metrics?.revenue?.total ??
+            0
+        );
+        const activeProjects = num(
+          root.activeProjects ??
+            root.active_projects ??
+            root.metrics?.activeProjects ??
+            root.projects?.active_count ??
+            0
+        );
+        const hoursThisMonth = num(
+          root.hoursThisMonth ?? root.hours_this_month ?? root.metrics?.hoursThisMonth ?? 0
+        );
+
+        const teamMembersRaw =
+          root.teamMembers ?? root.team?.members ?? root.team ?? root.members ?? [];
+        const teamMembers = Array.isArray(teamMembersRaw) ? teamMembersRaw : [];
+
+        const recentProjectsRaw =
+          root.recentProjects ?? root.projects?.recent ?? root.projects ?? [];
+        const recentProjects = (Array.isArray(recentProjectsRaw) ? recentProjectsRaw : []).map(
+          normalizeProject
+        );
+
+        const teamActivityRaw = root.teamActivity ?? root.activity?.team ?? root.activity ?? [];
+        const teamActivity = (Array.isArray(teamActivityRaw) ? teamActivityRaw : []).map(
+          normalizeActivity
+        );
+
+        const todayTasksRaw = root.todayTasks ?? root.tasks?.today ?? root.tasks ?? [];
+        const todayTasks = (Array.isArray(todayTasksRaw) ? todayTasksRaw : []).map(normalizeTask);
+
+        const normalized = {
+          totalRevenue,
+          activeProjects,
+          hoursThisMonth,
+          teamMembers,
+          recentProjects,
+          teamActivity,
+          todayTasks,
+        };
+
+        return normalized;
+      }),
+      tap((normalized) => {
         this.overviewCache$.next({
-          data: data,
+          data: normalized,
           timestamp: Date.now(),
           loading: false,
         });
