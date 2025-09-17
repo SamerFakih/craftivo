@@ -91,6 +91,23 @@
   gap: 12px;
 }
 
+.team-group {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 12px;
+}
+.team-group__title {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0b0f14;
+}
+.team-group__members {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 /* responsive */
 @media (max-width: 900px) {
   .kpi {

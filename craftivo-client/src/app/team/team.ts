@@ -1,24 +1,43 @@
-import { Component, signal, computed, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  signal,
+  computed,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  inject,
+  effect,
+} from '@angular/core';
 import { Member } from '../models/team';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MemberCard } from '../components/member-card/member-card';
 import { TeamService } from '../services/team.service';
+import { ModalBusService } from '../services/modal-bus.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-team-page',
   standalone: true,
-  imports: [CommonModule, MemberCard],
+  imports: [MemberCard, ReactiveFormsModule],
   templateUrl: './team.html',
   styleUrls: ['./team.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Team implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
+  private fb = inject(FormBuilder);
+
   constructor(private teamService: TeamService) {}
+  private modalBus = inject(ModalBusService);
 
   members = signal<Member[]>([]);
+  private _busEffect = effect(() => {
+    const evt = this.modalBus.event();
+    if (!evt) return;
+    if (evt.type === 'open-team-invite') this.openInvite();
+  });
 
   ngOnInit() {
     this.teamService
@@ -113,7 +132,62 @@ export class Team implements OnInit, OnDestroy {
     );
   });
 
+  // Group members by team name (if provided). Members without a team go to "General".
+  groups = computed(() => {
+    const byTeam = new Map<string, Member[]>();
+    for (const m of this.filtered()) {
+      const team = (m as any).team || 'General';
+      if (!byTeam.has(team)) byTeam.set(team, []);
+      byTeam.get(team)!.push(m);
+    }
+    // Return stable order: team name ascending, "General" first
+    const entries = Array.from(byTeam.entries());
+    entries.sort((a, b) => {
+      if (a[0] === 'General') return -1;
+      if (b[0] === 'General') return 1;
+      return a[0].localeCompare(b[0]);
+    });
+    return entries;
+  });
+
   trackByMemberId(index: number, member: Member): string {
     return member.id;
+  }
+
+  // Invite modal state & form
+  showInvite = signal(false);
+  inviteForm = this.fb.nonNullable.group({
+    name: [''],
+    email: ['', [Validators.required, Validators.email]],
+    role: [''],
+  });
+
+  openInvite() {
+    this.inviteForm.reset({ name: '', email: '', role: '' });
+    this.showInvite.set(true);
+  }
+  closeInvite() {
+    this.showInvite.set(false);
+  }
+  submitInvite(ev: Event) {
+    ev.preventDefault();
+    if (this.inviteForm.invalid) return;
+    const v = this.inviteForm.getRawValue();
+    // Placeholder: push optimistic temp member; real impl should POST to backend
+    const newMember: Member = {
+      id: 'temp-' + Date.now(),
+      name: v.name || v.email.split('@')[0],
+      title: v.role || 'Member',
+      status: 'active',
+      email: v.email,
+      location: '—',
+      hourlyRateUSD: 0,
+      hoursMonth: 0,
+      activeProjects: 0,
+      tasksDone: 0,
+      skills: [],
+    } as Member;
+    this.members.update((m) => [newMember, ...m]);
+    this.closeInvite();
   }
 }
