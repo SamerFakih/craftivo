@@ -8,7 +8,4 @@ import { RouterModule, RouterOutlet } from '@angular/router';
   template: '<router-outlet></router-outlet>',
   styleUrl: './app.css',
 })
-export class App {
-  // Removed redundant auth check - AuthGuard handles authentication
-  // This prevents duplicate API calls on app initialization
-}
+export class App {}
