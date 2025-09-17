@@ -67,7 +67,8 @@
               "buildTarget": "craftivo-client:build:production"
             },
             "development": {
-              "buildTarget": "craftivo-client:build:development"
+              "buildTarget": "craftivo-client:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
