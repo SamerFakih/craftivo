@@ -34,20 +34,23 @@
 
     <div class="team">
         <div class="avatars">
-            <img *ngFor="let m of project.team | slice:0:3; index as i" class="avatar"
-                [src]="m.avatarUrl ?? '/assets/craftivo-logo.png'" [alt]="m.name" />
-            <span *ngIf="project.team && project.team.length>3" class="avatar avatar--more">
+            @for (m of project.team.slice(0, 3); track m) {
+            <img class="avatar" [src]="m.avatarUrl ?? '/assets/craftivo-logo.png'" [alt]="m.name" />
+            }
+            @if (project.team && project.team.length > 3) {
+            <span class="avatar avatar--more">
                 +{{ project.team.length-3 }}
             </span>
+            }
         </div>
     </div>
 
     <div class="actions">
-        <button class="btn btn--ghost">
+        <button class="btn btn--ghost" (click)="onView($event)">
             <i class="pi pi-eye"></i>
             View
         </button>
-        <button class="btn btn--primary">
+        <button class="btn btn--primary" (click)="onEdit($event)">
             <i class="pi pi-pencil"></i>
             Edit
         </button>

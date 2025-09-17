@@ -174,3 +174,34 @@
     grid-column: span 12;
   }
 }
+
+/* Create Project Modal */
+/* Modal styles removed; using design system primitives */
+
+/* View panel */
+.view-panel {
+  display: grid;
+  gap: 10px;
+  padding-top: 8px;
+}
+.view-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  border-bottom: 1px dashed #e5e7eb;
+  padding: 6px 0;
+}
+.view-row:last-child {
+  border-bottom: none;
+}
+.view-row .label {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+.view-row .value {
+  color: #0b0f14;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
