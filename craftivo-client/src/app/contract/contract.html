@@ -1,1 +1,259 @@
-<p>contract works!</p>
+<section class="contracts-page">
+    <header class="page-header">
+        <div>
+            <h1>Contract Generator</h1>
+            <p class="subtitle">Create professional contracts with automated legal templates</p>
+        </div>
+        <div class="actions">
+            <button class="btn primary" (click)="setTab('Contract Generator')">
+                <i class="pi pi-plus"></i>
+                New Contract
+            </button>
+        </div>
+    </header>
+
+    <div class="stats kpi">
+        <section class="summary">
+            <div class="card-summary">
+                <div class="summary-label">Total Contracts</div>
+                <div class="summary-value">{{ totalContracts() }} <i class="pi pi-file summary-icon"></i></div>
+            </div>
+            <div class="card-summary">
+                <div class="summary-label">Signed</div>
+                <div class="summary-value">{{ signedCount() }} <i class="pi pi-check-circle summary-icon"></i></div>
+            </div>
+            <div class="card-summary">
+                <div class="summary-label">Pending</div>
+                <div class="summary-value">{{ pendingCount() }} <i class="pi pi-clock summary-icon"></i></div>
+            </div>
+            <div class="card-summary">
+                <div class="summary-label">Total Value</div>
+                <div class="summary-value">{{ totalValue() }} <i class="pi pi-dollar summary-icon"></i></div>
+            </div>
+        </section>
+
+    </div>
+
+    <nav class="tabs">
+        @for (t of tabs; track t; let i = $index) {
+        <button type="button" class="tab" [class.active]="activeTab() === t" (click)="setTab(t)">{{ t }}</button>
+        }
+    </nav>
+
+    @if (activeTab() === 'Templates') {
+    <div class="templates-grid">
+        @for (tpl of templates(); track tpl.id) {
+        <article class="template-card">
+            <div class="card-header">
+                <i class="pi pi-file"></i>
+                @if (tpl.tag) { <span class="badge">{{ tpl.tag }}</span> }
+                <span class="price">{{ tpl.priceLabel }}</span>
+            </div>
+            <h3 class="title">{{ tpl.title }}</h3>
+            <p class="subtitle">{{ tpl.subtitle }}</p>
+            <span class="chip">{{ tpl.category }}</span>
+
+            <div class="includes">
+                <h4>Includes:</h4>
+                <ul>
+                    @for (inc of tpl.includes; track inc) {
+                    <li><i class="pi pi-check-circle"></i> {{ inc }}</li>
+                    }
+                </ul>
+            </div>
+
+            <div class="card-actions">
+                <button class="btn ghost"><i class="pi pi-eye"></i> Preview</button>
+                <button class="btn primary" (click)="onUseTemplate(tpl)">Use Template</button>
+            </div>
+        </article>
+        }
+    </div>
+    }
+
+    @if (activeTab() === 'Contract Generator') {
+    <div class="generator-grid">
+        <section class="card form-card">
+            <h3 class="card-title">Contract Details</h3>
+            <p class="muted">Fill in the project and client information</p>
+
+            <form [formGroup]="form" class="form">
+                <div class="grid two">
+                    <div class="field">
+                        <label>Client Name *</label>
+                        <input type="text" formControlName="clientName" placeholder="Client or Company Name" />
+                    </div>
+                    <div class="field">
+                        <label>Client Email</label>
+                        <input type="email" formControlName="clientEmail" placeholder="client@example.com" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Project Title *</label>
+                    <input type="text" formControlName="projectTitle" placeholder="Project Name" />
+                </div>
+
+                <div class="field">
+                    <label>Project Description</label>
+                    <textarea rows="3" formControlName="description"
+                        placeholder="Detailed project description and scope"></textarea>
+                </div>
+
+                <div class="grid two">
+                    <div class="field">
+                        <label>Start Date</label>
+                        <input type="date" formControlName="startDate" placeholder="dd/mm/yyyy" />
+                    </div>
+                    <div class="field">
+                        <label>End Date</label>
+                        <input type="date" formControlName="endDate" placeholder="dd/mm/yyyy" />
+                    </div>
+                </div>
+
+                <div class="grid two">
+                    <div class="field">
+                        <label>Total Amount ($)</label>
+                        <input type="number" formControlName="totalAmount" placeholder="5000" />
+                    </div>
+                    <div class="field">
+                        <label>Payment Schedule</label>
+                        <select formControlName="paymentSchedule">
+                            @for (opt of paymentOptions; track opt) {
+                            <option [value]="opt">{{ opt }}</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <aside class="card preview-card">
+            <h3 class="card-title">Live Preview</h3>
+            <p class="muted">See how your contract will look</p>
+
+            <div class="paper">
+                <h4 class="paper-title">{{ preview().title }}</h4>
+                <div class="paper-subtitle">Service Agreement</div>
+                <hr />
+                <div class="meta"><span>Client:</span> {{ preview().client }}</div>
+                <div class="meta"><span>Project:</span> {{ formValue().projectTitle || 'Project Title' }}</div>
+                <div class="meta"><span>Total Amount:</span> {{ preview().amount }}</div>
+                <div class="meta"><span>Timeline:</span> {{ preview().timeline }}</div>
+                <div class="meta"><span>Payment Terms:</span> {{ preview().payment }}</div>
+                <hr />
+                <p class="note">This is a simplified preview. The full contract will include all legal terms,
+                    conditions, and clauses.</p>
+            </div>
+        </aside>
+
+        <section class="card terms-card">
+            <h3 class="card-title">Additional Terms</h3>
+            <p class="muted">Customize contract clauses and terms</p>
+
+            <div class="terms-grid" [formGroup]="form">
+                <div class="term">
+                    <div class="term-info">
+                        <div class="term-title">Include Kill Fee Clause</div>
+                        <div class="term-sub">50% payment if project is cancelled</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" formControlName="includeKillFee" />
+                        <span></span>
+                    </label>
+                </div>
+                <div class="term">
+                    <div class="term-info">
+                        <div class="term-title">Include Rush Fee Terms</div>
+                        <div class="term-sub">Additional 25% for expedited delivery</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" formControlName="includeRushFee" />
+                        <span></span>
+                    </label>
+                </div>
+                <div class="term">
+                    <div class="term-info">
+                        <div class="term-title">IP Ownership Transfer</div>
+                        <div class="term-sub">Client owns all intellectual property</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" formControlName="ipOwnership" />
+                        <span></span>
+                    </label>
+                </div>
+                <div class="term">
+                    <div class="term-info">
+                        <div class="term-title">Include NDA</div>
+                        <div class="term-sub">Non-disclosure agreement</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" formControlName="includeNda" />
+                        <span></span>
+                    </label>
+                </div>
+
+                <div class="field full">
+                    <label>Custom Terms</label>
+                    <textarea rows="2" formControlName="customTerms"
+                        placeholder="Any additional terms or clauses..."></textarea>
+                </div>
+            </div>
+
+            <div class="footer-actions">
+                @if (submitError()) {
+                <div class="error-banner">{{ submitError() }}</div>
+                }
+                <button class="btn primary" (click)="onGenerate()" [disabled]="isSubmitting()">
+                    <i class="pi pi-file"></i>
+                    Generate Contract
+                </button>
+                <button class="btn ghost">
+                    <i class="pi pi-eye"></i>
+                    Preview
+                </button>
+            </div>
+        </section>
+    </div>
+    }
+
+    @if (activeTab() === 'My Contracts') {
+    <section class="card my-contracts">
+        <h3 class="card-title">My Contracts</h3>
+        <p class="muted">Manage all your generated contracts</p>
+
+        <div class="contract-list">
+            @for (c of myContracts(); track c.id) {
+            <article class="contract-row">
+                <div class="left">
+                    <i class="status-icon" [class.signed]="c.status === 'signed'"
+                        [class.pending]="c.status === 'pending'" [class.draft]="c.status === 'draft'"
+                        [class]="statusIcon(c.status)"></i>
+                    <div class="info">
+                        <div class="title-line">
+                            <h4 class="title">{{ c.title }}</h4>
+                            <span class="badge" [class.badge-signed]="c.status==='signed'"
+                                [class.badge-pending]="c.status==='pending'" [class.badge-draft]="c.status==='draft'">{{
+                                c.status }}</span>
+                        </div>
+                        <div class="sub">{{ c.client }} • {{ c.type }}</div>
+                        <div class="created">Created: {{ c.created }}</div>
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="amount">{{ currency.format(c.amount) }}</div>
+                    <div class="actions">
+                        <button class="icon-btn" title="View" (click)="onView(c.id)"><i class="pi pi-eye"></i></button>
+                        <button class="icon-btn" title="Edit" (click)="onEdit(c.id)"><i
+                                class="pi pi-pencil"></i></button>
+                        <button class="icon-btn" title="Download (coming soon)" disabled><i
+                                class="pi pi-download"></i></button>
+                        <button class="icon-btn" title="Send (coming soon)" disabled><i class="pi pi-send"></i></button>
+                    </div>
+                </div>
+            </article>
+            }
+        </div>
+    </section>
+    }
+</section>
