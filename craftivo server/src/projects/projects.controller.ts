@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// Removed legacy eslint-disable directives after refactor
 import {
   Body,
   Controller,
@@ -8,10 +6,12 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
-  Request,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,6 +24,7 @@ import {
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectsService } from './projects.service';
+import { UserId } from '../common/decorators/user-id.decorator';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('projects')
@@ -40,8 +41,7 @@ export class ProjectsController {
     description: 'Return all projects for the user.',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findAll(@Request() req) {
-    const userId = req.user.user_id;
+  findAll(@UserId() userId: number) {
     return this.projectsService.findAll(userId);
   }
 
@@ -51,8 +51,7 @@ export class ProjectsController {
   @ApiResponse({ status: 200, description: 'Return the project.' })
   @ApiResponse({ status: 404, description: 'Project not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    const userId = req.user.user_id;
+  findOne(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
     return this.projectsService.findOne(id, userId);
   }
 
@@ -65,9 +64,7 @@ export class ProjectsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createProjectDto: CreateProjectDto, @Request() req) {
-    const userId = req.user.user_id;
-    console.log('Creating project for user ID:', userId);
+  create(@Body() createProjectDto: CreateProjectDto, @UserId() userId: number) {
     return this.projectsService.create(createProjectDto, userId);
   }
 
@@ -84,9 +81,36 @@ export class ProjectsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProjectDto: UpdateProjectDto,
-    @Request() req,
+    @UserId() userId: number,
   ) {
-    const userId = req.user.user_id;
+    return this.projectsService.update(id, updateProjectDto, userId);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Partially update a project' })
+  @ApiParam({ name: 'id', type: 'number', description: 'Project ID' })
+  @ApiBody({ type: UpdateProjectDto })
+  @ApiResponse({
+    status: 200,
+    description: 'The project has been successfully updated.',
+  })
+  @ApiResponse({ status: 404, description: 'Project not found.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+      skipMissingProperties: true,
+      forbidUnknownValues: false,
+    }),
+  )
+  patchUpdate(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @UserId() userId: number,
+  ) {
     return this.projectsService.update(id, updateProjectDto, userId);
   }
 
@@ -98,8 +122,7 @@ export class ProjectsController {
     description: 'The project has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Project not found.' })
-  delete(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    const userId = req.user.user_id;
+  delete(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
     return this.projectsService.delete(id, userId);
   }
 }
