@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// Cleaned unused eslint-disable directives
 import {
   Controller,
   Post,
@@ -22,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
+import { UserId } from '../common/decorators/user-id.decorator';
 import { JwtAuthGuard } from './jwt.guard';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginUserDto, AuthResponseDto } from './dto/index';
@@ -94,8 +92,8 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid or missing authentication token',
   })
-  async getProfile(@Request() req): Promise<UserProfileDto> {
-    return this.authService.getProfile(req.user.user_id);
+  async getProfile(@UserId() userId: number): Promise<UserProfileDto> {
+    return this.authService.getProfile(userId);
   }
 
   @Post('logout')
@@ -108,9 +106,7 @@ export class AuthController {
     status: HttpStatus.OK,
     description: 'User logged out successfully',
   })
-  async logout(
-    @Res({ passthrough: true }) response: Response,
-  ): Promise<{ message: string }> {
+  logout(@Res({ passthrough: true }) response: Response): { message: string } {
     return this.authService.logout(response);
   }
 
@@ -129,17 +125,16 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Token is invalid or expired',
   })
-  async verifyToken(@Request() req): Promise<{
+  verifyToken(
+    @Request() req: { user: { user_id: number; email: string; role: string } },
+  ): {
     valid: boolean;
     user: { id: number; email: string; role: string };
-  }> {
+  } {
+    const { user } = req;
     return {
       valid: true,
-      user: {
-        id: req.user.user_id,
-        email: req.user.email,
-        role: req.user.role,
-      },
+      user: { id: user.user_id, email: user.email, role: user.role },
     };
   }
 }

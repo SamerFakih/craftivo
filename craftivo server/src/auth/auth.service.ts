@@ -1,8 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
   UnauthorizedException,
@@ -45,9 +40,12 @@ export class AuthService {
     // Hash password
     const saltRounds = 12;
     const password_hash = await bcrypt.hash(createUserDto.password, saltRounds);
-
-    // Create user
-    const { password, ...userData } = createUserDto;
+    // Create user (omit plaintext password)
+    const userData = {
+      email: createUserDto.email,
+      first_name: createUserDto.first_name,
+      last_name: createUserDto.last_name,
+    };
     const user = await this.prisma.users.create({
       data: {
         email: userData.email,
@@ -58,7 +56,7 @@ export class AuthService {
     });
 
     // Generate JWT and set cookie
-    const tokens = await this.generateTokens(user);
+    const tokens = this.generateTokens(user);
     this.setAuthCookie(response, tokens.access_token);
 
     this.logger.log(`User registered successfully: ${user.id}`);
@@ -96,7 +94,7 @@ export class AuthService {
     }
 
     // Generate JWT and set cookie
-    const tokens = await this.generateTokens(user);
+    const tokens = this.generateTokens(user);
     this.setAuthCookie(response, tokens.access_token);
 
     this.logger.log(`User logged in successfully: ${user.id}`);
@@ -144,7 +142,7 @@ export class AuthService {
     } as UserProfileDto;
   }
 
-  async logout(response: Response): Promise<{ message: string }> {
+  logout(response: Response): { message: string } {
     response.clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -155,16 +153,11 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  private async generateTokens(user: any) {
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+  private generateTokens(user: { id: number; email: string; role: string }): {
+    access_token: string;
+  } {
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return { access_token: this.jwtService.sign(payload) };
   }
 
   private setAuthCookie(response: Response, token: string): void {
@@ -177,8 +170,5 @@ export class AuthService {
     });
   }
 
-  private sanitizeUser(user: any) {
-    const { password_hash, ...sanitizedUser } = user;
-    return sanitizedUser;
-  }
+  // sanitizeUser kept if needed later – currently unused, can be safely removed
 }
