@@ -120,6 +120,85 @@
   border-color: teal;
 }
 
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 90;
+}
+.modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100% - 32px));
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  z-index: 91;
+  padding: 16px;
+}
+.modal__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal__head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.modal__sub {
+  color: #6b7280;
+  margin: 8px 0 12px;
+  font-size: 13px;
+}
+.icon-x {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal__form {
+  display: grid;
+  gap: 12px;
+}
+.row {
+  display: grid;
+  gap: 12px;
+}
+.row.two {
+  grid-template-columns: 1fr 1fr;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field label {
+  font-size: 12px;
+  color: #334155;
+  font-weight: 600;
+}
+.field input,
+.field select,
+.field textarea {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  outline: none;
+  font-size: 13px;
+}
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
 @media (max-width: 900px) {
   .kpi {
     grid-column: span 6;
