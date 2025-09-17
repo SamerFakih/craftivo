@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -11,7 +8,9 @@ export class LoginUserDto {
     description: 'User email address',
   })
   @IsEmail()
-  @Transform(({ value }) => value.toLowerCase().trim())
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.toLowerCase().trim() : '',
+  )
   email: string;
 
   @ApiProperty({
