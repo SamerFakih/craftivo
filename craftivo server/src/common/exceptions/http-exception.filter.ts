@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   ExceptionFilter,
   Catch,
@@ -26,10 +24,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      message =
-        typeof exceptionResponse === 'string'
-          ? exceptionResponse
-          : (exceptionResponse as any).message || exception.message;
+      if (typeof exceptionResponse === 'string') {
+        message = exceptionResponse;
+      } else if (
+        exceptionResponse &&
+        typeof exceptionResponse === 'object' &&
+        'message' in exceptionResponse
+      ) {
+        const msg = (exceptionResponse as { message?: unknown }).message;
+        if (typeof msg === 'string') message = msg;
+        else if (Array.isArray(msg)) message = msg.join(', ');
+      } else {
+        message = exception.message;
+      }
     } else if (exception instanceof Error) {
       message = exception.message;
 
@@ -49,12 +56,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
       message,
+      requestId: (request as unknown as { requestId?: string }).requestId,
     };
     // Log the error details
-    this.logger.error(
-      `${request.method} ${request.url}`,
-      exception instanceof Error ? exception.stack : exception,
-    );
+    const requestId = (request as unknown as { requestId?: string }).requestId;
+    this.logger.error(`${request.method} ${request.url} [${requestId}]`);
+    if (exception instanceof Error) {
+      this.logger.error(exception.stack);
+    } else {
+      this.logger.error(String(exception));
+    }
 
     response.status(status).json(errorResponse);
   }
