@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TimeEntry } from '../../models/time-tracking';
 
@@ -8,7 +8,9 @@ import { TimeEntry } from '../../models/time-tracking';
   imports: [CommonModule],
   templateUrl: './time-entries.html',
   styleUrls: ['./time-entries.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TimeEntries {
   @Input({ required: true }) entries: TimeEntry[] = [];
+  @Output() manual = new EventEmitter<void>();
 }

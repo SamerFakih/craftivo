@@ -1,7 +1,17 @@
 <section class="panel">
     <div class="panel__head">
-        <h2>Time Entries</h2>
-        <p class="muted">Recent time tracking entries</p>
+        <div class="head-left">
+            <h2>Time Entries</h2>
+            <p class="muted">Recent time tracking entries</p>
+        </div>
+        <div class="head-actions">
+            <button class="btn primary" (click)="manual.emit()">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+                </svg>
+                Manual Entry
+            </button>
+        </div>
     </div>
 
     <div class="list">
