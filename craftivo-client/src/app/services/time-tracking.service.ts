@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE } from './api.config';
 import { Observable } from 'rxjs';
 import { DataCacheService } from './data-cache.service';
 
@@ -7,7 +8,7 @@ import { DataCacheService } from './data-cache.service';
   providedIn: 'root',
 })
 export class TimeTrackingService {
-  private apiUrl = 'http://localhost:3000/api/v1';
+  private apiUrl = API_BASE;
 
   constructor(private http: HttpClient, private cacheService: DataCacheService) {}
 
