@@ -1,69 +1,59 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserRole } from '@prisma/client';
+import { Prisma, users as User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  findAll() {
+  async findAll(): Promise<User[]> {
     return this.prisma.users.findMany();
   }
 
-  findOne(id: number) {
-    return this.prisma.users.findUnique({ where: { id } });
+  async findOne(id: number): Promise<User> {
+    const user = await this.prisma.users.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
-  findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User | null> {
     return this.prisma.users.findUnique({ where: { email } });
   }
 
-  async create(data: any) {
-    if (!data.password_hash) {
-      throw new Error('Password is required');
-    }
-    const { password, ...rest } = data;
-    return this.prisma.users.create({
-      data: { ...rest },
-    });
+  async create(data: Prisma.usersCreateInput): Promise<User> {
+    // NOTE: password should be hashed before calling this method (controller/service upstream)
+    return this.prisma.users.create({ data });
   }
 
-  async update(
-    id: number,
-    data: Partial<{
-      first_name: string;
-      last_name: string;
-      email: string;
-      phone: string;
-      profile_image: string;
-      website: string;
-      role: UserRole;
-      timezone: string;
-      hourly_rate: number;
-      tax_id: string;
-      bio: string;
-      location: string;
-      business_name: string;
-      business_address: string;
-    }>,
-  ) {
+  async update(id: number, data: Prisma.usersUpdateInput): Promise<User> {
     try {
       return await this.prisma.users.update({ where: { id }, data });
-    } catch (error) {
-      console.error('Update user error:', error);
-      throw new Error('Failed to update user');
+    } catch (err: unknown) {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code: string }).code === 'P2025'
+      ) {
+        throw new NotFoundException('User not found');
+      }
+      throw err;
     }
   }
 
-  async delete(id: number) {
+  async delete(id: number): Promise<User> {
     try {
       return await this.prisma.users.delete({ where: { id } });
-    } catch (error) {
-      console.error('Delete user error:', error);
-      throw new Error('Failed to delete user');
+    } catch (err: unknown) {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code: string }).code === 'P2025'
+      ) {
+        throw new NotFoundException('User not found');
+      }
+      throw err;
     }
   }
 }

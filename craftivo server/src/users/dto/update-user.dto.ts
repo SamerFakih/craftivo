@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   IsEmail,
   IsString,
@@ -20,9 +17,12 @@ export class UpdateUserDto {
     example: 'john.doe@example.com',
     description: 'User email address',
   })
+  @IsOptional()
   @IsEmail()
-  @Transform(({ value }) => value.toLowerCase().trim())
-  email: string;
+  @Transform(({ value }): string | undefined =>
+    typeof value === 'string' ? value.toLowerCase().trim() : undefined,
+  )
+  email?: string;
 
   @ApiProperty({
     example: 'John',
@@ -30,21 +30,27 @@ export class UpdateUserDto {
     minLength: 2,
     maxLength: 50,
   })
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  @Transform(({ value }) => value.trim())
-  first_name: string;
+  @Transform(({ value }): string | undefined =>
+    typeof value === 'string' ? value.trim() : undefined,
+  )
+  first_name?: string;
 
   @ApiProperty({
     example: 'Doe',
     description: 'User last name',
   })
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  @Transform(({ value }) => value.trim())
-  last_name: string;
+  @Transform(({ value }): string | undefined =>
+    typeof value === 'string' ? value.trim() : undefined,
+  )
+  last_name?: string;
 
   @ApiProperty({
     example: 'password123',

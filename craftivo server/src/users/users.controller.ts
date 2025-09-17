@@ -97,7 +97,8 @@ export class UsersController {
     if (req.user?.role !== 'admin') {
       throw new ForbiddenException('Admin access required');
     }
-    return this.usersService.create(createUserDto);
+    const { password, ...rest } = createUserDto;
+    return this.usersService.create({ ...rest, password_hash: password });
   }
 
   @Patch(':id')
@@ -124,7 +125,11 @@ export class UsersController {
       throw new ForbiddenException('You can only update your own profile');
     }
 
-    return this.usersService.update(id, updateUserDto);
+    // Prisma update input - ensure only provided fields are passed
+    const data: import('@prisma/client').Prisma.usersUpdateInput = {
+      ...updateUserDto,
+    };
+    return this.usersService.update(id, data);
   }
 
   @Delete(':id')
