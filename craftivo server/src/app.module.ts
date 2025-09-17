@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
@@ -10,6 +11,7 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { TeamsModule } from './teams/teams.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { ConfigModule } from '@nestjs/config';
+import { validationSchema } from './common/config/env.validation';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { OverviewController } from './overview/overview.controller';
@@ -27,7 +29,7 @@ import { PrismaModule } from './prisma/prisma.module';
     InvoicesModule,
     TeamsModule,
     ContractsModule,
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validationSchema }),
     ThrottlerModule.forRoot({
       throttlers: [
         {
