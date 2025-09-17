@@ -1,7 +1,7 @@
 export interface ClientModel {
   id: string;
   name: string; // “TechCorp Inc.”
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'prospect';
   email: string;
   location: string; // “San Francisco, CA”
   primaryContact: string; // “Sarah Williams”
