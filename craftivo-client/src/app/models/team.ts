@@ -11,4 +11,5 @@ export interface Member {
   tasksDone: number; // 127
   skills: string[]; // ["React","Node.js","Python","AWS"]
   avatarUrl?: string;
+  team?: string; // Optional team name for grouping
 }
