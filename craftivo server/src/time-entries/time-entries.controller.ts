@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Body,
   Controller,
@@ -12,7 +9,6 @@ import {
   Query,
   Delete,
   UseGuards,
-  Request,
   HttpCode,
 } from '@nestjs/common';
 import {
@@ -28,6 +24,7 @@ import { CreateTimeEntriesDto } from './dto/create-time-entries.dto';
 import { UpdateTimeEntriesDto } from './dto/update-time-entries.dto';
 import { TimeEntriesFiltersDto } from './dto/time-entries-filters.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UserId } from '../common/decorators/user-id.decorator';
 
 @ApiTags('time-entries')
 @ApiBearerAuth()
@@ -43,21 +40,24 @@ export class TimeEntriesController {
   @ApiBody({ type: CreateTimeEntriesDto })
   async create(
     @Body() createTimeEntriesDto: CreateTimeEntriesDto,
-    @Request() req,
+    @UserId() userId: number,
   ) {
     return this.timeEntriesService.create({
       ...createTimeEntriesDto,
-      user_id: req.user.user_id,
+      user_id: userId,
     });
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all time entries' })
   @ApiResponse({ status: 200, description: 'List of time entries' })
-  async findAll(@Query() filters: TimeEntriesFiltersDto, @Request() req) {
+  async findAll(
+    @Query() filters: TimeEntriesFiltersDto,
+    @UserId() userId: number,
+  ) {
     return this.timeEntriesService.findAll({
       ...filters,
-      user_id: req.user.user_id,
+      user_id: userId,
     });
   }
 
@@ -66,8 +66,11 @@ export class TimeEntriesController {
   @ApiResponse({ status: 200, description: 'Time entry found' })
   @ApiResponse({ status: 404, description: 'Time entry not found' })
   @ApiParam({ name: 'id', type: 'number' })
-  async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.timeEntriesService.findOne(id, req.user.user_id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @UserId() userId: number,
+  ) {
+    return this.timeEntriesService.findOne(id, userId);
   }
 
   @Patch(':id')
@@ -79,13 +82,9 @@ export class TimeEntriesController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTimeEntriesDto: UpdateTimeEntriesDto,
-    @Request() req,
+    @UserId() userId: number,
   ) {
-    return this.timeEntriesService.update(
-      id,
-      req.user.user_id,
-      updateTimeEntriesDto,
-    );
+    return this.timeEntriesService.update(id, userId, updateTimeEntriesDto);
   }
 
   @Delete(':id')
@@ -94,7 +93,10 @@ export class TimeEntriesController {
   @ApiResponse({ status: 404, description: 'Time entry not found' })
   @ApiParam({ name: 'id', type: 'number' })
   @HttpCode(204)
-  async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.timeEntriesService.remove(id, { user_id: req.user.user_id });
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @UserId() userId: number,
+  ) {
+    return this.timeEntriesService.remove(id, { user_id: userId });
   }
 }

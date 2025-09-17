@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   NotFoundException,
@@ -10,13 +6,38 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTimeEntriesDto } from './dto/create-time-entries.dto';
 import { UpdateTimeEntriesDto } from './dto/update-time-entries.dto';
-import { TimeEntryStatus } from '@prisma/client';
+import { TimeEntryStatus, Prisma } from '@prisma/client';
+
+// List filter shape reused across queries
+type ListFilters = {
+  user_id?: number;
+  project_id?: number;
+  task_id?: number;
+  status?: TimeEntryStatus;
+  billable?: boolean;
+  start_date?: string;
+  end_date?: string;
+};
 
 @Injectable()
 export class TimeEntriesService {
   constructor(private prisma: PrismaService) {}
+  // Filter type reused across list endpoints
+  private readonly baseListSelect = {
+    users: { select: { id: true, first_name: true, last_name: true } },
+    projects: {
+      select: {
+        id: true,
+        name: true,
+        clients: { select: { name: true, id: true } },
+      },
+    },
+    tasks: { select: { id: true, title: true } },
+  } as const;
 
-  // Create a new time entry
+  // Mapping utility removed; inline mapping used for stronger inference
+
+  // Create time entry (computes duration if end_time provided)
   async create(createTimeEntriesDto: CreateTimeEntriesDto) {
     const {
       user_id,
@@ -74,44 +95,23 @@ export class TimeEntriesService {
     });
   }
 
-  // Get all time entries with filters
-  async findAll(filters?: {
-    user_id?: number;
-    project_id?: number;
-    task_id?: number;
-    status?: TimeEntryStatus;
-    billable?: boolean;
-    start_date?: string;
-    end_date?: string;
-  }) {
-    const where: any = {};
-
+  // List time entries (filtered)
+  async findAll(filters?: ListFilters) {
+    const where: Prisma.time_entriesWhereInput = {};
     if (filters?.user_id) where.user_id = filters.user_id;
     if (filters?.project_id) where.project_id = filters.project_id;
     if (filters?.task_id) where.task_id = filters.task_id;
     if (filters?.status) where.status = filters.status;
     if (filters?.billable !== undefined) where.billable = filters.billable;
-
     if (filters?.start_date || filters?.end_date) {
-      where.start_time = {};
-      if (filters.start_date)
-        where.start_time.gte = new Date(filters.start_date);
-      if (filters.end_date) where.start_time.lte = new Date(filters.end_date);
+      where.start_time = {
+        ...(filters.start_date && { gte: new Date(filters.start_date) }),
+        ...(filters.end_date && { lte: new Date(filters.end_date) }),
+      };
     }
-
     const entries = await this.prisma.time_entries.findMany({
       where,
-      include: {
-        users: { select: { id: true, first_name: true, last_name: true } },
-        projects: {
-          select: {
-            id: true,
-            name: true,
-            clients: { select: { name: true } },
-          },
-        },
-        tasks: { select: { id: true, title: true } },
-      },
+      include: this.baseListSelect,
       orderBy: { start_time: 'desc' },
     });
     return entries.map((e) => ({
@@ -129,7 +129,7 @@ export class TimeEntriesService {
     }));
   }
 
-  // Get a single time entry by ID
+  // Get a single time entry (ownership enforced)
   async findOne(id: number, userId: number) {
     const timeEntry = await this.prisma.time_entries.findUnique({
       where: { id },
@@ -153,13 +153,13 @@ export class TimeEntriesService {
     return timeEntry;
   }
 
-  // Update a time entry
+  // Update time entry (recomputes duration when applicable)
   async update(
     id: number,
     userId: number,
     updateTimeEntriesDto: UpdateTimeEntriesDto,
   ) {
-    const timeEntry = await this.findOne(id, userId);
+    await this.findOne(id, userId);
 
     const { start_time, end_time, duration, ...rest } = updateTimeEntriesDto;
 
@@ -190,12 +190,12 @@ export class TimeEntriesService {
   }
 
   // Delete a time entry
-  async remove(id: number, p0: { user_id: any }) {
-    await this.findOne(id, p0.user_id); // Check if exists
+  async remove(id: number, ctx: { user_id: number }) {
+    await this.findOne(id, ctx.user_id); // ownership check
     return this.prisma.time_entries.delete({ where: { id } });
   }
 
-  // Start a timer (create running entry)
+  // Start running timer (ensures single active)
   async startTimer(createTimeEntriesDto: Omit<CreateTimeEntriesDto, 'status'>) {
     // Check if user has any running timers
     const runningEntry = await this.prisma.time_entries.findFirst({
@@ -215,7 +215,7 @@ export class TimeEntriesService {
     });
   }
 
-  // Stop a running timer
+  // Stop running timer (finalize duration)
   async stopTimer(id: number, userId: number) {
     const timeEntry = await this.findOne(id, userId);
 
@@ -243,7 +243,7 @@ export class TimeEntriesService {
     });
   }
 
-  // Get time entries by user
+  // Entries by user
   async findByUser(
     userId: number,
     filters?: {
@@ -256,7 +256,7 @@ export class TimeEntriesService {
     return this.findAll({ ...filters, user_id: userId });
   }
 
-  // Get time entries by project
+  // Entries by project
   async findByProject(
     projectId: number,
     filters?: {
@@ -269,7 +269,7 @@ export class TimeEntriesService {
     return this.findAll({ ...filters, project_id: projectId });
   }
 
-  // Get billable time entries for invoicing
+  // Billable entries (for invoicing)
   async findBillableEntries(filters?: {
     user_id?: number;
     project_id?: number;
@@ -277,7 +277,7 @@ export class TimeEntriesService {
     start_date?: string;
     end_date?: string;
   }) {
-    const where: any = {
+    const where: Prisma.time_entriesWhereInput = {
       billable: true,
       status: { in: [TimeEntryStatus.logged, TimeEntryStatus.billed] },
     };
@@ -286,10 +286,10 @@ export class TimeEntriesService {
     if (filters?.project_id) where.project_id = filters.project_id;
 
     if (filters?.start_date || filters?.end_date) {
-      where.start_time = {};
-      if (filters.start_date)
-        where.start_time.gte = new Date(filters.start_date);
-      if (filters.end_date) where.start_time.lte = new Date(filters.end_date);
+      where.start_time = {
+        ...(filters.start_date && { gte: new Date(filters.start_date) }),
+        ...(filters.end_date && { lte: new Date(filters.end_date) }),
+      };
     }
 
     if (filters?.client_id) {
@@ -298,23 +298,12 @@ export class TimeEntriesService {
 
     return this.prisma.time_entries.findMany({
       where,
-      include: {
-        users: { select: { id: true, first_name: true, last_name: true } },
-        projects: {
-          select: {
-            id: true,
-            name: true,
-            client_id: true,
-            clients: { select: { id: true, name: true } },
-          },
-        },
-        tasks: { select: { id: true, title: true } },
-      },
+      include: this.baseListSelect,
       orderBy: { start_time: 'desc' },
     });
   }
 
-  // Get time tracking statistics
+  // Aggregate usage stats
   async getTimeStats(userId: number, period?: 'day' | 'week' | 'month') {
     const now = new Date();
     let startDate: Date;

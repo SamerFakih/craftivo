@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   IsOptional,
   IsString,
@@ -52,7 +48,8 @@ export class TimeEntriesFiltersDto extends PartialType(CreateTimeEntriesDto) {
   @Transform(({ value }) => {
     if (value === 'true') return true;
     if (value === 'false') return false;
-    return value;
+    if (typeof value === 'boolean') return value;
+    return undefined;
   })
   billable?: boolean;
 
