@@ -22,15 +22,12 @@ export class Sidebar implements OnInit, OnDestroy {
   constructor(private sidebarService: SidebarService, private authService: AuthService) {}
 
   ngOnInit() {
-    // Check initial screen size
     this.checkScreenSize();
 
-    // Listen to sidebar service
     this.sidebarService.isOpen$.pipe(takeUntil(this.destroy$)).subscribe((open) => {
       if (this.isMobile()) {
         this.isOpen.set(open);
       } else {
-        // On desktop, sidebar is always open
         this.isOpen.set(true);
       }
     });
@@ -50,13 +47,8 @@ export class Sidebar implements OnInit, OnDestroy {
     const isMobile = window.innerWidth <= 1024;
     this.isMobile.set(isMobile);
 
-    if (!isMobile) {
-      // Desktop: always show sidebar
-      this.isOpen.set(true);
-    } else {
-      // Mobile: only show if explicitly opened
-      this.isOpen.set(this.sidebarService.isOpen);
-    }
+    if (!isMobile) this.isOpen.set(true);
+    else this.isOpen.set(this.sidebarService.isOpen);
   }
 
   closeSidebar() {
