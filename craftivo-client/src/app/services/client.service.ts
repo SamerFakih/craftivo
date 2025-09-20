@@ -1,17 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { ClientModel } from '../models/client';
 import { API_BASE } from './api.config';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class ClientService {
   private apiUrl = API_BASE;
 
   constructor(private http: HttpClient) {}
+  private auth = inject(AuthService);
 
   getClients(): Observable<ClientModel[]> {
-    return this.http.get<any>(`${this.apiUrl}/clients`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/clients`, { withCredentials: true }).pipe(
       map((raw) => {
         // Accept a variety of response envelope shapes
         const root = raw?.data ?? raw;
@@ -24,27 +26,38 @@ export class ClientService {
   }
 
   getClient(id: string | number): Observable<ClientModel> {
-    return this.http.get<any>(`${this.apiUrl}/clients/${id}`).pipe(map(this.normalizeClient));
+    return this.http.get<any>(`${this.apiUrl}/clients/${id}`, { withCredentials: true }).pipe(
+      map(this.normalizeClient),
+      catchError((e) => this.wrapHttpError('get client', e))
+    );
   }
 
   // Optional create/update/delete for future wiring
   createClient(payload: Partial<ClientModel>): Observable<ClientModel> {
-    return this.http.post<any>(`${this.apiUrl}/clients`, payload).pipe(map(this.normalizeClient));
+    const body: any = this.mapToBackend(payload);
+    return this.http.post<any>(`${this.apiUrl}/clients`, body, { withCredentials: true }).pipe(
+      map(this.normalizeClient),
+      catchError((e) => this.wrapHttpError('create client', e))
+    );
   }
 
   updateClient(id: string | number, payload: Partial<ClientModel>): Observable<ClientModel> {
-    return this.http
-      .put<any>(`${this.apiUrl}/clients/${id}`, payload)
-      .pipe(map(this.normalizeClient));
+    const body: any = this.mapToBackend(payload);
+    return this.http.put<any>(`${this.apiUrl}/clients/${id}`, body, { withCredentials: true }).pipe(
+      map(this.normalizeClient),
+      catchError((e) => this.wrapHttpError('update client', e))
+    );
   }
 
   deleteClient(id: string | number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/clients/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/clients/${id}`, { withCredentials: true });
   }
 
   // ——— helpers ———
   private normalizeClient = (c: any): ClientModel => {
-    const id = String(c?.id ?? c?._id ?? c?.client_id ?? Math.random().toString(36).slice(2));
+    const rawId = c?.id ?? c?._id ?? c?.client_id;
+    const hasBackendId = rawId != null && rawId !== '';
+    const id = String(hasBackendId ? rawId : Math.random().toString(36).slice(2));
     const name = c?.name ?? c?.company ?? 'Unnamed Client';
     const rawStatus = c?.status ?? (c?.active === false ? 'inactive' : 'active');
     const status: 'active' | 'inactive' | 'prospect' =
@@ -81,6 +94,8 @@ export class ClientService {
 
     return {
       id,
+      serverId: hasBackendId ? Number(rawId) : undefined,
+      temp: !hasBackendId,
       name,
       status,
       email,
@@ -94,4 +109,36 @@ export class ClientService {
       rating,
     };
   };
+
+  private mapToBackend(p: Partial<ClientModel>) {
+    const userId = Number(this.auth.currentUser()?.id); // may be NaN if not logged
+    const body: any = {
+      name: p.name,
+      email: p.email || undefined,
+      created_by: Number.isFinite(userId) ? userId : undefined,
+    };
+    Object.keys(body).forEach((k) => (body[k] === undefined || body[k] === '') && delete body[k]);
+    return body;
+  }
+
+  private wrapHttpError(action: string, e: any) {
+    let msg = `Failed to ${action}`;
+    const err = e?.error ?? e;
+    if (err) {
+      if (typeof err === 'string') msg = err;
+      else if (err.message) msg = err.message;
+      else if (err.error) msg = err.error;
+      else if (err.errors) {
+        if (Array.isArray(err.errors)) msg = err.errors.join(', ');
+        else if (typeof err.errors === 'object') {
+          msg = Object.values(err.errors)
+            .flat()
+            .map((v: any) => (typeof v === 'string' ? v : JSON.stringify(v)))
+            .join(', ');
+        }
+      }
+      if (e.status) msg = `${e.status} ${msg}`;
+    }
+    return throwError(() => new Error(msg));
+  }
 }
