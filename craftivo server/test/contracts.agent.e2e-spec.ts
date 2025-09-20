@@ -28,14 +28,17 @@ const body = {
   end_date: '2025-04-30',
 };
 
-// Stub Gemini via env by ensuring no API key set → service uses stub
+// Force Gemini stub path
 process.env.GEMINI_API_KEY = '';
-process.env.JWT_SECRET = 'test-secret';
+
+// Increase timeout (AI generation + DB) safety margin
+jest.setTimeout(15000);
 
 describe('Contracts AI Agent (e2e)', () => {
   let app: INestApplication;
   let jwt: JwtService;
   let prisma: PrismaService;
+  let token: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -49,38 +52,30 @@ describe('Contracts AI Agent (e2e)', () => {
     jwt = app.get(JwtService);
     prisma = app.get(PrismaService);
 
-    // Seed or update a user to satisfy JwtStrategy validate
-    await prisma.users.upsert({
-      where: { email: 'tester@example.com' },
-      update: { active: true },
-      create: {
-        email: 'tester@example.com',
-        password_hash: 'x',
-        first_name: 'Test',
-        last_name: 'User',
-        active: true,
-      },
+    // Pick the first active user (works for both minimal and full seed modes)
+    const seedUser = await prisma.users.findFirst({
+      where: { active: true },
+      select: { id: true, email: true, role: true },
+      orderBy: { id: 'asc' },
+    });
+    if (!seedUser) {
+      throw new Error('No users found in database for AI agent test');
+    }
+    token = jwt.sign({
+      sub: seedUser.id,
+      email: seedUser.email,
+      role: seedUser.role,
     });
   });
 
   afterAll(async () => {
     // optional cleanup
-    await prisma.users.deleteMany({ where: { email: 'tester@example.com' } });
+    // No cleanup needed for seeded user
     await app.close();
   });
 
   it('POST /contracts/ai/generate-and-save should create a draft contract with aiMeta', async () => {
-    const user = await prisma.users.findFirst({
-      where: { email: 'tester@example.com' },
-    });
-    expect(user).toBeTruthy();
-
-    const token = jwt.sign({
-      sub: user?.id,
-      email: user?.email,
-      role: user?.role || 'freelancer',
-    });
-
+    expect(token).toBeTruthy();
     const httpServer = app.getHttpServer() as unknown as import('http').Server;
     const res = await request(httpServer)
       .post('/api/v1/contracts/ai/generate-and-save')
