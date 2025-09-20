@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Joi from 'joi';
 
 // Environment variables validation schema (fail fast on invalid config)
@@ -18,6 +15,14 @@ export const validationSchema = Joi.object({
 
   // AI (optional)
   GEMINI_API_KEY: Joi.string().optional(),
+
+  // Mail (all optional: if absent we fall back to Ethereal or log-only mode)
+  MAIL_HOST: Joi.string().optional(),
+  MAIL_PORT: Joi.number().integer().min(1).max(65535).optional(),
+  MAIL_USER: Joi.string().optional(),
+  MAIL_PASS: Joi.string().optional(),
+  MAIL_FROM: Joi.string().optional(),
+  APP_BASE_URL: Joi.string().uri().optional(),
 
   // Invoices ingest automation (required to enable the automation route)
   INCOICES_INGEST_API_KEY: Joi.any().forbidden().messages({
