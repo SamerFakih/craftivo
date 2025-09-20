@@ -15,7 +15,8 @@
     </div>
 
     <div class="list">
-        <article class="row" *ngFor="let e of entries">
+        @for (e of entries; track e.id) {
+        <article class="row">
             <div class="left">
                 <div class="title">
                     <span class="t__text">{{ e.title }}</span>
@@ -35,22 +36,24 @@
                     <div class="item"><span class="lbl">Date</span><span>{{ e.dateISO }}</span></div>
                     <div class="item"><span class="lbl">Time</span><span>{{ e.startTime }} - {{ e.endTime }}</span>
                     </div>
-                    <div class="item"><span class="lbl">Duration</span><span>{{ e.hours }}h</span></div>
+                    <div class="item"><span class="lbl">Duration</span><span>{{ e.hours | number:'1.0-2' }}h</span>
+                    </div>
                     <div class="item"><span class="lbl">Amount</span><span>${{ e.amountUSD | number:'1.0-1' }}</span>
                     </div>
                 </div>
                 <div class="actions">
-                    <button class="iconbtn" title="Edit">
+                    <button class="iconbtn" title="Edit" (click)="onEdit(e)">
                         <i class="pi pi-pencil"></i>
                     </button>
-                    <button class="iconbtn" title="Duplicate">
+                    <button class="iconbtn" title="Duplicate" disabled>
                         <i class="pi pi-copy"></i>
                     </button>
-                    <button class="iconbtn" title="Delete">
+                    <button class="iconbtn" title="Delete" (click)="onDelete(e.id)">
                         <i class="pi pi-trash"></i>
                     </button>
                 </div>
             </div>
         </article>
+        }
     </div>
 </section>

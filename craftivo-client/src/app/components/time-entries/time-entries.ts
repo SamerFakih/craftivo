@@ -13,4 +13,13 @@ import { TimeEntry } from '../../models/time-tracking';
 export class TimeEntries {
   @Input({ required: true }) entries: TimeEntry[] = [];
   @Output() manual = new EventEmitter<void>();
+  @Output() edit = new EventEmitter<TimeEntry>();
+  @Output() delete = new EventEmitter<string>();
+
+  onEdit(entry: TimeEntry) {
+    this.edit.emit(entry);
+  }
+  onDelete(id: string) {
+    this.delete.emit(id);
+  }
 }
