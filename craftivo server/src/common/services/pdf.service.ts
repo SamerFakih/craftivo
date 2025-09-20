@@ -1,0 +1,238 @@
+import { Injectable, Logger } from '@nestjs/common';
+import * as puppeteer from 'puppeteer';
+
+@Injectable()
+export class PdfService {
+  private readonly logger = new Logger(PdfService.name);
+
+  /**
+   * Generate a PDF Buffer from provided HTML string.
+   * NOTE: For production you may want to launch with a shared browser instance or
+   * use chromium in headless:new with proper sandbox flags in Docker.
+   */
+  async htmlToPdfBuffer(
+    html: string,
+    pdfOptions: puppeteer.PDFOptions = {},
+  ): Promise<Buffer> {
+    let browser: puppeteer.Browser | undefined;
+    try {
+      browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        ...pdfOptions,
+      });
+      return Buffer.from(pdf);
+    } catch (err) {
+      this.logger.error('PDF generation failed', err as Error);
+      throw err;
+    } finally {
+      if (browser) {
+        try {
+          await browser.close();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  }
+
+  /**
+   * Creates a styled HTML document for a contract ensuring consistent fonts, spacing, and printable layout.
+   * `content` may already be HTML (e.g., rich text from editor). We wrap it in a controlled container.
+   */
+  renderContractHtml(params: {
+    title: string;
+    content: string; // raw or html
+    meta?: Record<string, unknown>;
+    branding?: {
+      primaryColor?: string;
+      logoUrl?: string;
+      companyName?: string;
+    };
+  }): string {
+    const { title, content, meta, branding } = params;
+    const primaryColor = branding?.primaryColor || '#2563eb';
+    const logoUrl = branding?.logoUrl;
+    const companyName = branding?.companyName || 'Craftivo';
+    const metaList = meta
+      ? Object.entries(meta)
+          .filter(([, v]) => v !== undefined && v !== null && v !== '')
+          .map(
+            ([k, v]) =>
+              `<div class="meta-item"><span class="k">${this.escapeHtml(k)}</span><span class="v">${this.escapeHtml(String(v))}</span></div>`,
+          )
+          .join('')
+      : '';
+
+    // If content already contains <html> assume full doc
+    const alreadyFullDoc = /<html[\s>]/i.test(content);
+    if (alreadyFullDoc) return content;
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${this.escapeHtml(title)}</title>
+  <style>
+    :root { --primary: ${primaryColor}; --text: #111827; --muted: #6b7280; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; color: var(--text); -webkit-print-color-adjust: exact; }
+    body { font-size: 13px; line-height: 1.5; }
+    header { display:flex; align-items:center; gap:16px; border-bottom: 4px solid var(--primary); padding: 16px 0 12px; }
+    header .logo { height:40px; }
+    h1 { font-size: 26px; margin: 0; font-weight: 600; letter-spacing: .5px; }
+    .wrap { width: 860px; max-width: 100%; margin: 0 auto; padding: 32px 40px 80px; }
+    .meta { display:flex; flex-wrap:wrap; gap:8px 24px; margin: 20px 0 8px; font-size: 11px; }
+    .meta-item { display:flex; gap:4px; }
+    .meta-item .k { font-weight:600; text-transform:capitalize; }
+    .section { margin: 32px 0; }
+    .section h2 { font-size:18px; margin:0 0 12px; color: var(--primary); border-bottom:1px solid #e5e7eb; padding-bottom:4px; }
+    p { margin: 0 0 12px; }
+    table { width:100%; border-collapse: collapse; margin: 12px 0 24px; }
+    table th, table td { border:1px solid #e5e7eb; padding:6px 10px; text-align:left; font-size:12px; }
+    table th { background:#f3f4f6; }
+    blockquote { margin: 16px 0; padding:8px 16px; background:#f9fafb; border-left:4px solid var(--primary); }
+    .signature-block { margin-top:60px; display:flex; gap:70px; }
+    .sig-line { width:260px; border-top:1px solid #374151; padding-top:4px; font-size:11px; text-align:center; }
+    footer.doc-foot { position:fixed; bottom:0; left:0; right:0; text-align:center; font-size:10px; color: var(--muted); padding:8px 0 4px; }
+    .watermark { position:fixed; top:40%; left:50%; transform:translate(-50%, -50%); font-size:72px; color:rgba(37,99,235,0.06); font-weight:700; letter-spacing:4px; pointer-events:none; user-select:none; }
+    .content :is(h1,h2,h3,h4){ page-break-after: avoid; }
+    .page-break { page-break-after: always; }
+    @page { margin: 80px 42px 90px; }
+    @media print { .wrap { padding-bottom:40px; } header { position: running(header); } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      ${logoUrl ? `<img class="logo" src="${logoUrl}" alt="logo" />` : ''}
+      <div>
+        <h1>${this.escapeHtml(title)}</h1>
+        <div style="font-size:11px; color:var(--muted);">Generated for ${this.escapeHtml(companyName)} • ${new Date().toLocaleDateString()}</div>
+      </div>
+    </header>
+    <div class="meta">${metaList}</div>
+    <div class="content">${content}</div>
+    <div class="signature-block">
+      <div class="sig-line">Client Signature</div>
+      <div class="sig-line">Freelancer Signature</div>
+    </div>
+  </div>
+  <div class="watermark">${this.escapeHtml(companyName)}</div>
+  <footer class="doc-foot">Generated by ${this.escapeHtml(companyName)} • Page <span class="pageNumber"></span> of <span class="totalPages"></span></footer>
+</body>
+</html>`;
+  }
+
+  /** Escape minimal HTML to avoid layout breakage for meta keys/values */
+  private escapeHtml(str: string) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Attempts to auto-structure plain text content into semantic HTML.
+   * Heuristics:
+   * - Lines in ALL CAPS or Title Case without trailing punctuation -> heading (h2)
+   * - Lines starting with digits or bullets ("1.", "-", "*") grouped into list
+   * - Blank line => paragraph break
+   */
+  formatContractContent(raw: string): string {
+    if (!raw) return '';
+    // If already contains HTML tags assume author provided structure.
+    if (/<\s*(p|h1|h2|h3|table|ul|ol|div)[^>]*>/i.test(raw)) return raw;
+
+    const lines = raw.replace(/\r\n?/g, '\n').split(/\n/);
+    const blocks: string[] = [];
+    let listBuffer: string[] = [];
+
+    const flushList = () => {
+      if (listBuffer.length) {
+        // Determine ordered vs unordered
+        const ordered = listBuffer.every((l) => /^\d+\./.test(l.trim()));
+        const tag = ordered ? 'ol' : 'ul';
+        blocks.push(
+          `<${tag}>` +
+            listBuffer
+              .map((l) => l.replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, ''))
+              .map((t) => `<li>${this.escapeHtml(t)}</li>`) // safe minimal escaping
+              .join('') +
+            `</${tag}>`,
+        );
+        listBuffer = [];
+      }
+    };
+
+    const isLikelyHeading = (line: string) => {
+      if (line.length > 120) return false;
+      if (/[:.;]$/.test(line.trim())) return false;
+      const trimmed = line.trim();
+      if (!trimmed) return false;
+      // All caps with spaces OR Title Case (Simple) OR prefixed number like "1. Scope"
+      if (/^[A-Z0-9 -]{3,}$/.test(trimmed)) return true;
+      if (/^\d+\.\s+/.test(trimmed)) return true;
+      const words = trimmed.split(/\s+/);
+      if (
+        words.length <= 10 &&
+        words.every((w) => /^[A-Z][a-zA-Z\-']+$/.test(w) || /&/.test(w))
+      )
+        return true;
+      return false;
+    };
+
+    for (const rawLine of lines) {
+      const line = rawLine.trimEnd();
+      if (!line.trim()) {
+        flushList();
+        continue;
+      }
+
+      if (/^[-*]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
+        listBuffer.push(line.trim());
+        continue;
+      }
+
+      // If we were in a list and encounter a non-list line, flush list first
+      flushList();
+
+      if (isLikelyHeading(line)) {
+        // Remove leading number if present for cleaner heading text
+        const clean = line.replace(/^\d+\.\s+/, '');
+        blocks.push(`<h2>${this.escapeHtml(clean)}</h2>`);
+      } else {
+        blocks.push(`<p>${this.escapeHtml(line)}</p>`);
+      }
+    }
+    flushList();
+    return blocks.join('\n');
+  }
+
+  /**
+   * High-level convenience: render styled HTML then export to PDF with header/footer page numbers.
+   */
+  async generateContractPdfBuffer(
+    renderedHtml: string,
+    headerTitle?: string,
+  ): Promise<Buffer> {
+    return this.htmlToPdfBuffer(renderedHtml, {
+      displayHeaderFooter: true,
+      margin: { top: '70px', bottom: '80px', left: '25px', right: '25px' },
+      headerTemplate: `<div style="font-size:10px; font-family:Arial,sans-serif; color:#6b7280; width:100%; text-align:center; padding-top:8px;">${this.escapeHtml(
+        headerTitle || 'Contract',
+      )}</div>`,
+      footerTemplate:
+        '<div style="font-size:10px; font-family:Arial,sans-serif; color:#6b7280; width:100%; text-align:center; padding:4px 0;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>',
+    });
+  }
+}
