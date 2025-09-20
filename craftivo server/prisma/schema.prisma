@@ -6,7 +6,8 @@
 
 generator client {
   provider = "prisma-client-js"
-  engineType = "binary"
+  engineType = "wasm" // switched to wasm to avoid OneDrive EPERM rename on binary engine
+  // NOTE: wasm is slower at runtime; consider moving project out of OneDrive and reverting to binary/library for production
 }
 
 datasource db {
@@ -162,6 +163,8 @@ model users {
   email_logs     email_logs[]
   activity_logs  activity_logs[]
   expenses       expenses[]
+  contract_audit_logs contract_audit_logs[]
+  contract_sign_tokens contract_sign_tokens[]
 }
 
 model clients {
@@ -344,6 +347,9 @@ model contracts {
   signed_by_freelancer  String?
   signature_client      String?  // Base64 encoded signature
   signature_freelancer  String?  // Base64 encoded signature
+  current_version_id    Int?     @unique
+  deleted_at            DateTime?
+  last_sent_at          DateTime?
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 
@@ -352,6 +358,48 @@ model contracts {
   projects              projects? @relation(fields: [project_id], references: [id], onDelete: SetNull)
   contract_templates    contract_templates? @relation(fields: [template_id], references: [id], onDelete: SetNull)
   users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  contract_versions     contract_versions[]
+  contract_audit_logs   contract_audit_logs[]
+  contract_sign_tokens  contract_sign_tokens[]
+  current_version       contract_versions? @relation("CurrentContractVersion", fields: [current_version_id], references: [id])
+}
+
+model contract_versions {
+  id             Int      @id @default(autoincrement())
+  contract_id    Int
+  version_number Int
+  content        String
+  generated_by   String   @default("manual") // manual | ai | regenerate
+  metadata       Json?
+  created_at     DateTime @default(now())
+  contracts      contracts @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  current_of     contracts? @relation("CurrentContractVersion")
+
+  @@unique([contract_id, version_number])
+}
+
+model contract_audit_logs {
+  id          Int      @id @default(autoincrement())
+  contract_id Int
+  user_id     Int?
+  action      String   // create | update | status_change | send | resend | regenerate | sign | public_view | public_sign | download
+  details     Json?
+  created_at  DateTime @default(now())
+  contracts   contracts @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  user        users?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+}
+
+model contract_sign_tokens {
+  id          Int      @id @default(autoincrement())
+  contract_id Int
+  token       String   @unique
+  role        String   // client | freelancer
+  expires_at  DateTime
+  used_at     DateTime?
+  created_at  DateTime @default(now())
+  contracts   contracts @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  user_id     Int?     // optional issuer
+  user        users?   @relation(fields: [user_id], references: [id], onDelete: SetNull)
 }
 
 model contract_templates {
