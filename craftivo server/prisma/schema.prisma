@@ -1,0 +1,655 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "wasm" // switched to wasm to avoid OneDrive EPERM rename on binary engine
+  // NOTE: wasm is slower at runtime; consider moving project out of OneDrive and reverting to binary/library for production
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ENUMS - Keep only these definitions
+enum UserRole {
+  freelancer
+  admin
+  team_member
+}
+
+enum ProjectStatus {
+  active
+  completed
+  paused
+  review
+  cancelled
+}
+
+enum ProjectPriority {
+  low
+  medium
+  high
+}
+
+enum BillingType {
+  hourly
+  fixed
+  milestone
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  completed
+  overdue
+  cancelled
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
+enum TimeEntryStatus {
+  running
+  paused
+  logged
+  billed
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  pending
+  paid
+  overdue
+  cancelled
+}
+
+enum BillableType {
+  service
+  product
+  expense
+  time
+}
+
+enum ContractStatus {
+  draft
+  sent
+  signed
+  executed
+  expired
+  cancelled
+}
+
+enum TeamRole {
+  owner
+  admin
+  member
+}
+
+enum ProjectMemberRole {
+  owner
+  manager
+  member
+}
+
+enum EmailTemplateType {
+  general
+  invoice
+  reminder
+  welcome
+  contract
+}
+
+enum EmailStatus {
+  pending
+  sent
+  delivered
+  failed
+  bounced
+}
+
+// MODELS
+
+
+model users {
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique @default(uuid())
+  email           String   @unique
+  password_hash   String
+  first_name      String
+  last_name       String
+  profile_image   String?
+  role            UserRole @default(freelancer)
+  timezone        String   @default("UTC")
+  email_signature String?
+  hourly_rate     Decimal  @default(0.00) @db.Decimal(10,2)
+  business_name   String?
+  business_address String?
+  tax_id          String?
+  website         String?
+  phone           String?
+  bio             String?
+  location        String?
+  email_verified  Boolean  @default(true)
+  active          Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relation to users
+  clients        clients[] @relation("UserClients")
+  projects       projects[]
+  assigned_tasks tasks[] @relation("AssignedTasks")
+  created_tasks  tasks[] @relation("CreatedTasks")
+  time_entries   time_entries[]
+  invoices       invoices[]
+  contracts      contracts[]
+  contract_templates contract_templates[]
+  teams          teams[]
+  team_members   team_members[]
+  project_members project_members[]
+  task_comments  task_comments[]
+  task_attachments task_attachments[]
+  project_attachments project_attachments[]
+  user_settings  user_settings[]
+  email_templates email_templates[]
+  email_logs     email_logs[]
+  activity_logs  activity_logs[]
+  expenses       expenses[]
+  contract_audit_logs contract_audit_logs[]
+  contract_sign_tokens contract_sign_tokens[]
+}
+
+model clients {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  name        String
+  email       String?
+  phone       String?
+  company     String?
+  address     String?
+  website     String?
+  notes       String?
+  created_by  Int
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relation to users
+  users       users?   @relation("UserClients", fields: [created_by], references: [id], onDelete: SetNull)
+  projects    projects[]
+  invoices    invoices[]
+  contracts   contracts[]
+  expenses    expenses[]
+}
+
+model projects {
+  id           Int       @id @default(autoincrement())
+  uuid         String    @unique @default(uuid())
+  name         String
+  description  String?
+  client_id    Int?
+  owner_id     Int
+  status       ProjectStatus @default(active)
+  priority     ProjectPriority @default(medium)
+  start_date   DateTime?
+  end_date     DateTime?
+  budget       Decimal   @default(0.00) @db.Decimal(12,2)
+  spent_amount Decimal   @default(0.00) @db.Decimal(12,2)
+  progress     Int       @default(0)
+  hourly_rate  Decimal?  @db.Decimal(10,2)
+  currency     String    @default("USD")
+  billing_type BillingType @default(hourly)
+  active       Boolean   @default(true)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  // Relations
+  clients      clients?  @relation(fields: [client_id], references: [id], onDelete: SetNull)
+  users        users     @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  tasks        tasks[]
+  time_entries time_entries[]
+  invoices     invoices[]
+  contracts    contracts[]
+  project_members project_members[]
+  project_tags project_tags[]
+  project_attachments project_attachments[]
+  expenses     expenses[]
+}
+
+model tasks {
+  id                 Int       @id @default(autoincrement())
+  title              String
+  description        String?
+  project_id         Int?
+  assigned_to        Int?
+  created_by         Int?
+  status             TaskStatus @default(pending)
+  priority           TaskPriority @default(medium)
+  due_date           DateTime?
+  due_time           String?   // TIME stored as string
+  estimated_hours    Decimal?  @db.Decimal(8,2)
+  actual_hours       Decimal   @default(0.00) @db.Decimal(8,2)
+  completed          Boolean   @default(false)
+  email_reminder     Boolean   @default(false)
+  client_notification Boolean  @default(false)
+  active             Boolean   @default(true)
+  completed_at       DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  // Relations
+  projects           projects? @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  assigned_user      users?    @relation("AssignedTasks", fields: [assigned_to], references: [id], onDelete: SetNull)
+  creator            users?    @relation("CreatedTasks", fields: [created_by], references: [id], onDelete: SetNull)
+  time_entries       time_entries[]
+  task_comments      task_comments[]
+  task_attachments   task_attachments[]
+  task_tags          task_tags[]
+}
+
+model time_entries {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  user_id     Int
+  project_id  Int
+  task_id     Int?
+  start_time  DateTime
+  end_time    DateTime?
+  duration    Int?     // Duration in seconds
+  description String?
+  billable    Boolean  @default(true)
+  hourly_rate Decimal? @db.Decimal(10,2)
+  amount      Decimal? @db.Decimal(10,2)
+  status      TimeEntryStatus @default(logged)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  users       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  projects    projects @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  tasks       tasks?   @relation(fields: [task_id], references: [id], onDelete: SetNull)
+  invoice_items invoice_items[]
+}
+
+model invoices {
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique @default(uuid())
+  invoice_number  String   @unique
+  client_id       Int?
+  project_id      Int?
+  user_id         Int
+  issue_date      DateTime
+  due_date        DateTime
+  paid_date       DateTime?
+  status          InvoiceStatus @default(draft)
+  subtotal        Decimal  @default(0.00) @db.Decimal(12,2)
+  tax_rate        Decimal  @default(0.00) @db.Decimal(5,2)
+  tax_amount      Decimal  @default(0.00) @db.Decimal(12,2)
+  discount_amount Decimal  @default(0.00) @db.Decimal(12,2)
+  total_amount    Decimal  @default(0.00) @db.Decimal(12,2)
+  currency        String   @default("USD")
+  payment_method  String?
+  payment_terms   String?
+  notes           String?
+  sent_at         DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  clients         clients?  @relation(fields: [client_id], references: [id], onDelete: SetNull)
+  projects        projects? @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  users           users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  invoice_items   invoice_items[]
+  expenses        expenses[]
+}
+
+model invoice_items {
+  id            Int      @id @default(autoincrement())
+  invoice_id    Int
+  description   String
+  quantity      Decimal  @default(1.00) @db.Decimal(10,2)
+  unit_price    Decimal  @db.Decimal(10,2)
+  total_amount  Decimal  @db.Decimal(12,2)
+  billable_type BillableType @default(service)
+  reference_id  Int?     // Can reference time_entries.id or other entities
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  invoices      invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  time_entries  time_entries? @relation(fields: [reference_id], references: [id], onDelete: SetNull)
+}
+
+model contracts {
+  id                    Int      @id @default(autoincrement())
+  uuid                  String   @unique @default(uuid())
+  title                 String
+  client_id             Int?
+  project_id            Int?
+  template_id           Int?
+  user_id               Int
+  content               String
+  status                ContractStatus @default(draft)
+  contract_value        Decimal? @db.Decimal(12,2)
+  currency              String   @default("USD")
+  start_date            DateTime?
+  end_date              DateTime?
+  signed_date           DateTime?
+  signed_by_client      String?
+  signed_by_freelancer  String?
+  signature_client      String?  // Base64 encoded signature
+  signature_freelancer  String?  // Base64 encoded signature
+  current_version_id    Int?     @unique
+  deleted_at            DateTime?
+  last_sent_at          DateTime?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  // Relations
+  clients               clients?  @relation(fields: [client_id], references: [id], onDelete: SetNull)
+  projects              projects? @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  contract_templates    contract_templates? @relation(fields: [template_id], references: [id], onDelete: SetNull)
+  users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  contract_versions     contract_versions[]
+  contract_audit_logs   contract_audit_logs[]
+  contract_sign_tokens  contract_sign_tokens[]
+  current_version       contract_versions? @relation("CurrentContractVersion", fields: [current_version_id], references: [id])
+}
+
+model contract_versions {
+  id             Int      @id @default(autoincrement())
+  contract_id    Int
+  version_number Int
+  content        String
+  generated_by   String   @default("manual") // manual | ai | regenerate
+  metadata       Json?
+  created_at     DateTime @default(now())
+  contracts      contracts @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  current_of     contracts? @relation("CurrentContractVersion")
+
+  @@unique([contract_id, version_number])
+}
+
+model contract_audit_logs {
+  id          Int      @id @default(autoincrement())
+  contract_id Int
+  user_id     Int?
+  action      String   // create | update | status_change | send | resend | regenerate | sign | public_view | public_sign | download
+  details     Json?
+  created_at  DateTime @default(now())
+  contracts   contracts @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  user        users?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+}
+
+model contract_sign_tokens {
+  id          Int      @id @default(autoincrement())
+  contract_id Int
+  token       String   @unique
+  role        String   // client | freelancer
+  expires_at  DateTime
+  used_at     DateTime?
+  created_at  DateTime @default(now())
+  contracts   contracts @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+  user_id     Int?     // optional issuer
+  user        users?   @relation(fields: [user_id], references: [id], onDelete: SetNull)
+}
+
+model contract_templates {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  name        String
+  description String?
+  content     String
+  category    String   @default("general")
+  variables   Json?    // Template variables configuration
+  is_default  Boolean  @default(false)
+  created_by  Int?
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  users       users?   @relation(fields: [created_by], references: [id], onDelete: SetNull)
+  contracts   contracts[]
+}
+
+model teams {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  name        String
+  description String?
+  owner_id    Int
+  slug        String?  @unique
+  settings    Json     @default("{}")
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  users       users    @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  team_members team_members[]
+}
+
+// Junction Tables
+model team_members {
+  id          Int      @id @default(autoincrement())
+  team_id     Int
+  user_id     Int
+  role        TeamRole @default(member)
+  permissions Json     @default("{}")
+  hourly_rate Decimal? @db.Decimal(10,2)
+  joined_at   DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  teams       teams    @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  users       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([team_id, user_id])
+}
+
+model project_members {
+  id          Int      @id @default(autoincrement())
+  project_id  Int
+  user_id     Int
+  role        ProjectMemberRole @default(member)
+  hourly_rate Decimal? @db.Decimal(10,2)
+  permissions Json     @default("{}")
+  added_at    DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  projects    projects @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  users       users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, user_id])
+}
+
+// Tagging System
+model project_tags {
+  id         Int      @id @default(autoincrement())
+  project_id Int
+  tag_name   String
+  created_at DateTime @default(now())
+
+  // Relations
+  projects   projects @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, tag_name])
+}
+
+model task_tags {
+  id         Int      @id @default(autoincrement())
+  task_id    Int
+  tag_name   String
+  created_at DateTime @default(now())
+
+  // Relations
+  tasks      tasks    @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@unique([task_id, tag_name])
+}
+
+// Comments and Attachments
+model task_comments {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid())
+  task_id    Int
+  user_id    Int?
+  content    String
+  parent_id  Int?
+  active     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  tasks      tasks    @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  users      users?   @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  parent     task_comments? @relation("CommentReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies    task_comments[] @relation("CommentReplies")
+}
+
+model task_attachments {
+  id                Int      @id @default(autoincrement())
+  uuid              String   @unique @default(uuid())
+  task_id           Int
+  uploaded_by       Int?
+  filename          String
+  original_filename String
+  file_path         String
+  file_size         Int?
+  mime_type         String?
+  description       String?
+  created_at        DateTime @default(now())
+
+  // Relations
+  tasks             tasks    @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  users             users?   @relation(fields: [uploaded_by], references: [id], onDelete: SetNull)
+}
+
+model project_attachments {
+  id                Int      @id @default(autoincrement())
+  uuid              String   @unique @default(uuid())
+  project_id        Int
+  uploaded_by       Int?
+  filename          String
+  original_filename String
+  file_path         String
+  file_size         Int?
+  mime_type         String?
+  description       String?
+  created_at        DateTime @default(now())
+
+  // Relations
+  projects          projects @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  users             users?   @relation(fields: [uploaded_by], references: [id], onDelete: SetNull)
+}
+
+// Settings and Preferences
+model user_settings {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  key        String
+  value      Json?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, key])
+}
+
+// Email and Communication
+model email_templates {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid())
+  name       String
+  subject    String
+  content    String
+  type       EmailTemplateType @default(general)
+  variables  Json?    // Available template variables
+  created_by Int?
+  is_default Boolean  @default(false)
+  active     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  users      users?   @relation(fields: [created_by], references: [id], onDelete: SetNull)
+  email_logs email_logs[]
+}
+
+model email_logs {
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique @default(uuid())
+  user_id         Int?
+  recipient_email String
+  recipient_name  String?
+  subject         String
+  content         String?
+  template_id     Int?
+  reference_type  String?  // 'invoice', 'task', 'project', etc.
+  reference_id    Int?     // ID of the referenced entity
+  status          EmailStatus @default(pending)
+  error_message   String?
+  sent_at         DateTime?
+  delivered_at    DateTime?
+  created_at      DateTime @default(now())
+
+  // Relations
+  users           users?   @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  email_templates email_templates? @relation(fields: [template_id], references: [id], onDelete: SetNull)
+}
+
+// Audit and Activity Tracking
+model activity_logs {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  user_id     Int?
+  action      String
+  entity_type String?  // 'project', 'task', 'invoice', etc.
+  entity_id   Int?
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime @default(now())
+
+  // Relations
+  users       users?   @relation(fields: [user_id], references: [id], onDelete: SetNull)
+}
+
+// Financial Tracking
+model expenses {
+  id           Int      @id @default(autoincrement())
+  uuid         String   @unique @default(uuid())
+  user_id      Int
+  project_id   Int?
+  client_id    Int?
+  description  String
+  amount       Decimal  @db.Decimal(10,2)
+  currency     String   @default("USD")
+  category     String?
+  expense_date DateTime
+  receipt_path String?
+  billable     Boolean  @default(true)
+  invoiced     Boolean  @default(false)
+  invoice_id   Int?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Relations
+  users        users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  projects     projects? @relation(fields: [project_id], references: [id], onDelete: SetNull)
+  clients      clients? @relation(fields: [client_id], references: [id], onDelete: SetNull)
+  invoices     invoices? @relation(fields: [invoice_id], references: [id], onDelete: SetNull)
+}
