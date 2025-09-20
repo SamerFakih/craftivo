@@ -14,6 +14,7 @@ import { Project } from '../../models/project';
 import { ClientService } from '../../services/client.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { TaskService } from '../../services/task.service';
 
 type TabKey = 'all' | 'active' | 'completed' | 'other';
 
@@ -31,11 +32,27 @@ export class ProjectsGrid implements OnInit, OnDestroy {
   constructor(
     private projectService: ProjectService,
     private cdr: ChangeDetectorRef,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private taskService: TaskService
   ) {}
   ngOnInit() {
     this.isLoading.set(true);
     this.error.set(null);
+
+    // Load tasks first for progress calculation (independent streams)
+    this.taskService
+      .getTasks()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tasks) => {
+          this._rawTasks.set(Array.isArray(tasks) ? tasks : tasks?.tasks || []);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.warn('Failed to load tasks for progress computation', err);
+          this._rawTasks.set([]);
+        },
+      });
 
     // Load clients for the client select
     this.clientService
@@ -103,6 +120,45 @@ export class ProjectsGrid implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
   projects = signal<Project[]>([]);
+  // Raw tasks for progress computation (API shape might vary)
+  private _rawTasks = signal<any[]>([]);
+
+  // Helper: compute progress per project id based on tasks
+  private _progressMap = computed(() => {
+    const tasks = this._rawTasks();
+    if (!tasks || tasks.length === 0) return new Map<number, number>();
+    const map = new Map<number, { total: number; done: number }>();
+    for (const t of tasks) {
+      // Accept multiple possible field names for project id + status
+      const pid = Number(
+        t.project_id || t.projectId || t.project_id_fk || t.project?.id || t.projects?.id
+      );
+      if (!Number.isFinite(pid) || pid <= 0) continue;
+      const status = (t.status || t.state || '').toString().toLowerCase();
+      const bucket = map.get(pid) || { total: 0, done: 0 };
+      bucket.total += 1;
+      if (status === 'completed' || status === 'done' || status === 'finished') bucket.done += 1;
+      map.set(pid, bucket);
+    }
+    const result = new Map<number, number>();
+    map.forEach((v, k) => {
+      if (v.total === 0) return; // skip zero total (shouldn't happen once in map)
+      result.set(k, Math.round((v.done / v.total) * 100));
+    });
+    return result;
+  });
+
+  // Enriched projects with computed progress overriding backend progress when we have tasks
+  enrichedProjects = computed<Project[]>(() => {
+    const base = this.projects();
+    const progressMap = this._progressMap();
+    if (!progressMap.size) return base;
+    return base.map((p) => {
+      const override = progressMap.get(p.id);
+      if (override == null) return p;
+      return { ...p, progress: override };
+    });
+  });
   clientsOptions = signal<Array<{ id: number; name: string }>>([]);
   isLoading = signal(false);
   error = signal<string | null>(null);
@@ -113,15 +169,16 @@ export class ProjectsGrid implements OnInit, OnDestroy {
 
   filtered = computed(() => {
     const tab = this.activeTab();
-    if (tab === 'all') return this.projects();
-    return this.projects().filter((p) => p.status === tab);
+    const list = this.enrichedProjects();
+    if (tab === 'all') return list;
+    return list.filter((p) => p.status === tab);
   });
 
   // PRECOMPUTED lists & counts (no arrow functions in template)
-  allList = computed(() => this.projects());
-  activeList = computed(() => this.projects().filter((p) => p.status === 'active'));
-  completedList = computed(() => this.projects().filter((p) => p.status === 'completed'));
-  otherList = computed(() => this.projects().filter((p) => p.status === 'other'));
+  allList = computed(() => this.enrichedProjects());
+  activeList = computed(() => this.enrichedProjects().filter((p) => p.status === 'active'));
+  completedList = computed(() => this.enrichedProjects().filter((p) => p.status === 'completed'));
+  otherList = computed(() => this.enrichedProjects().filter((p) => p.status === 'other'));
 
   allCount = computed(() => this.allList().length);
   activeCount = computed(() => this.activeList().length);
@@ -149,12 +206,16 @@ export class ProjectsGrid implements OnInit, OnDestroy {
     this.q.set(input.value);
   }
   // derived
-  totalCount = computed(() => this.projects().length);
-  activeCountt = computed(() => this.projects().filter((p) => p.status === 'active').length);
-  completedCountt = computed(() => this.projects().filter((p) => p.status === 'completed').length);
+  totalCount = computed(() => this.enrichedProjects().length);
+  activeCountt = computed(
+    () => this.enrichedProjects().filter((p) => p.status === 'active').length
+  );
+  completedCountt = computed(
+    () => this.enrichedProjects().filter((p) => p.status === 'completed').length
+  );
   totalRevenue = computed(() => {
     // sum of spent_amount; adjust to budget if you want total budget
-    return this.projects().reduce((sum, p) => sum + Number(p.spent_amount || 0), 0);
+    return this.enrichedProjects().reduce((sum, p) => sum + Number(p.spent_amount || 0), 0);
   });
 
   setTab(tab: TabKey) {
