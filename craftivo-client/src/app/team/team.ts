@@ -9,6 +9,7 @@ import {
   effect,
 } from '@angular/core';
 import { Member } from '../models/team';
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MemberCard } from '../components/member-card/member-card';
 import { TeamService } from '../services/team.service';
@@ -19,7 +20,7 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'app-team-page',
   standalone: true,
-  imports: [MemberCard, ReactiveFormsModule],
+  imports: [MemberCard, ReactiveFormsModule, CommonModule],
   templateUrl: './team.html',
   styleUrls: ['./team.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
