@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 import { Injectable } from '@nestjs/common';
 import { GeminiAiService, AiGenerationResult } from './gemini-ai.service';
 import {
@@ -19,6 +20,7 @@ export class ContractsAgentService {
   ) {}
 
   async generateAndSave(dto: AgentGenerateAndSaveDto, userId: number) {
+    // Deprecated internal path (use run()) kept for backward compatibility
     await this.log(userId, 'agent.plan', 'Generate contract draft', {
       dto: { ...dto, projectDescription: undefined },
     });
@@ -34,9 +36,7 @@ export class ContractsAgentService {
           user?.business_name?.trim() ||
           `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim();
         if (fallback) dto.freelancerName = fallback;
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
 
     // Derive client name (and client_id) from related entities if missing
@@ -57,9 +57,7 @@ export class ContractsAgentService {
           if (!dto.client_id && p?.client_id) dto.client_id = p.client_id;
         }
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     const ai: AiGenerationResult = await this.gemini.generateContract(dto);
     let content: string = ai.generatedContent || '';
@@ -135,6 +133,25 @@ export class ContractsAgentService {
     });
 
     return { ...created, aiMeta: ai };
+  }
+
+  async run(dto: AgentGenerateAndSaveDto, userId: number) {
+    const startedAt = Date.now();
+    await this.log(userId, 'agent.step', 'plan:start', { title: dto.title });
+    // Reuse existing generation & persistence flow
+    const created = await this.generateAndSave(dto, userId);
+    const durationMs = Date.now() - startedAt;
+    await this.log(userId, 'agent.step', 'summarize:complete', {
+      contract_id: created.id,
+      durationMs,
+    });
+    return {
+      ...created,
+      agent: {
+        durationMs,
+        steps: ['plan', 'generate', 'personalize', 'persist', 'summarize'],
+      },
+    };
   }
 
   async generateFromProject(projectId: number, userId: number) {
@@ -219,8 +236,6 @@ export class ContractsAgentService {
           new_values: (extra ?? null) as Prisma.InputJsonValue,
         },
       });
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
 }
