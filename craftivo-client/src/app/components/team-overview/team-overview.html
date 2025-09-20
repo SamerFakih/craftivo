@@ -14,11 +14,12 @@
             <div class="td progress">Progress</div>
         </div>
 
-        <div class="tr" *ngFor="let m of members">
+        @for (m of members; track m.name) {
+        <div class="tr">
             <div class="td name">{{ m.name }}</div>
-            <div class="td">{{ m.todayHours }}h</div>
-            <div class="td">{{ m.weekHours }}h</div>
-            <div class="td">{{ m.totalHours }}h</div>
+            <div class="td">{{ m.todayHours | number:'1.0-2' }}h</div>
+            <div class="td">{{ m.weekHours | number:'1.0-2' }}h</div>
+            <div class="td">{{ m.totalHours | number:'1.0-2' }}h</div>
             <div class="td">${{ m.revenueUSD | number:'1.0-1' }}</div>
             <div class="td progress">
                 <div class="bar">
@@ -27,5 +28,6 @@
                 <span class="pct">{{ m.progressPct }}%</span>
             </div>
         </div>
+        }
     </div>
 </section>
