@@ -8,6 +8,8 @@ import {
   UseGuards,
   Put,
   ParseIntPipe,
+  Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,22 +18,25 @@ import {
   ApiResponse,
   ApiBody,
   ApiParam,
+  ApiQuery,
+  ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { ContractsService } from './contracts.service';
+import type { Response } from 'express';
+import { Res } from '@nestjs/common';
+import { StreamableFile } from '@nestjs/common';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { SignContractDto } from './dto/sign-contract.dto';
-import {
-  GenerateContractDto,
-  AgentGenerateAndSaveDto,
-  ProjectType,
-  PaymentStructure,
-} from './ai-features/generate-contract.dto';
-import { GeminiAiService } from './ai-features/gemini-ai.service';
+import { AgentGenerateAndSaveDto } from './ai-features/generate-contract.dto';
 import { ContractsAgentService } from './ai-features/contracts-agent.service';
-import { SimpleGenerateDto } from './ai-features/simple-generate.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ContractStatus } from '@prisma/client';
+import { UpdateContractDto } from './dto/update-contract.dto';
+import { SendContractDto } from './dto/send-contract.dto';
+import { SignRoleDto as RoleSignDto } from './dto/role-sign.dto';
+import { RegenerateContractDto } from './dto/regenerate-contract.dto';
 import { UserId } from '../common/decorators/user-id.decorator';
+import { ContractVersionDto } from './dto/contract-version.dto';
 
 @ApiTags('contracts')
 @ApiBearerAuth()
@@ -40,7 +45,6 @@ import { UserId } from '../common/decorators/user-id.decorator';
 export class ContractsController {
   constructor(
     private readonly contractsService: ContractsService,
-    private readonly geminiAiService: GeminiAiService,
     private readonly contractsAgent: ContractsAgentService,
   ) {}
 
@@ -58,13 +62,85 @@ export class ContractsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all contracts' })
+  @ApiOperation({
+    summary: 'List contracts (filterable)',
+    description:
+      'Supports filtering by client, project, status (single or comma-separated), full-text search (title & content), date range, and pagination. Returns { data, meta } wrapper.',
+  })
+  @ApiQuery({ name: 'clientId', required: false, type: Number })
+  @ApiQuery({ name: 'projectId', required: false, type: Number })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Single status or comma list',
+  })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({
+    name: 'from',
+    required: false,
+    description: 'ISO date lower bound (created_at)',
+  })
+  @ApiQuery({
+    name: 'to',
+    required: false,
+    description: 'ISO date upper bound (created_at)',
+  })
+  @ApiQuery({ name: 'skip', required: false, type: Number })
+  @ApiQuery({ name: 'take', required: false, type: Number })
   @ApiResponse({
     status: 200,
-    description: 'List of all contracts',
+    description: 'Filtered contract list with pagination meta',
+    schema: {
+      type: 'object',
+      properties: {
+        data: { type: 'array', items: { type: 'object' } },
+        meta: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            skip: { type: 'number' },
+            take: { type: 'number' },
+          },
+        },
+      },
+    },
   })
-  findAll(@UserId() userId: number) {
-    return this.contractsService.findAll(userId);
+  list(
+    @UserId() userId: number,
+    @Query('clientId') clientId?: string,
+    @Query('projectId') projectId?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+  ) {
+    const statusParam = status
+      ? status
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined;
+    const statusValue = statusParam
+      ? statusParam.length === 1
+        ? statusParam[0]
+        : statusParam
+      : undefined;
+    return this.contractsService.list(userId, {
+      clientId: clientId ? Number(clientId) : undefined,
+      projectId: projectId ? Number(projectId) : undefined,
+      // Casting narrowed union / array to service's accepted shape (already validated loosely)
+      status: statusValue as unknown as
+        | ContractStatus
+        | ContractStatus[]
+        | undefined,
+      search,
+      from,
+      to,
+      skip: skip ? Number(skip) : undefined,
+      take: take ? Math.min(Number(take), 100) : undefined,
+    });
   }
 
   @Get(':id')
@@ -96,8 +172,143 @@ export class ContractsController {
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body('status') status: ContractStatus,
+    @UserId() userId: number,
   ) {
-    return this.contractsService.updateStatus(id, status);
+    return this.contractsService.updateStatus(id, status, userId);
+  }
+
+  // General update (title, value, currency, content -> version)
+  @Patch(':id')
+  @ApiOperation({
+    summary: 'Update contract fields / new version if content changed',
+  })
+  @ApiParam({ name: 'id', type: 'number' })
+  updateContract(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateContractDto,
+    @UserId() userId: number,
+  ) {
+    return this.contractsService.updateContract(id, userId, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Soft delete contract' })
+  remove(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.contractsService.softDelete(id, userId);
+  }
+
+  @Post(':id/send')
+  @ApiOperation({ summary: 'Send contract to recipients (issues sign tokens)' })
+  send(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: SendContractDto,
+    @UserId() userId: number,
+  ) {
+    return this.contractsService.send(id, userId, dto);
+  }
+
+  @Post(':id/resend')
+  @ApiOperation({ summary: 'Resend contract notifications' })
+  resend(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.contractsService.resend(id, userId);
+  }
+
+  @Post(':id/regenerate')
+  @ApiOperation({
+    summary: 'Regenerate contract (creates new version placeholder)',
+  })
+  regenerate(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RegenerateContractDto,
+    @UserId() userId: number,
+  ) {
+    return this.contractsService.regenerate(id, userId, dto);
+  }
+
+  @Get(':id/versions')
+  @ApiOperation({ summary: 'List contract versions' })
+  @ApiResponse({ status: 200, type: ContractVersionDto, isArray: true })
+  versions(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.contractsService.getVersions(id, userId);
+  }
+
+  @Get(':id/versions/:versionId')
+  @ApiOperation({ summary: 'Get a specific contract version' })
+  @ApiParam({ name: 'versionId', type: 'number' })
+  @ApiResponse({ status: 200, type: ContractVersionDto })
+  getVersion(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('versionId', ParseIntPipe) versionId: number,
+    @UserId() userId: number,
+  ) {
+    return this.contractsService.getVersion(id, versionId, userId);
+  }
+
+  @Post(':id/versions/:versionId/make-current')
+  @ApiOperation({
+    summary: 'Set an existing version as current (no new version created)',
+  })
+  @ApiParam({ name: 'versionId', type: 'number' })
+  @ApiResponse({ status: 200, description: 'Version set as current' })
+  makeVersionCurrent(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('versionId', ParseIntPipe) versionId: number,
+    @UserId() userId: number,
+  ) {
+    return this.contractsService.makeVersionCurrent(id, versionId, userId);
+  }
+
+  @Post(':id/versions/:versionId/revert')
+  @ApiOperation({
+    summary: 'Revert to a past version (creates new version copy)',
+  })
+  @ApiParam({ name: 'versionId', type: 'number' })
+  @ApiResponse({
+    status: 201,
+    type: ContractVersionDto,
+    description: 'New version created from revert',
+  })
+  revertToVersion(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('versionId', ParseIntPipe) versionId: number,
+    @UserId() userId: number,
+  ) {
+    return this.contractsService.revertToVersion(id, versionId, userId);
+  }
+
+  @Get(':id/audit')
+  @ApiOperation({ summary: 'List contract audit log' })
+  audit(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.contractsService.getAudit(id, userId);
+  }
+
+  @Get(':id/download')
+  @ApiOperation({ summary: 'Download contract PDF' })
+  async download(
+    @Param('id', ParseIntPipe) id: number,
+    @UserId() userId: number,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { filename, buffer } = await this.contractsService.downloadPdf(
+      id,
+      userId,
+    );
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length.toString(),
+    });
+    return new StreamableFile(buffer);
+  }
+
+  @Post(':id/sign')
+  @ApiOperation({ summary: 'Role-based sign (client or freelancer)' })
+  roleSign(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RoleSignDto,
+    @UserId() userId: number,
+  ) {
+    return this.contractsService.roleSign(id, userId, dto);
   }
 
   @Put(':id/sign')
@@ -111,21 +322,18 @@ export class ContractsController {
   signContract(
     @Param('id', ParseIntPipe) id: number,
     @Body() signData: SignContractDto,
+    @UserId() userId: number,
   ) {
     return this.contractsService.signContract(
       id,
+      userId,
       signData.signature,
       signData.signedBy,
     );
   }
 
   @Get('client/:clientId')
-  @ApiOperation({ summary: 'Get contracts by client ID' })
-  @ApiParam({ name: 'clientId', type: 'number', description: 'Client ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of contracts for the specified client',
-  })
+  @ApiExcludeEndpoint()
   getByClient(
     @Param('clientId', ParseIntPipe) clientId: number,
     @UserId() userId: number,
@@ -134,12 +342,7 @@ export class ContractsController {
   }
 
   @Get('project/:projectId')
-  @ApiOperation({ summary: 'Get contracts by project ID' })
-  @ApiParam({ name: 'projectId', type: 'number', description: 'Project ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of contracts for the specified project',
-  })
+  @ApiExcludeEndpoint()
   getByProject(
     @Param('projectId', ParseIntPipe) projectId: number,
     @UserId() userId: number,
@@ -147,137 +350,58 @@ export class ContractsController {
     return this.contractsService.findByProject(projectId, userId);
   }
 
-  @Post('ai/generate')
+  // Unified agent endpoint replacing previous generate + simple-generate variants
+  @Post('agent/run')
   @ApiOperation({
-    summary: 'Generate contract using AI',
+    summary: 'Run AI contract generation agent and persist draft',
     description:
-      'Generate a professional contract using Google Gemini AI based on project details',
-    deprecated: true,
+      'Executes a multi-step agent pipeline (plan, generate, personalize, persist, summarize) and returns the created draft contract with metadata.',
   })
-  @ApiBody({
-    type: GenerateContractDto,
-    description: 'Project details for contract generation',
-  })
+  @ApiBody({ type: AgentGenerateAndSaveDto })
   @ApiResponse({
-    status: 200,
-    description: 'Contract successfully generated',
+    status: 201,
+    description: 'Contract generated and saved via agent',
     schema: {
       type: 'object',
       properties: {
-        generationId: { type: 'number' },
-        generatedContent: { type: 'string' },
-        aiModel: { type: 'string' },
-        processingTime: { type: 'number' },
-        estimatedCost: { type: 'number' },
-        confidenceScore: { type: 'number' },
-        reviewSuggestions: { type: 'array', items: { type: 'string' } },
+        id: { type: 'number' },
+        title: { type: 'string' },
+        status: { type: 'string' },
+        content: { type: 'string' },
+        aiMeta: { type: 'object' },
+        agent: {
+          type: 'object',
+          properties: {
+            durationMs: { type: 'number' },
+            steps: { type: 'array', items: { type: 'string' } },
+          },
+        },
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Invalid request data.' })
-  generateContract(@Body() generateDto: GenerateContractDto) {
-    return this.geminiAiService.generateContract(generateDto);
-  }
-
-  @Post('ai/generate-and-save')
-  @ApiOperation({
-    summary: 'AI generate contract and save as draft',
-    description:
-      'Agent-like flow: generate a professional contract using Gemini and immediately persist it as a draft contract',
-  })
-  @ApiBody({ type: AgentGenerateAndSaveDto })
-  @ApiResponse({ status: 201, description: 'Contract generated and saved' })
-  async generateAndSave(
+  @ApiResponse({ status: 400, description: 'Validation / generation error' })
+  async agentRun(
     @Body() dto: AgentGenerateAndSaveDto,
     @UserId() userId: number,
   ) {
-    return this.contractsAgent.generateAndSave(dto, userId);
+    return this.contractsAgent.run(dto, userId);
   }
 
-  @Post('ai/simple-generate-and-save')
-  @ApiOperation({
-    summary: 'Simple generate and save (UI form compatible)',
-    description:
-      'Accepts a simple form payload from the UI, maps to the agent DTO, and saves a draft contract',
-    deprecated: true,
-  })
-  @ApiBody({ type: SimpleGenerateDto })
-  @ApiResponse({ status: 201, description: 'Contract generated and saved' })
-  async simpleGenerateAndSave(
-    @Body() form: SimpleGenerateDto,
-    @UserId() userId: number,
-  ) {
-    // Minimal mapping assumptions for simple UI
-    const title = `${form.projectTitle || 'Service'} Agreement`;
-    const startDate = form.startDate || undefined;
-    const endDate = form.endDate || undefined;
-    const contractValue = form.totalAmount ?? undefined;
-
-    // Build a brief description including toggles
-    const toggles: string[] = [];
-    if (form.includeKillFee) toggles.push('Kill Fee');
-    if (form.includeRushFee) toggles.push('Rush Fee');
-    if (form.ipOwnership) toggles.push('IP Ownership Transfer');
-    if (form.includeNda) toggles.push('NDA');
-
-    const extras = toggles.length
-      ? `\n\nIncluded terms: ${toggles.join(', ')}.`
-      : '';
-    const custom = form.customTerms
-      ? `\n\nCustom Terms: ${form.customTerms}`
-      : '';
-
-    const projectDescription = `${form.description || 'Professional services engagement.'}${extras}${custom}`;
-
-    // Map payment schedule to the enum used by generator; fallback to 'milestone'
-    const paymentStructure = PaymentStructure.MILESTONE;
-
-    // Duration heuristic if dates provided; otherwise default 12 weeks
-    let durationWeeks = 12;
-    if (startDate && endDate) {
-      const s = new Date(startDate);
-      const e = new Date(endDate);
-      const days = Math.max(
-        1,
-        Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)),
-      );
-      durationWeeks = Math.max(1, Math.round(days / 7));
-    }
-
-    const dto: AgentGenerateAndSaveDto = {
-      // Generation fields
-      projectTitle: form.projectTitle,
-      projectType: ProjectType.WEB_DEVELOPMENT,
-      projectDescription,
-      budget: contractValue ?? 0,
-      currency: 'USD',
-      paymentStructure,
-      durationWeeks,
-      startDate: startDate || new Date().toISOString().slice(0, 10),
-      deliverables: ['Project scope as agreed', 'Milestone-based payments'],
-      clientName: form.clientName,
-
-      // Persistence fields
-      title,
-      contract_value: contractValue,
-      start_date: startDate,
-      end_date: endDate,
-      // Accept IDs from the simple form for association and name derivation
-      client_id: form.clientId,
-      project_id: form.projectId,
-    } as AgentGenerateAndSaveDto;
-
-    return this.contractsAgent.generateAndSave(dto, userId);
-  }
-
-  @Post('ai/from-project/:projectId')
+  @Post('agent/from-project/:projectId')
   @ApiOperation({
     summary: 'Generate contract from a project',
     description:
       'Fetch project and client data from the database by projectId, build a generation DTO, and save a draft contract',
   })
   @ApiParam({ name: 'projectId', type: 'number', description: 'Project ID' })
-  @ApiResponse({ status: 201, description: 'Contract generated and saved' })
+  @ApiResponse({
+    status: 201,
+    description: 'Contract generated and saved via agent (project derived)',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Project not found or not owned by user',
+  })
   async generateFromProject(
     @Param('projectId', ParseIntPipe) projectId: number,
     @UserId() userId: number,
