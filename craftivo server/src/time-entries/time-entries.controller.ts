@@ -10,6 +10,8 @@ import {
   Delete,
   UseGuards,
   HttpCode,
+  Put,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +27,8 @@ import { UpdateTimeEntriesDto } from './dto/update-time-entries.dto';
 import { TimeEntriesFiltersDto } from './dto/time-entries-filters.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UserId } from '../common/decorators/user-id.decorator';
+import { TimeEntriesSummaryQueryDto } from './dto/time-entries-summary-query.dto';
+import type { Response } from 'express';
 
 @ApiTags('time-entries')
 @ApiBearerAuth()
@@ -98,5 +102,54 @@ export class TimeEntriesController {
     @UserId() userId: number,
   ) {
     return this.timeEntriesService.remove(id, { user_id: userId });
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Replace/update a time entry (PUT semantics)' })
+  @ApiResponse({ status: 200, description: 'Time entry updated successfully' })
+  @ApiParam({ name: 'id', type: 'number' })
+  async replace(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTimeEntriesDto: UpdateTimeEntriesDto,
+    @UserId() userId: number,
+  ) {
+    return this.timeEntriesService.update(id, userId, updateTimeEntriesDto);
+  }
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Aggregated summary of time entries by dimension' })
+  @ApiResponse({ status: 200, description: 'Summary returned' })
+  async summary(
+    @Query() query: TimeEntriesSummaryQueryDto,
+    @UserId() userId: number,
+  ) {
+    return this.timeEntriesService.getSummary(userId, query);
+  }
+
+  @Get('kpis')
+  @ApiOperation({ summary: 'Key performance indicators (today/week/month)' })
+  @ApiResponse({ status: 200, description: 'KPIs returned' })
+  async kpis(@UserId() userId: number) {
+    return this.timeEntriesService.getKpis(userId);
+  }
+
+  @Get('export.csv')
+  @ApiOperation({ summary: 'Export filtered time entries as CSV' })
+  @ApiResponse({ status: 200, description: 'CSV export' })
+  async export(
+    @Query() filters: TimeEntriesFiltersDto,
+    @UserId() userId: number,
+    @Res() res: Response,
+  ) {
+    const csv = await this.timeEntriesService.exportCsv({
+      ...filters,
+      user_id: userId,
+    });
+    const filename = `time-entries-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.send(csv);
   }
 }
