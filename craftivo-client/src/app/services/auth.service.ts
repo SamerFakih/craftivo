@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { API_BASE } from './api.config';
 
 export interface User {
   id: string;
@@ -12,8 +13,15 @@ export interface User {
   avatar?: string;
 }
 
+// Support multiple backend response shapes
 export interface AuthResponse {
-  user: User;
+  user?: User; // when backend returns { user: {...} }
+  user_id?: number; // when backend returns lean fields + token
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+  access_token?: string;
   message?: string;
 }
 
@@ -21,7 +29,8 @@ export interface AuthResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/v1/auth';
+  private apiUrl = `${API_BASE}/auth`;
+  private readonly TOKEN_KEY = 'auth.token';
 
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   private currentUserSubject = new BehaviorSubject<User | null>(null);
@@ -35,11 +44,37 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  // Token helpers (persist across reloads)
+  getToken(): string | null {
+    try {
+      return localStorage.getItem(this.TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  private setToken(token: string | null) {
+    try {
+      if (token) localStorage.setItem(this.TOKEN_KEY, token);
+      else localStorage.removeItem(this.TOKEN_KEY);
+    } catch {
+      // no-op for environments without storage
+    }
+  }
+
   // Used by AuthGuard to check auth status and return Observable<boolean>
   public checkAuthStatusGuard(): Observable<boolean> {
     return this.http.get<any>(`${this.apiUrl}/profile`, { withCredentials: true }).pipe(
       map((response: any) => {
-        const user = response.user ? response.user : response;
+        const raw = response.user ? response.user : response;
+        const user: User = {
+          id: String(raw.id ?? raw.user_id ?? ''),
+          email: raw.email ?? '',
+          firstName: raw.firstName ?? raw.first_name ?? '',
+          lastName: raw.lastName ?? raw.last_name ?? '',
+          avatar: raw.avatar,
+        };
+        console.debug('[Auth] Guard profile loaded:', user);
         this.isLoggedIn.set(true);
         this.currentUser.set(user);
         return true;
@@ -63,7 +98,7 @@ export class AuthService {
         }
       )
       .pipe(
-        tap((response) => this.handleAuthSuccess(response.user)),
+        tap((response) => this.processAuthResponse(response)),
         catchError(this.handleError)
       );
   }
@@ -75,9 +110,44 @@ export class AuthService {
         withCredentials: true,
       })
       .pipe(
-        tap((response) => this.handleAuthSuccess(response.user)),
+        tap((response) => this.processAuthResponse(response)),
         catchError(this.handleError)
       );
+  }
+
+  // Normalize backend auth response, store token, and set user
+  private processAuthResponse(resp: AuthResponse) {
+    // Prefer explicit user if provided
+    let user: User | null = null;
+
+    // If backend returned nested user, normalize it
+    if (resp.user) {
+      const raw: any = resp.user;
+      user = {
+        id: String(raw.id ?? raw.user_id ?? ''),
+        email: raw.email ?? resp.email ?? '',
+        firstName: raw.firstName ?? raw.first_name ?? resp.firstName ?? '',
+        lastName: raw.lastName ?? raw.last_name ?? resp.lastName ?? '',
+        avatar: raw.avatar,
+      };
+    } else {
+      // Flat response variant
+      const id = resp.user_id != null ? String(resp.user_id) : undefined;
+      if (id && (resp.email || (resp as any).email)) {
+        user = {
+          id,
+          // prefer explicit resp.email, fall back to any email property
+          email: resp.email || (resp as any).email || '',
+          firstName: resp.firstName || (resp as any).first_name || '',
+          lastName: resp.lastName || (resp as any).last_name || '',
+        };
+      }
+    }
+    // Store token if present
+    if (resp.access_token) {
+      this.setToken(resp.access_token);
+    }
+    if (user) this.handleAuthSuccess(user);
   }
 
   // Handle successful authentication
@@ -93,8 +163,15 @@ export class AuthService {
   checkAuthStatus(): void {
     this.http.get<any>(`${this.apiUrl}/profile`, { withCredentials: true }).subscribe({
       next: (response) => {
-        // Support both { user: ... } and plain user object
-        const user = response.user ? response.user : response;
+        // Support both { user: ... } and plain user object; normalize snake_case
+        const raw = response.user ? response.user : response;
+        const user: User = {
+          id: String(raw.id ?? raw.user_id ?? ''),
+          email: raw.email ?? '',
+          firstName: raw.firstName ?? raw.first_name ?? '',
+          lastName: raw.lastName ?? raw.last_name ?? '',
+          avatar: raw.avatar,
+        };
         this.isLoggedIn.set(true);
         this.currentUser.set(user);
         // Keep BehaviorSubjects in sync
@@ -120,6 +197,7 @@ export class AuthService {
   }
 
   private handleLogout(): void {
+    this.setToken(null);
     this.isLoggedIn.set(false);
     this.currentUser.set(null);
     // Keep BehaviorSubjects in sync
@@ -139,6 +217,6 @@ export class AuthService {
     }
 
     console.error('Auth Error:', error);
-    return throwError(errorMessage);
+    return throwError(() => errorMessage);
   }
 }

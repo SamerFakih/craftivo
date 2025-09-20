@@ -1,0 +1,34 @@
+/* Badge / status pill */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--badge-font-size);
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--badge-radius);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  gap: 4px;
+  white-space: nowrap;
+}
+.badge--neutral {
+  background: var(--badge-bg-neutral);
+  color: var(--badge-text-neutral);
+}
+.badge--success {
+  background: var(--badge-bg-success);
+  color: var(--badge-text-success);
+}
+.badge--danger {
+  background: var(--badge-bg-danger);
+  color: var(--badge-text-danger);
+}
+.badge--warning {
+  background: var(--badge-bg-warning);
+  color: var(--badge-text-warning);
+}
+.badge--info {
+  background: var(--badge-bg-info);
+  color: var(--badge-text-info);
+}

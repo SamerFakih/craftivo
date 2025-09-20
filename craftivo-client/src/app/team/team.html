@@ -4,7 +4,7 @@
             <h1 class="title">Team Management</h1>
             <p class="subtitle">Manage your team members and collaboration</p>
         </div>
-        <button class="btn btn--primary">
+        <button class="btn btn--primary" (click)="openInvite()">
             <i class="pi pi-user-plus"></i>
             Invite Member
         </button>
@@ -31,7 +31,7 @@
         </div>
         <div class="kpi">
             <div class="kpi__label">Total Hours</div>
-            <div class="kpi__value">{{ totalHours() }}h</div>
+            <div class="kpi__value">{{ totalHours() | number:'1.0-2' }}h</div>
         </div>
         <div class="kpi">
             <div class="kpi__label">Avg Performance</div>
@@ -39,8 +39,63 @@
         </div>
     </div>
 
-    <!-- Members list -->
+    <!-- Members grouped by team -->
     <div class="list">
-        <app-member-card *ngFor="let m of filtered(); trackBy: trackByMemberId" [member]="m"></app-member-card>
+        @for (group of groups(); track group[0]) {
+        <div class="team-group">
+            <h3 class="team-group__title">{{ group[0] }}</h3>
+            <div class="team-group__members">
+                @for (m of group[1]; track m.id) {
+                <app-member-card [member]="m"></app-member-card>
+                }
+            </div>
+        </div>
+        }
     </div>
+
+    @if (showInvite()) {
+    <div class="modal-backdrop" (click)="closeInvite()"></div>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="inviteTitle" (click)="closeInvite()">
+        <form class="modal__panel" [formGroup]="inviteForm" (submit)="submitInvite($event)"
+            (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="inviteTitle">Invite Team Member</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeInvite()">✕</button>
+            </header>
+            <div class="modal__body">
+                <p class="form-intro">Send an invitation email to add a new collaborator.</p>
+                <div class="form-section">
+                    <div class="form-section__title">Details</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="inviteForm.get('name')?.invalid && inviteForm.get('name')?.touched">
+                            <label class="field__label" for="invName">Name</label>
+                            <div class="field__control"><input id="invName" type="text" formControlName="name"
+                                    placeholder="Full name" /></div>
+                        </div>
+                        <div class="field"
+                            [class.field--invalid]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched">
+                            <label class="field__label" for="invEmail">Email *</label>
+                            <div class="field__control"><input id="invEmail" type="email" formControlName="email"
+                                    placeholder="user@example.com" /></div>
+                            @if (inviteForm.get('email')?.errors?.['required'] && inviteForm.get('email')?.touched) {
+                            <div class="field__error">Required</div> }
+                            @if (inviteForm.get('email')?.errors?.['email'] && inviteForm.get('email')?.touched) { <div
+                                class="field__error">Invalid email</div> }
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="invRole">Role</label>
+                            <div class="field__control"><input id="invRole" type="text" formControlName="role"
+                                    placeholder="e.g. Developer" /></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeInvite()">Cancel</button>
+                <button type="submit" class="btn btn--primary">Send Invite</button>
+            </footer>
+        </form>
+    </div>
+    }
 </section>

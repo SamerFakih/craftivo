@@ -84,11 +84,17 @@ export class Navbar implements OnInit, OnDestroy {
     this.isLoggedIn = this.authService.isLoggedIn;
     this.userName = computed(() => {
       const user = this.authService.currentUser();
-      console.log('Current user in navbar:', user);
-      if (user && user.firstName && user.lastName) {
-        return `${user.firstName} ${user.lastName}`;
+      if (!user) {
+        console.debug('[Navbar] No user yet (not authenticated or still loading).');
+        return '';
       }
-      return 'John Doe';
+      const first = user.firstName?.trim();
+      const last = user.lastName?.trim();
+      if (!first && !last) {
+        console.warn('[Navbar] User loaded but names are empty. Raw user object:', user);
+        return user.email || '';
+      }
+      return [first, last].filter(Boolean).join(' ');
     });
     this.userAvatar = computed(() => {
       const user = this.authService.currentUser();

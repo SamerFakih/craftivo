@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InvoiceModel } from '../../models/invoice';
 
@@ -8,9 +8,12 @@ import { InvoiceModel } from '../../models/invoice';
   imports: [CommonModule],
   templateUrl: './invoice-card.html',
   styleUrls: ['./invoice-card.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoiceCard {
   @Input() invoice!: InvoiceModel;
+  @Output() view = new EventEmitter<InvoiceModel>();
+  @Output() edit = new EventEmitter<InvoiceModel>();
 
   get amtLabel() {
     return this.invoice.amountUSD.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -34,5 +37,14 @@ export class InvoiceCard {
       default:
         return 'pill pill--overdue';
     }
+  }
+
+  onView(e: MouseEvent) {
+    e.stopPropagation();
+    this.view.emit(this.invoice);
+  }
+  onEdit(e: MouseEvent) {
+    e.stopPropagation();
+    this.edit.emit(this.invoice);
   }
 }

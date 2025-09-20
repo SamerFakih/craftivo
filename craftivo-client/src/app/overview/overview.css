@@ -39,6 +39,22 @@
   cursor: pointer;
 }
 
+.btn.btn--ghost {
+  background: #fff;
+  color: teal;
+  border-color: #c2c2c2;
+  font-weight: 600;
+}
+.btn.btn--ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.head__actions {
+  display: flex;
+  gap: 8px;
+}
+
 .btn .icon {
   width: 18px;
   height: 18px;
@@ -247,6 +263,27 @@
   font-size: 13px;
   font-weight: 600;
   margin: 0;
+}
+
+/* Error + utility */
+.error-banner {
+  border: 1px solid #ef4444;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: teal;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.link-btn:hover {
+  text-decoration: underline;
 }
 
 /* Responsive design */

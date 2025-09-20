@@ -18,6 +18,47 @@
   font-size: 13px;
 }
 
+/* Filters */
+.filters {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+.filter-group label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #475569;
+}
+.filter-group select,
+.filter-group input[type='date'] {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  height: 36px;
+  padding: 0 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.filter-group select:focus,
+.filter-group input[type='date']:focus {
+  border-color: teal;
+  box-shadow: 0 0 0 1px teal;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -38,6 +79,10 @@
   border: none;
   color: white;
   font-weight: 700;
+}
+.btn:focus-visible {
+  outline: 2px solid teal;
+  outline-offset: 2px;
 }
 .icon {
   width: 18px;
@@ -120,6 +165,250 @@
   border-color: teal;
 }
 
+.manual-form-shell .muted.small-intro {
+  color: rgba(255, 255, 255, 0.85);
+}
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.modal__header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.modal__body {
+  max-height: calc(90vh - 160px);
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.unified-form .grid.four-col {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.unified-form textarea {
+  min-height: 90px;
+}
+.modal__footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.form-intro {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #475569;
+}
+.form-section {
+  margin-bottom: 20px;
+}
+.form-section__title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin: 0 0 10px;
+}
+.form-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+.field__control input,
+.field__control select,
+.field__control textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field__control input:focus,
+.field__control select:focus,
+.field__control textarea:focus {
+  border-color: teal;
+  box-shadow: 0 0 0 1px teal;
+  background: #fff;
+}
+.field--invalid .field__control input,
+.field--invalid .field__control select,
+.field--invalid .field__control textarea {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px #dc2626;
+}
+.field--invalid .field__label {
+  color: #dc2626;
+}
+.field.field--full {
+  grid-column: 1 / -1;
+}
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #64748b;
+  padding: 4px;
+  border-radius: 6px;
+}
+.icon-btn:hover {
+  background: #f1f5f9;
+}
+.icon-btn:focus-visible {
+  outline: 2px solid teal;
+  outline-offset: 2px;
+}
+
+/* Scrollbar subtle styling */
+.modal__body::-webkit-scrollbar {
+  width: 10px;
+}
+.modal__body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+.modal__body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Unified form styling (align with contract generator) */
+.unified-form {
+  --border: #c2c2c2;
+}
+.unified-form .muted {
+  color: #64748b;
+}
+.unified-form .small-intro {
+  font-size: 12px;
+}
+.unified-form .form-block {
+  margin: 0 0 22px;
+}
+.unified-form .block-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.unified-form .grid {
+  display: grid;
+  gap: 14px;
+}
+.unified-form .grid.four-col {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+.unified-form .grid.two-col {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.unified-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.unified-form .field span.help {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.unified-form label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+.unified-form input,
+.unified-form select,
+.unified-form textarea {
+  border: 1px solid var(--border, #c2c2c2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+.unified-form textarea {
+  resize: vertical;
+}
+.unified-form input:focus,
+.unified-form select:focus,
+.unified-form textarea:focus {
+  border-color: teal;
+  box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.12);
+  background: #fff;
+}
+.unified-form .field.invalid input,
+.unified-form .field.invalid select,
+.unified-form .field.invalid textarea {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px #dc2626;
+}
+.unified-form .field.invalid label {
+  color: #dc2626;
+}
+.unified-form .field.span-full {
+  grid-column: 1 / -1;
+}
+.actions-row .btn--subtle {
+  background: #fff;
+  border: 1px solid #c2c2c2;
+  color: #0f172a;
+}
+.actions-row .btn--subtle:hover {
+  background: #f1f5f9;
+}
+.row {
+  display: grid;
+  gap: 12px;
+}
+.row.two {
+  grid-template-columns: 1fr 1fr;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field label {
+  font-size: 12px;
+  color: #334155;
+  font-weight: 600;
+}
+.field input,
+.field select,
+.field textarea {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  outline: none;
+  font-size: 13px;
+}
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
 @media (max-width: 900px) {
   .kpi {
     grid-column: span 6;
@@ -138,5 +427,8 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+  .filters {
+    flex-direction: column;
   }
 }

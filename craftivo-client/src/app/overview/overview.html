@@ -4,18 +4,25 @@
             <h1 class="title">Dashboard</h1>
             <p class="subtitle">Welcome back! Here's what's happening with your freelance business.</p>
         </div>
-        <button class="btn btn--primary">
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
-            </svg>
-            New Project
-        </button>
+        <div class="head__actions">
+            <button class="btn btn--primary" (click)="newProject()" aria-label="Create new project">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+                </svg>
+                New Project
+            </button>
+        </div>
     </header>
 
     <!-- KPI cards -->
-    <div class="kpis">
-        <app-summary-cards [summarys]="summarys"></app-summary-cards>
+    <div class="kpis" *ngIf="!error(); else errorBlock">
+        <app-summary-cards [summarys]="summarys()"></app-summary-cards>
     </div>
+    <ng-template #errorBlock>
+        <div class="error-banner" role="alert">
+            <p>Failed to load overview. <button class="link-btn" (click)="refresh()">Retry</button></p>
+        </div>
+    </ng-template>
 
     <!-- Main content grid -->
     <div class="content-grid">
@@ -33,7 +40,8 @@
                 </a>
             </div>
             <div class="list">
-                <div *ngFor="let project of projects; trackBy: trackByProjectId" class="project-card">
+                <div *ngFor="let project of projects(); trackBy: trackByProjectId" class="project-card"
+                    aria-label="Project summary">
                     <div class="project-info">
                         <h3>{{ project.name }}</h3>
                         <p class="muted">{{ project.client?.name || 'No client assigned' }}</p>
@@ -57,7 +65,7 @@
                 </div>
             </div>
             <div class="list">
-                <div *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-card">
+                <div *ngFor="let task of tasks(); trackBy: trackByTaskId" class="task-card" aria-label="Task summary">
                     <h3>{{ task.title }}</h3>
                     <p class="muted">{{ task.projects?.name || 'No project assigned' }}</p>
                     <p class="task-meta">Due: {{ task.due_time }} | Status: {{ task.status }}</p>
@@ -76,7 +84,8 @@
                 </div>
             </div>
             <div class="list">
-                <div *ngFor="let activity of teamActivity; trackBy: trackByActivityName" class="activity-card">
+                <div *ngFor="let activity of teamActivity(); trackBy: trackByActivityName" class="activity-card"
+                    aria-label="Team activity">
                     <h3><strong>{{ activity.name }}</strong> {{ activity.status }}</h3>
                     <p class="muted">{{ activity.project }}</p>
                 </div>
@@ -91,19 +100,19 @@
                 </div>
             </div>
             <div class="action-buttons">
-                <button class="action-button">
+                <button class="action-button" (click)="newInvoice()" aria-label="Create new invoice">
                     <i class="pi pi-file"></i>
                     <span>New Invoice</span>
                 </button>
-                <button class="action-button">
+                <button class="action-button" (click)="startTimer()" aria-label="Start timer">
                     <i class="pi pi-clock"></i>
                     <span>Start Timer</span>
                 </button>
-                <button class="action-button">
-                    <i class="pi pi-envelope"></i>
-                    <span>Email Client</span>
+                <button class="action-button" (click)="newProject()" aria-label="Go to projects">
+                    <i class="pi pi-briefcase"></i>
+                    <span>Projects</span>
                 </button>
-                <button class="action-button">
+                <button class="action-button" (click)="inviteTeam()" aria-label="Invite team members">
                     <i class="pi pi-user-plus"></i>
                     <span>Invite Team</span>
                 </button>

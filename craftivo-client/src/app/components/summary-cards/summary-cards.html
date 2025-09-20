@@ -2,7 +2,7 @@
     <div class="card-summary" *ngFor="let summary of summarys">
         <div class="summary-label">{{ summary.key }}</div>
         <div class="summary-value">
-            {{ summary.value }}
+            {{ (summary.key | lowercase).includes('hour') ? (summary.value | number:'1.0-2') : summary.value }}
             <i [class]="summary.icon + ' summary-icon'"></i>
         </div>
     </div>

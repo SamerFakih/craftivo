@@ -1,11 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { ProgressBar } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { SummaryCards } from '../components/summary-cards/summary-cards';
 import { OverviewService } from '../services/overview.service';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
+import { OverviewData, OverviewKpiItem } from './overview.models';
+import { ModalBusService } from '../services/modal-bus.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-overview',
@@ -14,41 +18,116 @@ import { AuthService } from '../services/auth.service';
   styleUrls: ['./overview.css'],
   standalone: true,
   providers: [MessageService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Overview {
-  value: number = 0;
-  interval: any;
-  summarys: any[] = [];
-  projects: any[] = [];
-  tasks: any[] = [];
-  teamActivity: any[] = [];
+  private overviewService = inject(OverviewService);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private messages = inject(MessageService);
+  private modalBus = inject(ModalBusService);
 
-  constructor(
-    private overviewService: OverviewService,
-    private authService: AuthService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  // State signals
+  readonly loading = signal<boolean>(false);
+  readonly error = signal<string | null>(null);
+  readonly data = signal<OverviewData | null>(null);
+
+  // Derived signals
+  readonly summarys = computed<OverviewKpiItem[]>(() => {
+    const d = this.data();
+    if (!d) return [];
+    return [
+      { key: 'Total Revenue', value: d.totalRevenue, icon: 'pi pi-dollar' },
+      { key: 'Active Projects', value: d.activeProjects, icon: 'pi pi-check-circle' },
+      { key: 'Hours This Month', value: d.hoursThisMonth, icon: 'pi pi-clock' },
+      { key: 'Team Members', value: d.teamMembers.length, icon: 'pi pi-users' },
+    ];
+  });
+
+  // Dynamic project progress override: recompute using tasks if both present
+  private readonly _progressMap = computed(() => {
+    const d = this.data();
+    if (!d) return new Map<number, number>();
+    const tasks = d.todayTasks || []; // limited set (today) may not reflect all project tasks
+    // If API supplies a broader task list in future, replace above with that list
+    const map = new Map<number, { total: number; done: number }>();
+    for (const t of tasks) {
+      const pid = Number((t as any).project_id || (t as any).projectId || (t as any).project?.id);
+      if (!Number.isFinite(pid) || pid <= 0) continue;
+      const status = ((t as any).status || '').toString().toLowerCase();
+      const bucket = map.get(pid) || { total: 0, done: 0 };
+      bucket.total += 1;
+      if (status === 'completed' || status === 'done' || status === 'finished') bucket.done += 1;
+      map.set(pid, bucket);
+    }
+    const result = new Map<number, number>();
+    map.forEach((v, k) => {
+      if (v.total > 0) result.set(k, Math.round((v.done / v.total) * 100));
+    });
+    return result;
+  });
+
+  readonly projects = computed(() => {
+    const d = this.data();
+    if (!d) return [];
+    const progressMap = this._progressMap();
+    const list = d.recentProjects || [];
+    if (!progressMap.size) return list;
+    return list.map((p: any) => {
+      const override = progressMap.get(p.id);
+      return override == null ? p : { ...p, progress: override };
+    });
+  });
+  readonly tasks = computed(() => this.data()?.todayTasks ?? []);
+  readonly teamActivity = computed(() => this.data()?.teamActivity ?? []);
 
   ngOnInit() {
-    this.overviewService.getOverviewData().subscribe((data: any) => {
-      console.log('Overview data:', data);
-      this.summarys = [
-        { key: 'Total Revenue', value: data.totalRevenue, icon: 'pi pi-dollar' },
-        { key: 'Active Projects', value: data.activeProjects, icon: 'pi pi-check-circle' },
-        { key: 'Hours This Month', value: data.hoursThisMonth, icon: 'pi pi-clock' },
-        { key: 'Team Members', value: data.teamMembers.length, icon: 'pi pi-users' },
-      ];
-      this.projects = data.recentProjects;
-      this.teamActivity = data.teamActivity;
-      this.tasks = data.todayTasks;
-      this.cdr.detectChanges(); // Manually trigger change detection
-    });
+    this.load();
   }
 
-  ngOnDestroy() {
-    if (this.interval) {
-      clearInterval(this.interval);
+  load(refresh = false) {
+    this.loading.set(true);
+    this.error.set(null);
+    if (refresh) {
+      this.overviewService.invalidateCache();
     }
+    this.overviewService
+      .getOverviewData()
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (data: OverviewData) => this.data.set(data),
+        error: (err) => {
+          const msg = err?.error?.message || 'Failed to load overview';
+          this.error.set(msg);
+          this.messages.add({ severity: 'error', summary: 'Overview', detail: msg });
+        },
+      });
+  }
+
+  // Quick actions
+  newProject() {
+    this.router
+      .navigate(['/dashboard/projects'])
+      .then(() => this.modalBus.emit({ type: 'open-project-create' }));
+  }
+  newInvoice() {
+    this.router
+      .navigate(['/dashboard/invoices'])
+      .then(() => this.modalBus.emit({ type: 'open-invoice-create' }));
+  }
+  startTimer() {
+    this.router
+      .navigate(['/dashboard/time-tracking'])
+      .then(() => this.modalBus.emit({ type: 'open-time-manual' }));
+  }
+  inviteTeam() {
+    this.router
+      .navigate(['/dashboard/teams'])
+      .then(() => this.modalBus.emit({ type: 'open-team-invite' }));
+  }
+
+  refresh() {
+    this.load(true);
   }
 
   // projects = [
@@ -93,15 +172,7 @@ export class Overview {
   //   { name: 'Emma Davis', status: 'submitted invoice', project: 'E-commerce Redesign' },
   // ];
 
-  trackByTaskId(index: number, task: any): any {
-    return task.id || index;
-  }
-
-  trackByProjectId(index: number, project: any): any {
-    return project.id || index;
-  }
-
-  trackByActivityName(index: number, activity: any): string {
-    return activity.name || index;
-  }
+  trackByTaskId = (_: number, task: any) => task.id ?? _;
+  trackByProjectId = (_: number, project: any) => project.id ?? _;
+  trackByActivityName = (_: number, activity: any) => activity.name ?? _;
 }

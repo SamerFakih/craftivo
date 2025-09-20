@@ -5,6 +5,8 @@ import { SignIn } from './signin/signin';
 import { SignUp } from './signup/signup';
 import { Dashboard } from './dashboard/dashboard';
 import { Contract } from './contract/contract';
+import { ContractViewerComponent } from './contract/contract-viewer';
+import { PublicContractSignComponent } from './contract/public-contract-sign';
 import { Client } from './client/client';
 import { Team } from './team/team';
 import { TimeTracking } from './time-tracking/time-tracking';
@@ -30,7 +32,10 @@ export const routes: Routes = [
       { path: 'teams', component: Team, canActivate: [AuthGuard] },
       { path: 'clients', component: Client, canActivate: [AuthGuard] },
       { path: 'contracts', component: Contract, canActivate: [AuthGuard] },
+      { path: 'contracts/:id', component: ContractViewerComponent, canActivate: [AuthGuard] },
     ],
   },
+  // Public signing route (no auth guard) - token placeholder (will be non-numeric usually)
+  { path: 'sign/:token', component: PublicContractSignComponent },
   { path: '**', redirectTo: '' },
 ];

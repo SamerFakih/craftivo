@@ -1,5 +1,13 @@
 /* Global styles for Craftivo */
 @import 'primeicons/primeicons.css';
+@import './styles/tokens.css';
+@import './styles/semantic.css';
+@import './styles/primitives-button.css';
+@import './styles/primitives-field.css';
+@import './styles/primitives-card.css';
+@import './styles/primitives-modal.css';
+@import './styles/primitives-badge.css';
+@import './styles/primitives-form-layout.css';
 
 * {
   margin: 0;

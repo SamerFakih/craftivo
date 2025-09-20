@@ -1,7 +1,9 @@
 export interface ClientModel {
   id: string;
+  serverId?: number; // actual numeric id from backend (if available)
+  temp?: boolean; // true when no backend id was present (cannot update)
   name: string; // “TechCorp Inc.”
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'prospect';
   email: string;
   location: string; // “San Francisco, CA”
   primaryContact: string; // “Sarah Williams”

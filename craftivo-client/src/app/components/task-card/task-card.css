@@ -4,6 +4,13 @@
   padding: 16px 18px;
 }
 
+.task__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .task__title {
   margin: 0;
   font-size: 18px;
@@ -67,6 +74,25 @@
   border-radius: 999px;
   color: #374151;
   border: 1px solid #c2c2c2;
+}
+
+.task__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.task__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: #c2c2c2 1px solid;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.task__actions .btn i {
+  font-size: 12px;
 }
 
 /* card spacing like the screenshot */

@@ -4,7 +4,7 @@
             <h1 class="title">Tasks</h1>
             <p class="subtitle">Manage your tasks with smart email integration</p>
         </div>
-        <button class="btn btn--primary">
+        <button class="btn btn--primary" (click)="openCreate()">
             <svg class="icon" viewBox="0 0 24 24">
                 <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
             </svg>
@@ -50,13 +50,173 @@
     </nav>
 
     <div class="list">
-        <app-task-card *ngFor="let t of filtered(); trackBy: trackByTaskId" [task]="t"></app-task-card>
+        <app-task-card *ngFor="let t of filtered(); trackBy: trackByTaskId" [task]="t" (view)="openView(t)"
+            (edit)="openEdit(t)"></app-task-card>
 
         <!-- Show message when no tasks are found -->
-        <div *ngIf="filtered().length === 0" style="text-align: center; padding: 40px; color: #666;">
+        @if (filtered().length === 0) {
+        <div style="text-align: center; padding: 40px; color: #666;">
             <h3>No tasks found</h3>
-            <p *ngIf="totalCnt() === 0">No tasks loaded yet...</p>
-            <p *ngIf="totalCnt() > 0">No tasks match the current filter.</p>
+            @if (totalCnt() === 0) { <p>No tasks loaded yet...</p> }
+            @if (totalCnt() > 0) { <p>No tasks match the current filter.</p> }
         </div>
+        }
     </div>
+
+    <!-- Create/Edit/View Task Modal -->
+    @if (showTaskModal()) {
+    <div class="modal-backdrop" (click)="closeTaskModal()"></div>
+    <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="taskDialogTitle"
+        (click)="closeTaskModal()">
+        @if (taskMode()!=='view') {
+        <form class="modal__panel" [formGroup]="createTaskForm" (ngSubmit)="submitTask()"
+            (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="taskDialogTitle">@if (taskMode()==='create') { Create Task } @if (taskMode()==='edit') { Edit
+                    Task }</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeTaskModal()">✕</button>
+            </header>
+            <div class="modal__body">
+                <p class="form-intro">@if (taskMode()==='create') { Add a new task with email notifications and team
+                    assignments. } @if (taskMode()==='edit') { Update task details below. }</p>
+                @if (submitError()) { <div class="field__error" role="alert">{{ submitError() }}</div> }
+
+                <div class="form-section">
+                    <div class="form-section__title">Basics</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="createTaskForm.get('title')?.invalid && createTaskForm.get('title')?.touched">
+                            <label class="field__label" for="taskTitle">Title *</label>
+                            <div class="field__control">
+                                <input id="taskTitle" type="text" formControlName="title"
+                                    placeholder="Enter task title" />
+                            </div>
+                            @if (createTaskForm.get('title')?.errors?.['required'] &&
+                            createTaskForm.get('title')?.touched) { <div class="field__error">Required</div> }
+                        </div>
+                        <div class="field field--full">
+                            <label class="field__label" for="taskDesc">Description</label>
+                            <div class="field__control">
+                                <textarea id="taskDesc" rows="3" formControlName="description"
+                                    placeholder="Describe the task..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Scheduling</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="createTaskForm.get('projectId')?.invalid && createTaskForm.get('projectId')?.touched">
+                            <label class="field__label" for="projectId">Project *</label>
+                            <div class="field__control">
+                                <select id="projectId" formControlName="projectId" required>
+                                    <option value="">Select project</option>
+                                    @for (p of projectOptions(); track p.id) { <option [value]="p.id">{{ p.name }}
+                                    </option> }
+                                </select>
+                            </div>
+                            @if (createTaskForm.get('projectId')?.errors?.['required'] &&
+                            createTaskForm.get('projectId')?.touched) { <div class="field__error">Select a project</div>
+                            }
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="priority">Priority</label>
+                            <div class="field__control">
+                                <select id="priority" formControlName="priority">
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="dueDate">Due Date</label>
+                            <div class="field__control">
+                                <input id="dueDate" type="date" formControlName="dueDate" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="dueTime">Due Time</label>
+                            <div class="field__control">
+                                <input id="dueTime" type="time" formControlName="dueTime" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Assignment</div>
+                    <div class="form-grid">
+                        <div class="field field--full">
+                            <label class="field__label" for="assigneeId">Assign To</label>
+                            <div class="field__control">
+                                <select id="assigneeId" formControlName="assigneeId">
+                                    <option value="">Select team member</option>
+                                    @for (m of assigneeOptions(); track m.id) { <option [value]="m.id">{{ m.name }}
+                                    </option> }
+                                </select>
+                            </div>
+                            @if (assigneeOptions().length === 0) {
+                            <div class="field__hint">No team members found. Type a name manually:</div>
+                            <div class="field__control">
+                                <input type="text" formControlName="assignee" placeholder="Type assignee name" />
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Notifications</div>
+                    <div class="form-grid">
+                        <div class="field field--inline">
+                            <label class="field__checkbox">
+                                <input type="checkbox" formControlName="emailReminder" />
+                                <span>Send email reminders</span>
+                            </label>
+                        </div>
+                        <div class="field field--inline">
+                            <label class="field__checkbox">
+                                <input type="checkbox" formControlName="notifyClient" />
+                                <span>Notify client on completion</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeTaskModal()">Cancel</button>
+                <button type="submit" class="btn btn--primary" [disabled]="createTaskForm.invalid || isSubmitting()">
+                    @if (taskMode()==='create') { Create Task } @if (taskMode()==='edit') { Save Changes }
+                </button>
+            </footer>
+        </form>
+        }
+        @if (taskMode()==='view' && currentTask()) {
+        <div class="modal__panel" (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="taskDialogTitle">Task Details</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeTaskModal()">✕</button>
+            </header>
+            <div class="modal__body view-panel">
+                <div class="view-row"><span class="label">Title:</span><span class="value">{{ currentTask()!.title
+                        }}</span></div>
+                <div class="view-row"><span class="label">Project:</span><span class="value">{{ currentTask()!.project
+                        }}</span></div>
+                <div class="view-row"><span class="label">Assignee:</span><span class="value">{{
+                        currentTask()!.assignee.name || 'Unassigned' }}</span></div>
+                <div class="view-row"><span class="label">Due:</span><span class="value">{{ currentTask()!.dueISO |
+                        date:'yyyy-MM-dd, HH:mm' }}</span></div>
+                <div class="view-row"><span class="label">Description:</span><span class="value">{{
+                        currentTask()!.subtitle || 'No description' }}</span></div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeTaskModal()">Close</button>
+            </footer>
+        </div>
+        }
+    </div>
+    }
 </section>

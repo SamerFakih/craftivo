@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Project } from '../../models/project';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -12,6 +12,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
 })
 export class ProjectCard {
   @Input() project!: Project;
+  @Output() view = new EventEmitter<Project>();
+  @Output() edit = new EventEmitter<Project>();
 
   value: number = 70;
 
@@ -22,5 +24,14 @@ export class ProjectCard {
 
   get progressStyle() {
     return { width: `${Math.min(Math.max(this.project.progress, 0), 100)}%` };
+  }
+
+  onView(event?: Event) {
+    event?.stopPropagation();
+    this.view.emit(this.project);
+  }
+  onEdit(event?: Event) {
+    event?.stopPropagation();
+    this.edit.emit(this.project);
   }
 }

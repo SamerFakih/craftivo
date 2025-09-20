@@ -4,7 +4,7 @@
             <h1 class="title">Client Management</h1>
             <p class="subtitle">Manage your client relationships and project history</p>
         </div>
-        <button class="btn btn--primary">
+        <button class="btn btn--primary" (click)="openCreate()">
             <i class="pi pi-user-plus"></i>
             Add Client
         </button>
@@ -15,7 +15,7 @@
             <path
                 d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" />
         </svg>
-        <input class="search" type="text" placeholder="Search team members, roles, or skills..." [value]="q()"
+        <input class="search" type="text" placeholder="Search clients, contacts, or industries..." [value]="q()"
             (input)="onSearchInput($event)">
     </div>
 
@@ -41,6 +41,105 @@
 
     <!-- List -->
     <div class="list">
-        <app-client-card *ngFor="let c of filtered()" [client]="c"></app-client-card>
+        @if (isLoading()) {
+        <div class="muted">Loading clients...</div>
+        } @else if (error()) {
+        <div class="muted">{{ error() }}</div>
+        } @else {
+        @for (c of filtered(); track c.id) {
+        <app-client-card [client]="c" (edit)="openEdit(c)" (remove)="deleteClient(c)"></app-client-card>
+        }
+        }
     </div>
+
+    @if (showForm()) {
+    <div class="modal-backdrop" role="presentation" (click)="closeForm()"></div>
+    <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="clientFormTitle"
+        (click)="closeForm()">
+        <form class="modal__panel" [formGroup]="clientForm" (ngSubmit)="submitForm()"
+            (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="clientFormTitle">@if (formMode()==='create') { Add Client } @if (formMode()==='edit') { Edit
+                    Client }</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeForm()">✕</button>
+            </header>
+            <div class="modal__body">
+                <p class="form-intro">@if (formMode()==='create') { Add a new client and basic company details. } @if
+                    (formMode()==='edit') { Update client information below. }</p>
+                @if (submitError()) { <div class="field__error" role="alert">{{ submitError() }}</div> }
+
+                <div class="form-section">
+                    <div class="form-section__title">Basics</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="clientForm.get('name')?.invalid && clientForm.get('name')?.touched">
+                            <label class="field__label" for="clientName">Name *</label>
+                            <div class="field__control"><input id="clientName" type="text" formControlName="name"
+                                    required /></div>
+                            @if (clientForm.get('name')?.errors?.['required'] && clientForm.get('name')?.touched) { <div
+                                class="field__error">Required</div> }
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="clientStatus">Status</label>
+                            <div class="field__control">
+                                <select id="clientStatus" formControlName="status">
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="prospect">Prospect</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="clientPrimaryContact">Primary Contact</label>
+                            <div class="field__control"><input id="clientPrimaryContact" type="text"
+                                    formControlName="primaryContact" /></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Company</div>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label class="field__label" for="clientIndustry">Industry</label>
+                            <div class="field__control"><input id="clientIndustry" type="text"
+                                    formControlName="industry" /></div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="clientLocation">Location</label>
+                            <div class="field__control"><input id="clientLocation" type="text"
+                                    formControlName="location" /></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Contacts & Tags</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="clientForm.get('email')?.invalid && clientForm.get('email')?.touched">
+                            <label class="field__label" for="clientEmail">Email</label>
+                            <div class="field__control"><input id="clientEmail" type="email" formControlName="email" />
+                            </div>
+                            @if (clientForm.get('email')?.errors?.['email'] && clientForm.get('email')?.touched) { <div
+                                class="field__error">Invalid email</div> }
+                        </div>
+                        <div class="field field--full">
+                            <label class="field__label" for="clientTags">Tags</label>
+                            <div class="field__control"><input id="clientTags" type="text" formControlName="tags"
+                                    placeholder="e.g. SaaS, Enterprise" /></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeForm()">Cancel</button>
+                <button type="submit" class="btn btn--primary" [disabled]="isSubmitting() || clientForm.invalid">
+                    @if (formMode()==='create') { {{ isSubmitting() ? 'Creating…' : 'Create Client' }} } @if
+                    (formMode()==='edit') { {{ isSubmitting() ? 'Saving…' : 'Save Changes' }} }
+                </button>
+            </footer>
+        </form>
+    </div>
+    }
 </section>
