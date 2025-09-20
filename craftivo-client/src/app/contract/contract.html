@@ -80,41 +80,57 @@
             <form [formGroup]="form" class="form">
                 <div class="grid two">
                     <div class="field">
-                        <label>Client Name *</label>
-                        <input type="text" formControlName="clientName" placeholder="Client or Company Name" />
+                        <label>Client *</label>
+                        <select #clientSel formControlName="clientId" (change)="onSelectClient(clientSel.value)">
+                            <option value="">Select client</option>
+                            @for (c of clients(); track c.id) {
+                            <option [value]="c.id">{{ c.name }}</option>
+                            }
+                        </select>
                     </div>
                     <div class="field">
                         <label>Client Email</label>
                         <input type="email" formControlName="clientEmail" placeholder="client@example.com" />
                     </div>
                 </div>
+                <!-- Derived client name stored internally; no manual typing needed -->
 
-                <div class="field">
-                    <label>Project Title *</label>
-                    <input type="text" formControlName="projectTitle" placeholder="Project Name" />
+                <div class="grid two">
+                    <div class="field">
+                        <label>Project *</label>
+                        <select #projectSel formControlName="projectId" (change)="onSelectProject(projectSel.value)">
+                            <option value="">Select project</option>
+                            @for (p of projects(); track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Project Title (auto) *</label>
+                        <input type="text" formControlName="projectTitle" class="locked" readonly />
+                    </div>
                 </div>
 
                 <div class="field">
-                    <label>Project Description</label>
-                    <textarea rows="3" formControlName="description"
-                        placeholder="Detailed project description and scope"></textarea>
+                    <label>Project Description (auto)</label>
+                    <textarea rows="3" formControlName="description" class="locked" readonly></textarea>
                 </div>
 
                 <div class="grid two">
                     <div class="field">
-                        <label>Start Date</label>
-                        <input type="date" formControlName="startDate" placeholder="dd/mm/yyyy" />
+                        <label>Start Date (auto)</label>
+                        <input type="date" formControlName="startDate" class="locked" readonly />
                     </div>
                     <div class="field">
-                        <label>End Date</label>
-                        <input type="date" formControlName="endDate" placeholder="dd/mm/yyyy" />
+                        <label>End Date (auto)</label>
+                        <input type="date" formControlName="endDate" class="locked" readonly />
                     </div>
                 </div>
 
                 <div class="grid two">
                     <div class="field">
-                        <label>Total Amount ($)</label>
-                        <input type="number" formControlName="totalAmount" placeholder="5000" />
+                        <label>Total Amount (auto)</label>
+                        <input type="number" formControlName="totalAmount" class="locked" readonly />
                     </div>
                     <div class="field">
                         <label>Payment Schedule</label>

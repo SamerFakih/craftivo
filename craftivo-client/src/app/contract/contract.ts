@@ -1,9 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
 import { ContractService, CreateContractPayload } from '../services/contract.service';
+import { ClientService } from '../services/client.service';
+import { ClientModel } from '../models/client';
+import { ProjectService } from '../services/project.service';
+import { Project } from '../models/project';
 
 @Component({
   selector: 'app-contract',
@@ -16,6 +21,9 @@ import { ContractService, CreateContractPayload } from '../services/contract.ser
 export class Contract {
   private readonly fb = inject(FormBuilder);
   private readonly contractService = inject(ContractService);
+  private readonly clientService = inject(ClientService);
+  private readonly projectService = inject(ProjectService);
+  private readonly router = inject(Router);
 
   // Tabs
   readonly tabs = ['Templates', 'Contract Generator', 'My Contracts'] as const;
@@ -89,13 +97,19 @@ export class Contract {
   ] as const;
 
   form = this.fb.nonNullable.group({
-    clientName: ['', [Validators.required, Validators.minLength(2)]],
+    clientId: ['', [Validators.required]],
+    clientName: ['', []],
     clientEmail: ['', [Validators.email]],
-    projectTitle: ['', [Validators.required, Validators.minLength(2)]],
-    description: [''],
-    startDate: [''],
-    endDate: [''],
-    totalAmount: [0, [Validators.min(0)]],
+    projectId: ['', []],
+    // Auto-derived (kept disabled to avoid template [disabled] warnings)
+    projectTitle: this.fb.control(
+      { value: '', disabled: true },
+      { validators: [Validators.required, Validators.minLength(2)] }
+    ),
+    description: this.fb.control({ value: '', disabled: true }),
+    startDate: this.fb.control({ value: '', disabled: true }),
+    endDate: this.fb.control({ value: '', disabled: true }),
+    totalAmount: this.fb.control({ value: 0, disabled: true }, { validators: [Validators.min(0)] }),
     paymentSchedule: [this.paymentOptions[0]],
 
     // Additional terms
@@ -110,6 +124,62 @@ export class Contract {
   readonly formValue = toSignal(this.form.valueChanges.pipe(startWith(this.form.getRawValue())), {
     initialValue: this.form.getRawValue(),
   });
+
+  // Clients for select
+  clients = signal<ClientModel[]>([]);
+  projects = signal<Project[]>([]);
+  // Auto-lock state for project-derived fields
+  private _autoLock = signal(true);
+  autoLocked = computed(() => this._autoLock());
+  projectSelected = computed(() => !!this.form.getRawValue().projectId);
+  toggleAutoLock(checked: boolean) {
+    // When checked we ALLOW manual editing -> unlock
+    this._autoLock.set(!checked);
+  }
+
+  onSelectClient(id: string) {
+    if (!id) {
+      this.form.patchValue({ clientName: '', clientEmail: '' });
+      return;
+    }
+    const found = this.clients().find((c) => c.id === id);
+    if (found) {
+      this.form.patchValue({ clientName: found.name, clientEmail: found.email });
+    }
+  }
+
+  onSelectProject(id: string) {
+    if (!id) return;
+    const proj = this.projects().find((p) => String(p.id) === id);
+    if (proj) {
+      // Auto-fill project related fields
+      const titleCtrl = this.form.get('projectTitle');
+      const descCtrl = this.form.get('description');
+      const startCtrl = this.form.get('startDate');
+      const endCtrl = this.form.get('endDate');
+      const amountCtrl = this.form.get('totalAmount');
+      if (titleCtrl) titleCtrl.setValue(proj.name || titleCtrl.value || '');
+      if (descCtrl) descCtrl.setValue(proj.description || descCtrl.value || '');
+      if (startCtrl)
+        startCtrl.setValue((proj.start_date || '').slice(0, 10) || startCtrl.value || '');
+      if (endCtrl) endCtrl.setValue((proj.end_date || '').slice(0, 10) || endCtrl.value || '');
+      if (amountCtrl)
+        amountCtrl.setValue(proj.budget ? Number(proj.budget) : amountCtrl.value || 0);
+      // If project has client link and no client chosen yet, set it
+      if (!this.form.getRawValue().clientId && proj.client_id) {
+        const foundClient = this.clients().find(
+          (c) => c.id === String(proj.client_id) || c.id === proj.client_id.toString()
+        );
+        if (foundClient) {
+          this.form.patchValue({
+            clientId: foundClient.id,
+            clientName: foundClient.name,
+            clientEmail: foundClient.email,
+          });
+        }
+      }
+    }
+  }
 
   // Live preview derived state
   readonly preview = computed(() => {
@@ -154,7 +224,7 @@ export class Contract {
     }
     const v = this.form.getRawValue();
     const payload: CreateContractPayload = {
-      clientName: v.clientName!,
+      clientName: v.clientName || '',
       clientEmail: v.clientEmail || undefined,
       projectTitle: v.projectTitle!,
       description: v.description || undefined,
@@ -162,6 +232,8 @@ export class Contract {
       endDate: v.endDate || undefined,
       totalAmount: Number(v.totalAmount) || 0,
       paymentSchedule: v.paymentSchedule || undefined,
+      clientId: v.clientId ? Number(v.clientId) : undefined,
+      projectId: v.projectId ? Number(v.projectId) : undefined,
       terms: {
         includeKillFee: !!v.includeKillFee,
         includeRushFee: !!v.includeRushFee,
@@ -173,21 +245,57 @@ export class Contract {
 
     this.isSubmitting.set(true);
     this.submitError.set(null);
-    // Use AI-assisted backend to generate and save a draft
+    // Use AI-assisted backend to generate and save a draft (endpoint now /contracts/agent/run)
     this.contractService.generateFromForm(payload).subscribe({
       next: (res) => {
-        const { contract } = res || {};
-        const list = this.myContracts();
-        const normalized = this.normalizeContract(contract || res);
-        this.myContracts.set([normalized, ...list]);
-        this.recomputeKPIs();
-        this.isSubmitting.set(false);
-        this.setTab('My Contracts');
+        // Debug: log raw response shape for mismatch diagnostics
+        // eslint-disable-next-line no-console
+        console.debug('[Contract Generate] raw response', res);
+        // Expected shape: { contract: {...}, aiMeta: {...} }
+        const maybeContract = (res as any)?.contract ?? res;
+        if (!maybeContract) {
+          this.submitError.set('Empty response from server.');
+          this.isSubmitting.set(false);
+          return;
+        }
+        const hasPersistentId = !!maybeContract.id && !isNaN(Number(maybeContract.id));
+        const ensurePersisted = () => {
+          const list = this.myContracts();
+          const normalized = this.normalizeContract(maybeContract);
+          const deduped = [normalized, ...list.filter((c) => c.id !== normalized.id)];
+          this.myContracts.set(deduped);
+          this.recomputeKPIs();
+          this.isSubmitting.set(false);
+          this.setTab('My Contracts');
+        };
+
+        if (!hasPersistentId) {
+          // Attempt to persist via saveContract
+          this.contractService.saveContract(maybeContract).subscribe({
+            next: (saved) => {
+              // Replace maybeContract with saved version
+              (res as any).contract = saved;
+              ensurePersisted();
+            },
+            error: (err) => {
+              const msg = this.parseHttpError(err);
+              this.submitError.set(
+                msg || 'Generated draft (not saved). Failed to persist contract.'
+              );
+              // Still show draft locally so user does not lose work
+              ensurePersisted();
+            },
+          });
+        } else {
+          ensurePersisted();
+        }
       },
       error: (err) => {
         const msg = this.parseHttpError(err);
         this.submitError.set(msg || 'Failed to generate contract.');
         this.isSubmitting.set(false);
+        // eslint-disable-next-line no-console
+        console.error('[Contract Generate] error', err);
       },
     });
   }
@@ -212,14 +320,30 @@ export class Contract {
 
   // Normalize API contract to UI shape
   private normalizeContract(c: any) {
+    const rawStatus = (c?.status || 'draft').toString().toLowerCase();
+    const statusMap: Record<string, 'signed' | 'pending' | 'draft'> = {
+      draft: 'draft',
+      pending: 'pending',
+      pending_signature: 'pending',
+      partially_signed: 'pending',
+      fully_signed: 'signed',
+      signed: 'signed',
+    };
+    const clientName =
+      c?.clientName ||
+      c?.client_name ||
+      c?.client ||
+      c?.clients?.name ||
+      c?.clients?.company ||
+      'Unknown Client';
     return {
       id: String(c?.id ?? c?._id ?? c?.contract_id ?? Math.random().toString(36).slice(2)),
       title: c?.title ?? c?.projectTitle ?? 'Untitled Contract',
-      client: c?.client ?? c?.clientName ?? c?.client_name ?? 'Unknown Client',
+      client: clientName,
       type: c?.type ?? c?.template ?? 'Custom',
       created: (c?.created_at || c?.created || new Date().toISOString()).slice(0, 10),
-      status: (c?.status ?? 'draft') as 'signed' | 'pending' | 'draft',
-      amount: Number(c?.contract_value ?? c?.amount ?? c?.totalAmount ?? 0),
+      status: statusMap[rawStatus] || 'draft',
+      amount: Number(c?.contract_value ?? c?.amount ?? c?.totalAmount ?? c?.budget ?? 0),
     };
   }
 
@@ -235,15 +359,40 @@ export class Contract {
   // Init: fetch templates and contracts
   ngOnInit() {
     // Load existing contracts
+    this.isLoading.set(true);
     this.contractService.getContracts().subscribe({
       next: (list) => {
-        const mapped = (Array.isArray(list) ? list : []).map((c) => this.normalizeContract(c));
+        // Accept possible envelopes: {data: []}, {contracts: []}, direct array
+        const root: any = Array.isArray(list)
+          ? list
+          : (list as any)?.data || (list as any)?.contracts || (list as any)?.items || [];
+        const arr = Array.isArray(root) ? root : [];
+        const mapped = arr.map((c: any) => this.normalizeContract(c));
         this.myContracts.set(mapped);
         this.recomputeKPIs();
+        this.isLoading.set(false);
       },
-      error: () => {
-        // keep empty list on error
+      error: (err) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Contracts] load failed', err);
+        this.isLoading.set(false);
       },
+    });
+
+    // Load clients
+    this.clientService.getClients().subscribe({
+      next: (list) => this.clients.set(list),
+      error: (err) => console.warn('[Clients] load failed', err),
+    });
+
+    // Load projects
+    this.projectService.getProjects().subscribe({
+      next: (list) => {
+        // list may come in raw shape; ensure array
+        const arr = Array.isArray(list) ? list : (list as any)?.projects || [];
+        this.projects.set(arr as Project[]);
+      },
+      error: (err) => console.warn('[Projects] load failed', err),
     });
   }
 
@@ -261,8 +410,7 @@ export class Contract {
 
   // Actions placeholders
   onView(contractId: string) {
-    // Could navigate to contract viewer in the future
-    console.log('View contract', contractId);
+    this.router.navigate(['/dashboard/contracts', contractId]);
   }
   onEdit(contractId: string) {
     // Open edit flow (deferred)
