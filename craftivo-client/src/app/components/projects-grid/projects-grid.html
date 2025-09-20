@@ -1,0 +1,281 @@
+<section class="page">
+    <header class="page__head">
+        <div>
+            <h1 class="title">Projects</h1>
+            <p class="subtitle">Manage all your freelance projects in one place</p>
+        </div>
+        <button class="btn btn--primary" (click)="openCreate()">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+            </svg>
+            New Project
+        </button>
+    </header>
+
+    <div class="searchbar">
+        <svg class="icon" viewBox="0 0 24 24">
+            <path
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
+        <input type="text" class="search" placeholder="Search projects, clients, or tags..." [value]="q()"
+            (input)="onSearchInput($event)">
+    </div>
+
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi__label">Total Projects</div>
+            <div class="kpi__value">{{ totalCount() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Active</div>
+            <div class="kpi__value">{{ activeCountt() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Completed</div>
+            <div class="kpi__value">{{ completedCountt() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Total Revenue</div>
+            <div class="kpi__value kpi_value--money">
+                {{ (totalRevenue() | currency:'USD':'symbol':'1.0-0') }}
+            </div>
+        </div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Projects filter">
+        <button class="tab" [class.tab--active]="activeTab()==='all'" (click)="setTab('all')">
+            All Projects <span class="tab__count">{{ allCount() }}</span>
+        </button>
+
+        <button class="tab" [class.tab--active]="activeTab()==='active'" (click)="setTab('active')">
+            Active <span class="tab__count">{{ activeCount() }}</span>
+        </button>
+
+        <button class="tab" [class.tab--active]="activeTab()==='completed'" (click)="setTab('completed')">
+            Completed <span class="tab__count">{{ completedCount() }}</span>
+        </button>
+
+        <button class="tab" [class.tab--active]="activeTab()==='other'" (click)="setTab('other')">
+            Other <span class="tab__count">{{ otherCount() }}</span>
+        </button>
+    </nav>
+    <!-- Optional: render grid/list of projects using the card component -->
+    <div class="grid">
+        <app-project-card *ngFor="let pr of filtered()" [project]="pr" (view)="openView($event)"
+            (edit)="openEdit($event)"></app-project-card>
+
+        <!-- Show message when no projects are found -->
+        @if (filtered().length === 0) {
+        <div style="text-align: center; padding: 40px; color: #666;">
+            <h3>No projects found</h3>
+            @if (projects().length === 0) { <p>No projects loaded yet...</p> }
+            @if (projects().length > 0) { <p>No projects match the current filter.</p> }
+        </div>
+        }
+    </div>
+
+    <!-- Create Project Modal -->
+    @if (showProjectModal()) {
+    <div class="modal-backdrop" (click)="closeModal()"></div>
+    <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="projectDialogTitle"
+        (click)="closeModal()">
+        @if (modalMode()!=='view') {
+        <form [formGroup]="createForm" (ngSubmit)="submitProject()" class="modal__panel"
+            (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="projectDialogTitle">@if (modalMode()==='create') { Create Project } @if (modalMode()==='edit') {
+                    Edit Project }</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeModal()">✕</button>
+            </header>
+            <div class="modal__body">
+                <p class="form-intro">@if (modalMode()==='create') { Add a new project and set initial budget & dates. }
+                    @if (modalMode()==='edit') { Update project details below. }</p>
+                @if (submitError()) { <div class="field__error" role="alert">{{ submitError() }}</div> }
+
+                <div class="form-section">
+                    <div class="form-section__title">Basics</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="createForm.get('projectName')?.invalid && createForm.get('projectName')?.touched">
+                            <label class="field__label" for="projectName">Project Name *</label>
+                            <div class="field__control">
+                                <input id="projectName" type="text" formControlName="projectName"
+                                    placeholder="e.g. Website Redesign" required />
+                            </div>
+                            @if (createForm.get('projectName')?.errors?.['required'] &&
+                            createForm.get('projectName')?.touched) { <div class="field__error">Required</div> }
+                        </div>
+                        <div class="field"
+                            [class.field--invalid]="createForm.get('clientId')?.invalid && createForm.get('clientId')?.touched">
+                            <label class="field__label" for="clientId">Client *</label>
+                            <div class="field__control">
+                                @if (modalMode()==='edit') {
+                                <input id="clientId" type="text" [value]="createForm.get('clientName')?.value || ''"
+                                    readonly />
+                                } @else {
+                                <select id="clientId" formControlName="clientId" required>
+                                    <option [ngValue]="0" disabled>Select a client</option>
+                                    @for (c of clientsOptions(); track c.id) { <option [ngValue]="c.id">{{ c.name }}
+                                    </option> }
+                                </select>
+                                }
+                            </div>
+                            @if (createForm.get('clientId')?.errors?.['required'] &&
+                            createForm.get('clientId')?.touched) { <div class="field__error">Select a client</div> }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Description</div>
+                    <div class="field">
+                        <label class="field__label" for="projDesc">Description</label>
+                        <div class="field__control">
+                            <textarea id="projDesc" rows="3" formControlName="description"
+                                placeholder="Brief description of the project scope and objectives..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Timeline & Budget</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="createForm.get('budget')?.invalid && createForm.get('budget')?.touched">
+                            <label class="field__label" for="budget">Budget ($) *</label>
+                            <div class="field__control">
+                                <input id="budget" type="number" formControlName="budget" placeholder="5000" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="startDate">Start Date</label>
+                            <div class="field__control">
+                                <input id="startDate" type="date" formControlName="startDate" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="dueDate">Due Date</label>
+                            <div class="field__control">
+                                <input id="dueDate" type="date" formControlName="dueDate" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Settings</div>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label class="field__label" for="status">Status</label>
+                            <div class="field__control">
+                                <select id="status" formControlName="status">
+                                    <option value="active">Active</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="billingType">Billing Type</label>
+                            <div class="field__control">
+                                <select id="billingType" formControlName="billingType">
+                                    <option value="fixed">Fixed</option>
+                                    <option value="hourly">Hourly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="currency">Currency</label>
+                            <div class="field__control">
+                                <select id="currency" formControlName="currency">
+                                    <option value="USD">USD</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="GBP">GBP</option>
+                                    <option value="CAD">CAD</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="hourlyRate">Hourly Rate</label>
+                            <div class="field__control">
+                                <input id="hourlyRate" type="number" formControlName="hourlyRate" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="priority">Priority</label>
+                            <div class="field__control">
+                                <select id="priority" formControlName="priority">
+                                    <option value="low">Low</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="progress">Progress (%)</label>
+                            <div class="field__control">
+                                <input id="progress" type="number" formControlName="progress" min="0" max="100" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="spentAmount">Spent Amount</label>
+                            <div class="field__control">
+                                <input id="spentAmount" type="number" formControlName="spentAmount" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="activeSelect">Active</label>
+                            <div class="field__control">
+                                <select id="activeSelect" formControlName="active">
+                                    <option [ngValue]="true">Yes</option>
+                                    <option [ngValue]="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="tags">Tags</label>
+                            <div class="field__control">
+                                <input id="tags" type="text" formControlName="tags"
+                                    placeholder="e.g. Web, E-commerce" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn--primary" [disabled]="createForm.invalid || isSubmitting()">
+                    @if (modalMode()==='create') { Create Project } @if (modalMode()==='edit') { Save Changes }
+                </button>
+            </footer>
+        </form>
+        }
+        @if (modalMode()==='view' && currentProject()) {
+        <div class="modal__panel" (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="projectDialogTitle">Project Details</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeModal()">✕</button>
+            </header>
+            <div class="modal__body view-panel">
+                <div class="view-row"><span class="label">Project:</span><span class="value">{{ currentProject()!.name
+                        }}</span></div>
+                <div class="view-row"><span class="label">Client:</span><span class="value">{{ currentProject()!.client
+                        || '—' }}</span></div>
+                <div class="view-row"><span class="label">Status:</span><span class="value">{{ currentProject()!.status
+                        }}</span></div>
+                <div class="view-row"><span class="label">Budget:</span><span class="value">${{ currentProject()!.budget
+                        | number:'1.0-0' }}</span></div>
+                <div class="view-row"><span class="label">Dates:</span><span class="value">{{
+                        currentProject()!.start_date | date:'yyyy-MM-dd' }} → {{ currentProject()!.end_date |
+                        date:'yyyy-MM-dd' }}</span></div>
+                <div class="view-row"><span class="label">Description:</span><span class="value">{{
+                        currentProject()!.description || 'No description' }}</span></div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeModal()">Close</button>
+            </footer>
+        </div>
+        }
+    </div>
+    }
+</section>

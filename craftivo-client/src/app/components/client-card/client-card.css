@@ -1,0 +1,306 @@
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 16px;
+}
+.row + .row {
+  margin-top: 12px;
+}
+
+.left {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  flex: 0 0 48px;
+  overflow: hidden;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.name {
+  font-size: 16px;
+  color: #0b0f14;
+}
+.pill {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  border: 1px solid #c2c2c2;
+  text-transform: capitalize;
+}
+.pill--active {
+  color: #0f766e;
+  border-color: #0f766e;
+}
+.pill--inactive {
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.contactline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #c2c2c2;
+  padding: 6px 10px;
+  border-radius: 10px;
+  color: #334155;
+  font-size: 13px;
+}
+.chip svg {
+  width: 16px;
+  height: 16px;
+  fill: #64748b;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+}
+.dot {
+  color: #94a3b8;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  color: #374151;
+  border: 1px solid #c2c2c2;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(8, max-content);
+  gap: 8px 16px;
+  align-items: center;
+}
+.lbl {
+  color: #64748b;
+  font-size: 12px;
+}
+.val {
+  margin-left: 5px;
+  color: #0b0f14;
+  font-weight: 700;
+}
+
+.right {
+  display: flex;
+  gap: 8px;
+}
+.iconbtn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #c2c2c2;
+  background: #fff;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.iconbtn svg {
+  width: 18px;
+  height: 18px;
+  fill: #111827;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .left {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    align-self: flex-start;
+  }
+
+  .body {
+    gap: 10px;
+  }
+
+  .head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .name {
+    font-size: 15px;
+  }
+
+  .contactline {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .chip svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .meta {
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .meta .dot {
+    display: none;
+  }
+
+  .tags {
+    gap: 4px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 12px;
+  }
+
+  .lbl {
+    font-size: 11px;
+  }
+
+  .val {
+    font-size: 13px;
+  }
+
+  .right {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .iconbtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .iconbtn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  .row {
+    padding: 10px;
+  }
+
+  .left {
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+  }
+
+  .name {
+    font-size: 14px;
+  }
+
+  .contactline {
+    gap: 4px;
+  }
+
+  .chip {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+
+  .chip svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .meta {
+    font-size: 11px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .lbl {
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .val {
+    font-size: 12px;
+  }
+
+  .iconbtn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .iconbtn svg {
+    width: 14px;
+    height: 14px;
+  }
+}

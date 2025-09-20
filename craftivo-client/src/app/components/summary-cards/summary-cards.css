@@ -1,0 +1,50 @@
+/* KPI grid styling - consistent with other pages */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.card-summary {
+  grid-column: span 3;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0b0f14;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-icon {
+  width: 18px;
+  height: 18px;
+  color: teal;
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+  .card-summary {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 560px) {
+  .card-summary {
+    grid-column: span 12;
+  }
+}

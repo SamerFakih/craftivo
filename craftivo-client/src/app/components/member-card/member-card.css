@@ -1,0 +1,253 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 16px;
+}
+.row + .row {
+  margin-top: 12px;
+}
+
+.left {
+  display: flex;
+  gap: 14px;
+}
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #c2c2c2;
+}
+
+.id {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.name strong {
+  font-size: 16px;
+  color: #0b0f14;
+}
+.title {
+  margin-top: -6px;
+}
+
+.pill {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  text-transform: capitalize;
+}
+.pill--active {
+  color: #0f766e;
+  border-color: #0f766e;
+}
+.pill--inactive {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #c2c2c2;
+  padding: 6px 10px;
+  border-radius: 10px;
+  color: #334155;
+  font-size: 13px;
+}
+.chip svg {
+  width: 16px;
+  height: 16px;
+  fill: #64748b;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  color: #374151;
+  border: 1px solid #c2c2c2;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(8, max-content);
+  gap: 10px 14px;
+  align-items: center;
+}
+.stats .muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.stats strong {
+  color: #0b0f14;
+}
+
+.right {
+  display: flex;
+  gap: 8px;
+}
+.iconbtn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.iconbtn svg {
+  width: 18px;
+  height: 18px;
+  fill: #111827;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .left {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    align-self: flex-start;
+  }
+
+  .id {
+    gap: 10px;
+  }
+
+  .name {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .name strong {
+    font-size: 15px;
+  }
+
+  .meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .chip svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .skills {
+    gap: 4px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 12px;
+    font-size: 12px;
+  }
+
+  .stats .muted {
+    font-size: 11px;
+  }
+
+  .right {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .iconbtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .iconbtn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+  .row {
+    padding: 10px;
+  }
+
+  .left {
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .name strong {
+    font-size: 14px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .stats .muted {
+    font-weight: 600;
+  }
+
+  .iconbtn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .iconbtn svg {
+    width: 14px;
+    height: 14px;
+  }
+}

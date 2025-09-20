@@ -1,0 +1,138 @@
+<div class="contract-viewer">
+    @if (loading()) { <div class="loading">Loading contract...</div> }
+    @else if (error()) { <div class="error">{{ error() }}</div> }
+    @else if (contract()) {
+    <div class="layout layout--single">
+        <div class="layout__main">
+            <header class="viewer-header card">
+                <div class="header__titles">
+                    <h1 class="title">{{ contract()!.title }}</h1>
+                    <div class="badges">
+                        <span class="badge status-{{ contract()!.status }}">{{ contract()!.status }}</span>
+                        @if(contract()!.currency && contract()!.contractValue){
+                        <span class="badge badge--value">{{ contract()!.contractValue }} {{ contract()!.currency
+                            }}</span>
+                        }
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn" (click)="openSend()" [disabled]="sending()">@if(sending()){Sending...} @else
+                        {Send}</button>
+                    <button class="btn" (click)="doResend()" [disabled]="resending()">@if(resending()){Resend...} @else
+                        {Resend}</button>
+                    <button class="btn" (click)="doRegenerate()"
+                        [disabled]="regenerating()">@if(regenerating()){Regen...} @else {Regenerate}</button>
+                    <button class="btn" (click)="doDownload()" [disabled]="downloading()">@if(downloading()){PDF...}
+                        @else {PDF}</button>
+                    <button class="btn btn--primary" (click)="openSign()"
+                        [disabled]="signing()">@if(signing()){Signing...} @else {Sign}</button>
+                </div>
+            </header>
+            @if(actionError()){ <div class="alert alert--error">{{ actionError() }}</div> }
+            <section class="meta-grid card">
+                <div class="meta-item">
+                    <label>Status</label>
+                    <div class="v">{{ contract()!.status }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>Client</label>
+                    <div class="v">{{ contract()!.clientName || '—' }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>Freelancer</label>
+                    <div class="v">{{ contract()!.freelancerName || '—' }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>Value</label>
+                    <div class="v">{{ contract()!.contractValue || 0 }} {{ contract()!.currency || 'USD' }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>Client ID</label>
+                    <div class="v">{{ contract()!.clientId || '—' }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>Project ID</label>
+                    <div class="v">{{ contract()!.projectId || '—' }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>Created</label>
+                    <div class="v">{{ contract()!.createdAt || '—' }}</div>
+                </div>
+                <div class="meta-item">
+                    <label>Updated</label>
+                    <div class="v">{{ contract()!.updatedAt || '—' }}</div>
+                </div>
+            </section>
+            <section class="document card">
+                <article class="doc" [innerHTML]="html()"></article>
+            </section>
+        </div>
+    </div>
+    }
+
+    @if (showSend()) {
+    <div class="modal-backdrop">
+        <div class="modal">
+            <div class="modal__panel">
+                <div class="modal__header">
+                    <h2>Send for signature</h2><button class="btn btn--ghost" (click)="showSend.set(false)">✕</button>
+                </div>
+                <div class="modal__body">
+                    <div class="field">
+                        <label class="field__label">Client Email</label>
+                        <div class="field__control"><input #clientEmail type="email" /></div>
+                    </div>
+                    <div class="field">
+                        <label class="field__label">Freelancer Email</label>
+                        <div class="field__control"><input #freelancerEmail type="email" /></div>
+                    </div>
+                    <div class="field">
+                        <label class="field__label">Message</label>
+                        <div class="field__control"><textarea #message rows="4"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal__footer">
+                    <button class="btn btn--subtle" (click)="showSend.set(false)">Cancel</button>
+                    <button class="btn btn--primary" [disabled]="sending()"
+                        (click)="onSendClick(clientEmail.value, freelancerEmail.value, message.value)">@if(sending()){
+                        Sending... } @else { Send }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+    @if (showSign()) {
+    <div class="modal-backdrop">
+        <div class="modal">
+            <div class="modal__panel">
+                <div class="modal__header">
+                    <h2>Sign Contract</h2><button class="btn btn--ghost" (click)="showSign.set(false)">✕</button>
+                </div>
+                <div class="modal__body">
+                    <div class="field">
+                        <label class="field__label">Your Name</label>
+                        <div class="field__control"><input #signerName /></div>
+                    </div>
+                    <div class="field">
+                        <label class="field__label">Role</label>
+                        <div class="field__control">
+                            <select #signerRole>
+                                <option value="client">Client</option>
+                                <option value="freelancer">Freelancer</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="ack">By signing you agree to the terms outlined.</p>
+                </div>
+                <div class="modal__footer">
+                    <button class="btn btn--subtle" (click)="showSign.set(false)">Cancel</button>
+                    <button class="btn btn--primary" [disabled]="signing()"
+                        (click)="doSign({ role: (signerRole.value==='freelancer' ? 'freelancer' : 'client'), name: signerName.value })">@if(signing()){
+                        Signing... } @else { Sign }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+</div>

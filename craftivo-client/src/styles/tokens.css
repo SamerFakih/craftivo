@@ -1,0 +1,122 @@
+:root {
+  /* Color - Neutral */
+  --color-gray-50: #f9fafa;
+  --color-gray-100: #f1f3f5;
+  --color-gray-150: #eceef0;
+  --color-gray-200: #e2e6e9;
+  --color-gray-300: #cfd5da;
+  --color-gray-400: #b4bdc4;
+  --color-gray-500: #8c969e;
+  --color-gray-600: #697279;
+  --color-gray-700: #4f565b;
+  --color-gray-800: #343a3f;
+  --color-gray-900: #1f2326;
+
+  /* Brand Primary (teal/blue blend) */
+  --color-primary-50: #f0fbfb;
+  --color-primary-100: #d8f4f4;
+  --color-primary-200: #b6ebeb;
+  --color-primary-300: #84dddd;
+  --color-primary-400: #4ccaca;
+  --color-primary-500: #23b2b2;
+  --color-primary-600: #179292;
+  --color-primary-700: #117272;
+  --color-primary-800: #0f5959;
+  --color-primary-900: #0c4444;
+
+  /* Accent */
+  --color-accent-500: #ff914d;
+  --color-accent-600: #f27533;
+
+  /* Semantic */
+  --color-success-500: #2f9e44;
+  --color-success-600: #27843a;
+  --color-danger-500: #d94848;
+  --color-danger-600: #c03434;
+  --color-warning-500: #e6a100;
+  --color-warning-600: #c78600;
+  --color-info-500: #1c7ed6;
+  --color-info-600: #1864ab;
+
+  /* Background Layers */
+  --color-bg: #ffffff;
+  --color-bg-alt: #f5f7f8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f0f2f3;
+  --color-border: var(--color-gray-300);
+  --color-border-strong: var(--color-gray-400);
+  --color-focus-ring: #2563eb;
+
+  /* Typography */
+  --font-sans: 'Segoe UI', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', ui-monospace, Menlo, monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-base: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 1.875rem;
+  --font-size-3xl: 2.25rem;
+
+  /* Line Heights */
+  --line-tight: 1.1;
+  --line-base: 1.4;
+  --line-relaxed: 1.6;
+
+  /* Font Weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Spacing Scale */
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+
+  /* Radius */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* Shadows (Elevation) */
+  --shadow-0: none;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --shadow-4: 0 8px 24px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.1);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 280ms;
+
+  /* Layout */
+  --container-narrow: 640px;
+  --container-base: 960px;
+  --container-wide: 1280px;
+
+  /* Z Layers */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 1000;
+  --z-toast: 1100;
+  --z-overlay: 1200;
+}

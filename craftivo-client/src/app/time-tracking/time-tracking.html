@@ -1,0 +1,210 @@
+<section class="page">
+    <header class="head">
+        <div>
+            <h1 class="title">Time Tracking</h1>
+            <p class="subtitle">Track time across projects and manage team productivity.</p>
+        </div>
+        <button class="btn btn--ghost" (click)="exportCsv()">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M3 3h18v2H3V3Zm0 6h18v2H3V9Zm0 6h18v2H3v-2Z" />
+            </svg>
+            Export Report
+        </button>
+    </header>
+    <!-- Filters -->
+    <section class="filters">
+        <div class="filter-group">
+            <label for="fltProject">Project</label>
+            <select id="fltProject" #projSel (change)="setProjectFilter(projSel.value)">
+                <option value="all">All</option>
+                @for (p of uniqueProjects(); track p) {
+                <option [value]="p">{{ p }} ({{ projectHours(p) }}h)</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="fltStatus">Status</label>
+            <select id="fltStatus" #statusSel (change)="onStatusSelect(statusSel.value)">
+                <option value="all">All</option>
+                <option value="completed">Completed</option>
+                <option value="running">Running</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="fltFrom">From</label>
+            <input id="fltFrom" type="date" #fromDate
+                (change)="setDateRange(fromDate.value || undefined, dateRange().to)" />
+        </div>
+        <div class="filter-group">
+            <label for="fltTo">To</label>
+            <input id="fltTo" type="date" #toDate
+                (change)="setDateRange(dateRange().from, toDate.value || undefined)" />
+        </div>
+    </section>
+
+    <!-- Current timer bar -->
+    <section class="timer">
+        <div class="timer__left">
+            <label class="chk">
+                <input type="checkbox" [checked]="timerRunning()" (change)="onTimerToggle($event)">
+                <span>Current Timer</span>
+            </label>
+            <strong class="time">{{ currentTime() }}</strong>
+        </div>
+        <div class="timer__right">
+            <select class="select" [value]="selectedProject()" (change)="onProjectChange($event)">
+                <option value="">Select project</option>
+                @for (p of uniqueProjects(); track p) {
+                <option [value]="p">{{ p }}</option>
+                }
+            </select>
+            <button class="btn btn--primary" (click)="onStartStop()">{{ timerActive() ? 'Stop' : 'Start' }}</button>
+            <button class="btn btn--ghost" [disabled]="!timerActive()" (click)="onPauseResume()">{{ timerRunning() ?
+                'Pause' : 'Resume' }}</button>
+        </div>
+    </section>
+
+    <!-- KPIs -->
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi__label">Today</div>
+            <div class="kpi__value">{{ todayH() | number:'1.0-2' }}h</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">This Week</div>
+            <div class="kpi__value">{{ weekH() | number:'1.0-2' }}h</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Team Hours</div>
+            <div class="kpi__value">{{ teamH() | number:'1.0-2' }}h</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Revenue</div>
+            <div class="kpi__value">${{ revenue() | number:'1.0-1' }}</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist" aria-label="Time tracking views">
+        <button class="tab" [class.tab--active]="tab()==='entries'" (click)="setTab('entries')">Time Entries</button>
+        <button class="tab" [class.tab--active]="tab()==='team'" (click)="setTab('team')">Team Overview</button>
+        <button class="tab" [class.tab--active]="tab()==='projects'" (click)="setTab('projects')">Project
+            Summary</button>
+    </nav>
+
+    <!-- Routed-within-page style (but simple ngIf swap) -->
+    <app-time-entries *ngIf="tab()==='entries'" [entries]="visibleEntries()" (manual)="openManual()"
+        (edit)="openEdit($event)" (delete)="deleteEntry($event)"></app-time-entries>
+    <app-team-overview *ngIf="tab()==='team'" [members]="members()"></app-team-overview>
+    <app-project-summary *ngIf="tab()==='projects'" [cards]="projectCards()"></app-project-summary>
+
+    @if (showManual()) {
+    <div class="modal-backdrop" (click)="closeManual()"></div>
+    <div class="modal manual-modal" role="dialog" aria-modal="true" aria-labelledby="manualEntryTitle"
+        (click)="closeManual()">
+        <form class="modal__panel unified-form manual-form-shell" [formGroup]="manualForm" (submit)="submitManual()"
+            (ngSubmit)="submitManual()" (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="manualEntryTitle" class="card-title">{{ editing() ? 'Edit Time Entry' : 'New Time Entry' }}</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeManual()">✕</button>
+            </header>
+            <div class="modal__body">
+                <p class="muted small-intro">Add or adjust tracked time. Provide start/end or hours directly; amount is
+                    optional.</p>
+
+                <section class="form-block">
+                    <h3 class="block-title">Details</h3>
+                    <div class="grid four-col">
+                        <div class="field"
+                            [class.invalid]="manualForm.get('title')?.invalid && manualForm.get('title')?.touched">
+                            <label for="entryTitle">Title *</label>
+                            <div class="field__control">
+                                <input id="entryTitle" formControlName="title" placeholder="Activity title" />
+                            </div>
+                        </div>
+                        <div class="field"
+                            [class.invalid]="manualForm.get('project')?.invalid && manualForm.get('project')?.touched">
+                            <label for="entryProject">Project *</label>
+                            <div class="field__control">
+                                <input id="entryProject" formControlName="project" placeholder="Project name" />
+                            </div>
+                        </div>
+                        <div class="field"
+                            [class.invalid]="manualForm.get('client')?.invalid && manualForm.get('client')?.touched">
+                            <label for="entryClient">Client *</label>
+                            <div class="field__control">
+                                <input id="entryClient" formControlName="client" placeholder="Client name" />
+                            </div>
+                        </div>
+                        <div class="field"
+                            [class.invalid]="manualForm.get('dateISO')?.invalid && manualForm.get('dateISO')?.touched">
+                            <label for="entryDate">Date *</label>
+                            <div class="field__control">
+                                <input id="entryDate" type="date" formControlName="dateISO" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-block">
+                    <h3 class="block-title">Timing & Amount</h3>
+                    <div class="grid four-col">
+                        <div class="field"
+                            [class.invalid]="manualForm.get('startTime')?.invalid && manualForm.get('startTime')?.touched">
+                            <label for="startTime">Start Time *</label>
+                            <div class="field__control">
+                                <input id="startTime" type="time" formControlName="startTime" />
+                            </div>
+                        </div>
+                        <div class="field"
+                            [class.invalid]="manualForm.get('endTime')?.invalid && manualForm.get('endTime')?.touched">
+                            <label for="endTime">End Time *</label>
+                            <div class="field__control">
+                                <input id="endTime" type="time" formControlName="endTime" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="hours">Hours</label>
+                            <div class="field__control">
+                                <input id="hours" type="number" step="0.1" formControlName="hours" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="amountUSD">Amount (USD)</label>
+                            <div class="field__control">
+                                <input id="amountUSD" type="number" step="0.01" formControlName="amountUSD" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-block">
+                    <h3 class="block-title">Additional</h3>
+                    <div class="grid two-col">
+                        <div class="field span-full">
+                            <label for="note">Note</label>
+                            <div class="field__control">
+                                <textarea id="note" rows="3" formControlName="note"
+                                    placeholder="Optional note"></textarea>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="status">Status</label>
+                            <div class="field__control">
+                                <select id="status" formControlName="status">
+                                    <option value="completed">Completed</option>
+                                    <option value="running">Running</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <footer class="modal__footer actions-row">
+                <button type="button" class="btn btn--subtle" (click)="closeManual()">Cancel</button>
+                <button type="submit" class="btn btn--primary">{{ editing() ? 'Save Changes' : 'Add Entry' }}</button>
+            </footer>
+        </form>
+    </div>
+    }
+</section>

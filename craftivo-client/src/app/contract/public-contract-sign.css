@@ -1,0 +1,44 @@
+.public-sign {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.public-sign .title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+.public-sign .doc {
+  background: var(--color-bg);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  line-height: 1.5;
+}
+.sign-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.sign-box input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+.loading,
+.error {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+.error {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
+}

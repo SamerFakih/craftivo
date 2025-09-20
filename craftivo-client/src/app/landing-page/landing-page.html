@@ -1,0 +1,46 @@
+<div class="app-container">
+    <app-navbar></app-navbar>
+
+    <main class="main-content">
+        <section class="hero">
+            <h1>Manage Your Freelance Business</h1>
+            <h1 class="teal">Like a Pro</h1>
+            <p>Complete task management, automated invoicing, team collaboration, and AI contract generation - all in
+                one powerful platform</p>
+            <button class="cta-button" routerLink="/dashboard/overview">Get Started</button>
+        </section>
+    </main>
+
+    <section class=" features-section">
+        <div class="container">
+            <div class="features-header">
+                <h2 class="features-title">
+                    Everything you need to<br>
+                    <span class="text-teal">run your freelance business</span>
+                </h2>
+                <p class="features-subtitle">
+                    From project inception to final payment, Craftivo provides all the tools you need
+                    to manage your freelance business professionally and efficiently.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div *ngFor="let feature of features; trackBy: trackByFeatureId" class="feature-card">
+                    <div class="feature-icon">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                [attr.d]="feature.icon" />
+                        </svg>
+                        <span [class]="'feature-badge ' + feature.badge.type">
+                            {{ feature.badge.text }}
+                        </span>
+                    </div>
+                    <h3 class="feature-title">{{ feature.title }}</h3>
+                    <p class="feature-description">{{ feature.description }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <app-footer></app-footer>
+</div>

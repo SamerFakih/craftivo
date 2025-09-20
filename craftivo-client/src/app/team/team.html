@@ -1,0 +1,101 @@
+<section class="page">
+    <header class="head">
+        <div>
+            <h1 class="title">Team Management</h1>
+            <p class="subtitle">Manage your team members and collaboration</p>
+        </div>
+        <button class="btn btn--primary" (click)="openInvite()">
+            <i class="pi pi-user-plus"></i>
+            Invite Member
+        </button>
+    </header>
+
+    <div class="searchbar">
+        <svg class="icon" viewBox="0 0 24 24">
+            <path
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" />
+        </svg>
+        <input class="search" type="text" placeholder="Search team members, roles, or skills..." [value]="q()"
+            (input)="onSearchInput($event)">
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi__label">Total Members</div>
+            <div class="kpi__value">{{ totalMembers() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Active Members</div>
+            <div class="kpi__value">{{ activeMembers() }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Total Hours</div>
+            <div class="kpi__value">{{ totalHours() | number:'1.0-2' }}h</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Avg Performance</div>
+            <div class="kpi__value">{{ avgPerformance() }}</div>
+        </div>
+    </div>
+
+    <!-- Members grouped by team -->
+    <div class="list">
+        @for (group of groups(); track group[0]) {
+        <div class="team-group">
+            <h3 class="team-group__title">{{ group[0] }}</h3>
+            <div class="team-group__members">
+                @for (m of group[1]; track m.id) {
+                <app-member-card [member]="m"></app-member-card>
+                }
+            </div>
+        </div>
+        }
+    </div>
+
+    @if (showInvite()) {
+    <div class="modal-backdrop" (click)="closeInvite()"></div>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="inviteTitle" (click)="closeInvite()">
+        <form class="modal__panel" [formGroup]="inviteForm" (submit)="submitInvite($event)"
+            (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="inviteTitle">Invite Team Member</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeInvite()">✕</button>
+            </header>
+            <div class="modal__body">
+                <p class="form-intro">Send an invitation email to add a new collaborator.</p>
+                <div class="form-section">
+                    <div class="form-section__title">Details</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="inviteForm.get('name')?.invalid && inviteForm.get('name')?.touched">
+                            <label class="field__label" for="invName">Name</label>
+                            <div class="field__control"><input id="invName" type="text" formControlName="name"
+                                    placeholder="Full name" /></div>
+                        </div>
+                        <div class="field"
+                            [class.field--invalid]="inviteForm.get('email')?.invalid && inviteForm.get('email')?.touched">
+                            <label class="field__label" for="invEmail">Email *</label>
+                            <div class="field__control"><input id="invEmail" type="email" formControlName="email"
+                                    placeholder="user@example.com" /></div>
+                            @if (inviteForm.get('email')?.errors?.['required'] && inviteForm.get('email')?.touched) {
+                            <div class="field__error">Required</div> }
+                            @if (inviteForm.get('email')?.errors?.['email'] && inviteForm.get('email')?.touched) { <div
+                                class="field__error">Invalid email</div> }
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="invRole">Role</label>
+                            <div class="field__control"><input id="invRole" type="text" formControlName="role"
+                                    placeholder="e.g. Developer" /></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeInvite()">Cancel</button>
+                <button type="submit" class="btn btn--primary">Send Invite</button>
+            </footer>
+        </form>
+    </div>
+    }
+</section>

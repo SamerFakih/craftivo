@@ -1,0 +1,227 @@
+<section class="page">
+    <header class="head">
+        <div>
+            <h1 class="title">Invoices</h1>
+            <p class="subtitle">Create, send, and track your invoices with automated calculations</p>
+        </div>
+        <button class="btn btn--primary" (click)="openCreate()">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2z" />
+            </svg>
+            New Invoice
+        </button>
+    </header>
+
+    <div class="searchbar">
+        <svg class="icon" viewBox="0 0 24 24">
+            <path
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" />
+        </svg>
+        <input class="search" type="text" placeholder="Search invoices, clients, or projects..." [value]="q()"
+            (input)="onSearchInput($event)">
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi__label">Total Revenue</div>
+            <div class="kpi__value">${{ fmtMoney(totalRevenue()) }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Pending</div>
+            <div class="kpi__value">${{ fmtMoney(pendingAmt()) }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">Overdue</div>
+            <div class="kpi__value">${{ fmtMoney(overdueAmt()) }}</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi__label">This Month</div>
+            <div class="kpi__value">${{ (thisMonthAmt()/1000) | number:'1.0-1' }}K</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist" aria-label="Invoice filters">
+        <button class="tab" [class.tab--active]="tab()==='all'" (click)="setTab('all')">
+            All Invoices ({{ allCount() }})
+        </button>
+        <button class="tab" [class.tab--active]="tab()==='paid'" (click)="setTab('paid')">
+            Paid ({{ paidCount() }})
+        </button>
+        <button class="tab" [class.tab--active]="tab()==='pending'" (click)="setTab('pending')">
+            Pending ({{ pendingCount() }})
+        </button>
+        <button class="tab" [class.tab--active]="tab()==='overdue'" (click)="setTab('overdue')">
+            Overdue ({{ overdueCount() }})
+        </button>
+    </nav>
+
+    <!-- List container -->
+    <section class="panel">
+        <div class="panel__head">
+            <h2>All Invoices</h2>
+            <p class="muted">Complete list of your invoices</p>
+        </div>
+
+        <div class="list">
+            @for (inv of filtered(); track trackByInvoiceId($index, inv)) {
+            <app-invoice-card [invoice]="inv" (view)="openView($event)" (edit)="openEdit($event)"></app-invoice-card>
+            }
+        </div>
+    </section>
+
+    @if (showInvoiceModal()) {
+    <div class="modal-backdrop" (click)="closeInvoiceModal()"></div>
+    <div class="modal modal--xl modal--top" role="dialog" aria-modal="true" aria-labelledby="invoiceDialogTitle"
+        (click)="closeInvoiceModal()">
+        @if (invoiceMode()!=='view') {
+        <form class="modal__panel" [formGroup]="form" (ngSubmit)="submitInvoice()" (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="invoiceDialogTitle">@if (invoiceMode()==='create') { New Invoice } @if (invoiceMode()==='edit')
+                    { Edit Invoice }</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeInvoiceModal()">✕</button>
+            </header>
+            <div class="modal__body">
+                <p class="form-intro">Fill out details, line items, and totals will be calculated automatically.</p>
+
+                <div class="form-section">
+                    <div class="form-section__title">Client & Project</div>
+                    <div class="form-grid">
+                        <div class="field"
+                            [class.field--invalid]="form.get('client')?.invalid && form.get('client')?.touched">
+                            <label class="field__label" for="invClient">Client *</label>
+                            <div class="field__control">
+                                <select id="invClient" formControlName="client" required>
+                                    <option value="" disabled>Select client</option>
+                                    @for (c of clientOptions(); track c) { <option [value]="c">{{ c }}</option> }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field"
+                            [class.field--invalid]="form.get('project')?.invalid && form.get('project')?.touched">
+                            <label class="field__label" for="invProject">Project *</label>
+                            <div class="field__control">
+                                <select id="invProject" formControlName="project" required>
+                                    <option value="" disabled>Select project</option>
+                                    @for (p of projectOptions(); track p) { <option [value]="p">{{ p }}</option> }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="issueDate">Issue Date</label>
+                            <div class="field__control">
+                                <input id="issueDate" type="date" formControlName="issueDate" />
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="dueDate">Due Date</label>
+                            <div class="field__control">
+                                <input id="dueDate" type="date" formControlName="dueDate" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section" formArrayName="items">
+                    <div class="form-section__title">Line Items</div>
+                    <div class="items__table">
+                        <div class="items__head">
+                            <div>Description</div>
+                            <div>Qty</div>
+                            <div>Rate</div>
+                            <div>Amount</div>
+                            <div></div>
+                        </div>
+                        <div class="items__row" *ngFor="let it of items.controls; let i = index" [formGroupName]="i">
+                            <input type="text" formControlName="description" placeholder="Item description">
+                            <input type="number" formControlName="qty" min="0">
+                            <input type="number" formControlName="rate" min="0">
+                            <div class="amt">${{ (it.value.qty||0) * (it.value.rate||0) | number:'1.0-0' }}</div>
+                            <button type="button" class="icon-btn" title="Remove" (click)="removeItem(i)"
+                                [disabled]="items.length===1">✕</button>
+                        </div>
+                        <div class="items__actions">
+                            <button class="btn btn--subtle" type="button" (click)="addItem()">+ Add item</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Adjustments</div>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label class="field__label" for="taxPct">Tax %</label>
+                            <div class="field__control"><input id="taxPct" type="number" formControlName="taxPct"
+                                    min="0" /></div>
+                        </div>
+                        <div class="field">
+                            <label class="field__label" for="discountPct">Discount %</label>
+                            <div class="field__control"><input id="discountPct" type="number"
+                                    formControlName="discountPct" min="0" /></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Notes</div>
+                    <div class="field field--full">
+                        <label class="field__label" for="notes">Notes</label>
+                        <div class="field__control">
+                            <textarea id="notes" rows="3" formControlName="notes"
+                                placeholder="Optional notes shown on invoice"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Totals</div>
+                    <div class="totals">
+                        <div class="totals__row"><span>Subtotal</span><span>${{ subtotal | number:'1.0-0' }}</span>
+                        </div>
+                        <div class="totals__row"><span>Tax</span><span>${{ taxAmount | number:'1.0-0' }}</span></div>
+                        <div class="totals__row"><span>Discount</span><span>-${{ discountAmount | number:'1.0-0'
+                                }}</span></div>
+                        <div class="totals__row totals__row--grand"><span>Total</span><span>${{ total | number:'1.0-0'
+                                }}</span></div>
+                    </div>
+                </div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeInvoiceModal()">Cancel</button>
+                <button type="submit" class="btn btn--primary">{{ invoiceMode()==='edit' ? 'Save Changes' : 'Create
+                    Invoice' }}</button>
+            </footer>
+        </form>
+        }
+        @if (invoiceMode()==='view' && currentInvoice()) {
+        <div class="modal__panel" (click)="$event.stopPropagation()">
+            <header class="modal__header">
+                <h2 id="invoiceDialogTitle">Invoice Details</h2>
+                <button type="button" class="icon-btn" aria-label="Close" (click)="closeInvoiceModal()">✕</button>
+            </header>
+            <div class="modal__body view-panel">
+                <div class="view-row"><span class="label">Invoice #</span><span class="value">{{ currentInvoice()!.id
+                        }}</span></div>
+                <div class="view-row"><span class="label">Client</span><span class="value">{{ currentInvoice()!.client
+                        }}</span></div>
+                <div class="view-row"><span class="label">Project</span><span class="value">{{ currentInvoice()!.project
+                        }}</span></div>
+                <div class="view-row"><span class="label">Issued</span><span class="value">{{
+                        currentInvoice()!.issuedISO }}</span></div>
+                <div class="view-row"><span class="label">Due</span><span class="value">{{ currentInvoice()!.dueISO
+                        }}</span></div>
+                <div class="view-row"><span class="label">Status</span><span class="value">{{ currentInvoice()!.status
+                        }}</span></div>
+                <div class="view-row"><span class="label">Amount</span><span class="value">${{
+                        currentInvoice()!.amountUSD | number:'1.0-0' }} {{ currentInvoice()!.currency || 'USD' }}</span>
+                </div>
+            </div>
+            <footer class="modal__footer">
+                <button type="button" class="btn btn--subtle" (click)="closeInvoiceModal()">Close</button>
+            </footer>
+        </div>
+        }
+    </div>
+    }
+</section>

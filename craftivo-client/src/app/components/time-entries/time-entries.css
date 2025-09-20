@@ -1,0 +1,159 @@
+.panel {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 14px;
+}
+.panel__head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0b0f14;
+}
+.panel__head .muted {
+  margin: 4px 0 10px;
+  font-size: 13px;
+  color: #6b7280;
+}
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.head-left {
+  display: flex;
+  flex-direction: column;
+}
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: teal;
+  color: #fff;
+  border: 1px solid teal;
+  cursor: pointer;
+}
+.btn .icon {
+  width: 18px;
+  height: 18px;
+  fill: #fff;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 12px;
+}
+.left {
+  max-width: 50%;
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.t__text {
+  font-weight: 800;
+  color: #0b0f14;
+}
+.pill {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  text-transform: capitalize;
+  font-weight: 700;
+}
+.pill--done {
+  background: #e7f8f2;
+  color: #10b981;
+  border-color: #10b981;
+}
+.pill--run {
+  background: #e6f7f7;
+  color: teal;
+  border-color: teal;
+}
+.meta {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sep {
+  color: #94a3b8;
+}
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+}
+.note {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+  gap: 16px;
+}
+.item {
+  display: flex;
+  flex-direction: column;
+}
+.lbl {
+  font-size: 12px;
+  color: #64748b;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+}
+.iconbtn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.iconbtn svg {
+  width: 18px;
+  height: 18px;
+  fill: #111827;
+}
+@media (max-width: 900px) {
+  .left {
+    max-width: 100%;
+  }
+  .row {
+    flex-direction: column;
+  }
+  .grid {
+    grid-template-columns: repeat(2, max-content);
+  }
+}

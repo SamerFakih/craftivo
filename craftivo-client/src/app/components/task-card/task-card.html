@@ -1,0 +1,57 @@
+<article class="task" aria-label="Task card">
+    <div class="task__head">
+        <h3 class="task__title">{{ task.title }}</h3>
+        <div class="task__actions">
+            <button class="btn btn--ghost" (click)="onView($event)" title="View"><i class="pi pi-eye"></i></button>
+            <button class="btn btn--primary" (click)="onEdit($event)" title="Edit"><i class="pi pi-pencil"></i></button>
+        </div>
+    </div>
+
+    <p class="task__sub">{{ task.subtitle }}</p>
+
+    <div class="task__meta">
+        <div class="meta__row">
+            <span class="meta__dot"></span>
+            <span class="meta__text">{{ task.project }}</span>
+            <span class="meta__dot"></span>
+            <span class="meta__text">{{ task.client }}</span>
+
+            <span class="meta__sep"></span>
+
+            <span class="meta__icon" title="Due date">
+                <i class="pi pi-calendar"></i>
+            </span>
+            <span class="meta__text">{{ dateLabel }}</span>
+        </div>
+
+        <div class="meta__row">
+            <img class="avatar" [src]="task.assignee.avatarUrl || '/assets/craftivo-logo.png'"
+                [alt]="task.assignee.name">
+            <span class="meta__text">{{ task.assignee.name }}</span>
+
+            <span class="meta__sep"></span>
+
+            <span class="meta__icon" title="Email reminder">
+                <i class="pi pi-envelope"></i>
+            </span>
+            <span class="meta__text">{{ task.emailReminder ? 'Email reminder' : 'No reminder' }}</span>
+
+            <span class="meta__sep"></span>
+            <span class="meta__icon" title="Attachments">
+                <i class="pi pi-paperclip"></i>
+            </span>
+            <span class="meta__text">{{ task.attachmentsCount }}</span>
+
+            <span class="meta__icon" title="Comments">
+                <i class="pi pi-comment"></i>
+            </span>
+            <span class="meta__text">{{ task.commentsCount }}</span>
+
+            <span class="tags">
+                @for (t of task.tags; track t) {
+                <span class="tag">{{ t }}</span>
+                }
+            </span>
+        </div>
+    </div>
+</article>
