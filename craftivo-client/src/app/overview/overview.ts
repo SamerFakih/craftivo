@@ -44,7 +44,40 @@ export class Overview {
     ];
   });
 
-  readonly projects = computed(() => this.data()?.recentProjects ?? []);
+  // Dynamic project progress override: recompute using tasks if both present
+  private readonly _progressMap = computed(() => {
+    const d = this.data();
+    if (!d) return new Map<number, number>();
+    const tasks = d.todayTasks || []; // limited set (today) may not reflect all project tasks
+    // If API supplies a broader task list in future, replace above with that list
+    const map = new Map<number, { total: number; done: number }>();
+    for (const t of tasks) {
+      const pid = Number((t as any).project_id || (t as any).projectId || (t as any).project?.id);
+      if (!Number.isFinite(pid) || pid <= 0) continue;
+      const status = ((t as any).status || '').toString().toLowerCase();
+      const bucket = map.get(pid) || { total: 0, done: 0 };
+      bucket.total += 1;
+      if (status === 'completed' || status === 'done' || status === 'finished') bucket.done += 1;
+      map.set(pid, bucket);
+    }
+    const result = new Map<number, number>();
+    map.forEach((v, k) => {
+      if (v.total > 0) result.set(k, Math.round((v.done / v.total) * 100));
+    });
+    return result;
+  });
+
+  readonly projects = computed(() => {
+    const d = this.data();
+    if (!d) return [];
+    const progressMap = this._progressMap();
+    const list = d.recentProjects || [];
+    if (!progressMap.size) return list;
+    return list.map((p: any) => {
+      const override = progressMap.get(p.id);
+      return override == null ? p : { ...p, progress: override };
+    });
+  });
   readonly tasks = computed(() => this.data()?.todayTasks ?? []);
   readonly teamActivity = computed(() => this.data()?.teamActivity ?? []);
 

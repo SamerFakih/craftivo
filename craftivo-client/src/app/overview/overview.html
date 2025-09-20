@@ -11,14 +11,6 @@
                 </svg>
                 New Project
             </button>
-            <button class="btn btn--ghost" (click)="refresh()" [disabled]="loading()" aria-label="Refresh overview">
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                        d="M12 6V3L8 7l4 4V8c2.757 0 5 2.243 5 5a5 5 0 0 1-5 5 5.002 5.002 0 0 1-4.9-4H5.02a7.002 7.002 0 0 0 6.98 6 7 7 0 0 0 0-14z" />
-                </svg>
-                <span *ngIf="!loading(); else loadingLbl">Refresh</span>
-                <ng-template #loadingLbl>Loading...</ng-template>
-            </button>
         </div>
     </header>
 
