@@ -9,11 +9,11 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-  "test:ci": "ng test --watch=false --browsers=ChromeHeadless --progress=false --code-coverage",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --progress=false --code-coverage",
     "ci:install": "node scripts/ci-install.js",
     "cleanup": "node scripts/preinstall-clean.js",
-    "serve:ssr:craftivo-client": "node dist/craftivo-client/server/server.mjs"
-    ,"check:angular": "node scripts/check-angular-versions.js"
+    "serve:ssr:craftivo-client": "node dist/craftivo-client/server/server.mjs",
+    "check:angular": "node scripts/check-angular-versions.js"
   },
   "prettier": {
     "printWidth": 100,
@@ -37,16 +37,17 @@
     "@angular/material": "20.2.4",
     "@angular/platform-browser": "20.2.4",
     "@angular/platform-browser-dynamic": "20.2.4",
-  "@angular/platform-server": "20.2.4",
+    "@angular/platform-server": "20.2.4",
     "@angular/router": "20.2.4",
-  "@angular/ssr": "20.2.2",
+    "@angular/ssr": "20.2.2",
     "@primeuix/themes": "1.2.3",
     "primeicons": "7.0.0",
     "primeng": "20.1.2",
     "zone.js": "0.15.1"
   },
   "devDependencies": {
-  "@angular/build": "20.1.6",
+    "@angular-devkit/build-angular": "^20.2.2",
+    "@angular/build": "20.1.6",
     "@angular/cli": "20.2.1",
     "@angular/compiler-cli": "20.2.4",
     "@types/express": "^5.0.1",
