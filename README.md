@@ -19,7 +19,7 @@
 
 ### ER Diagram
 
-<img src="./Readme/demo/ERDiagram.png"/>
+<img src="./Readme/demo/ERdiagram.png"/>
 
 <br><br>
 
@@ -60,10 +60,6 @@
 | invoices                                | contracts                                 |
 | --------------------------------------- | ----------------------------------------- |
 | ![Invoices](./Readme/demo/invoices.png) | ![Contracts](./Readme/demo/contracts.png) |
-
-| clients                               |
-| ------------------------------------- |
-| ![Clients](./Readme/demo/clients.png) |
 
 ### AI Automation
 
