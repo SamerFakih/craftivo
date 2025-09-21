@@ -95,12 +95,12 @@
 
 <img src="./Readme/demo/deployment.jpg"/>
 
-### API Testing with Postman
+### API Testing with Swagger
 
-- Screenshots of Postman tests for the core APIs: Login, Career Recommendation, and Get Saved Paths.
+- Screenshots of Swagger tests for the core APIs: Login, Create a client, and update a time entry.
 
-| Postman API 1                          | Postman API 2                          | Postman API 3                          |
-| -------------------------------------- | -------------------------------------- | -------------------------------------- |
-| ![PostmanAPI1](./readme/demo/API1.png) | ![PostmanAPI2](./readme/demo/API2.png) | ![PostmanAPI3](./readme/demo/API3.png) |
+| Swagger API 1                                  | Swagger API 2                                         | Swagger API 3                                            |
+| ---------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------- |
+| ![SwaggerAPI1](./readme/demo/swaggerLogin.png) | ![SwaggerAPI2](./readme/demo/swaggerCreateClient.png) | ![SwaggerAPI3](./readme/demo/swaggerUpdateTimeEntry.png) |
 
 <br><br>
