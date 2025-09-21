@@ -47,7 +47,7 @@
 
 | Landing Page                                  | Login Page                             |
 | --------------------------------------------- | -------------------------------------- |
-| ![LandingPage](./Readme/demo/landingPage.png) | ![LoginPage](./readme/demo/signin.png) |
+| ![LandingPage](./Readme/demo/landingPage.png) | ![LoginPage](./Readme/demo/signin.png) |
 
 | Registration                              | Projects                                |
 | ----------------------------------------- | --------------------------------------- |
@@ -101,6 +101,6 @@
 
 | Swagger API 1                                  | Swagger API 2                                         | Swagger API 3                                            |
 | ---------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------- |
-| ![SwaggerAPI1](./readme/demo/swaggerLogin.png) | ![SwaggerAPI2](./readme/demo/swaggerCreateClient.png) | ![SwaggerAPI3](./readme/demo/swaggerUpdateTimeEntry.png) |
+| ![SwaggerAPI1](./Readme/demo/swaggerLogin.png) | ![SwaggerAPI2](./Readme/demo/swaggerCreateClient.png) | ![SwaggerAPI3](./Readme/demo/swaggerUpdateTimeEntry.png) |
 
 <br><br>
