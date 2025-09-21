@@ -18,50 +18,50 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Angular setup + cache
+      # Angular (craftivo-client)
       - name: Setup Node.js for Angular
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: ./craftivo-client/package-lock.json
 
       - name: Install Angular dependencies
-        working-directory: ./frontend
+        working-directory: ./craftivo-client
         run: npm ci
 
       - name: Lint Angular
-        working-directory: ./frontend
+        working-directory: ./craftivo-client
         run: npm run lint
 
       - name: Test Angular
-        working-directory: ./frontend
+        working-directory: ./craftivo-client
         run: npm run test -- --watch=false --browsers=ChromeHeadless
 
       - name: Build Angular
-        working-directory: ./frontend
+        working-directory: ./craftivo-client
         run: npm run build -- --configuration=production
 
-      # NestJS setup + cache
+      # NestJS (craftivo-server)
       - name: Setup Node.js for NestJS
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: ./craftivo-server/package-lock.json
 
       - name: Install NestJS dependencies
-        working-directory: ./backend
+        working-directory: ./craftivo-server
         run: npm ci
 
       - name: Lint NestJS
-        working-directory: ./backend
+        working-directory: ./craftivo-server
         run: npm run lint
 
       - name: Test NestJS
-        working-directory: ./backend
+        working-directory: ./craftivo-server
         run: npm run test -- --ci --coverage
 
       - name: Build NestJS
-        working-directory: ./backend
+        working-directory: ./craftivo-server
         run: npm run build
