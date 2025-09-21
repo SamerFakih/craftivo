@@ -25,6 +25,8 @@ export class EmailService {
   }
 
   private async setupTransport(): Promise<void> {
+    const mode = (this.config.get<string>('EMAIL_MODE') || '').toLowerCase();
+    const skipVerify = this.config.get<string>('MAIL_SKIP_VERIFY') === 'true';
     const host = this.config.get<string>('MAIL_HOST');
     const port = parseInt(this.config.get<string>('MAIL_PORT') || '0', 10);
     const user = this.config.get<string>('MAIL_USER');
@@ -32,6 +34,34 @@ export class EmailService {
     const fromEnv = this.config.get<string>('MAIL_FROM');
 
     try {
+      // Mode override: log-only
+      if (mode === 'log-only') {
+        this.logger.warn(
+          '[EmailService] Explicit log-only mode enabled (EMAIL_MODE=log-only).',
+        );
+        this.transporter = undefined;
+        return;
+      }
+
+      // Mode override: ethereal
+      if (mode === 'ethereal') {
+        const testAccount = await nodemailer.createTestAccount();
+        this.isTestAccount = true;
+        this.from = fromEnv || `"Craftivo Test" <${testAccount.user}>`;
+        this.transporter = nodemailer.createTransport({
+          host: testAccount.smtp.host,
+          port: testAccount.smtp.port,
+          secure: testAccount.smtp.secure,
+          auth: { user: testAccount.user, pass: testAccount.pass },
+        });
+        if (!skipVerify) {
+          await this.transporter.verify();
+        }
+        this.logger.log('[EmailService] Mode = ETHEREAL_TEST (forced)');
+        return;
+      }
+
+      // Default / smtp explicit
       if (host && port && user && pass) {
         this.from = fromEnv || (user ? `${user}@${host}` : this.from);
         this.transporter = nodemailer.createTransport({
@@ -40,13 +70,17 @@ export class EmailService {
           secure: port === 465,
           auth: { user, pass },
         });
-        await this.transporter.verify();
-        this.logger.log('Email transporter verified (real credentials).');
+        if (!skipVerify) {
+          await this.transporter.verify();
+          this.logger.log('Email transporter verified (real credentials).');
+        } else {
+          this.logger.log('Email transporter created (verification skipped).');
+        }
         this.logger.log('[EmailService] Mode = REAL_SMTP');
         return;
       }
 
-      // Fallback Ethereal test account
+      // If no credentials and no explicit mode, fall back to ethereal test
       const testAccount = await nodemailer.createTestAccount();
       this.isTestAccount = true;
       this.from = fromEnv || `"Craftivo Test" <${testAccount.user}>`;
@@ -56,15 +90,59 @@ export class EmailService {
         secure: testAccount.smtp.secure,
         auth: { user: testAccount.user, pass: testAccount.pass },
       });
-      await this.transporter.verify();
+      if (!skipVerify) {
+        await this.transporter.verify();
+      }
       this.logger.warn(
-        'Using Ethereal test account (configure MAIL_HOST/MAIL_PORT/MAIL_USER/MAIL_PASS for production).',
+        'Using Ethereal test account (configure MAIL_HOST/MAIL_PORT/MAIL_USER/MAIL_PASS or set EMAIL_MODE=log-only to silence).',
       );
       this.logger.log('[EmailService] Mode = ETHEREAL_TEST');
     } catch (err) {
+      const e = err as Error & {
+        responseCode?: number;
+        code?: string;
+        response?: string;
+      };
+      const isGmail534 =
+        (e.code === 'EAUTH' || e.responseCode === 534) &&
+        typeof e.response === 'string' &&
+        e.response.includes('Application-specific password');
+      const explicitMode = !!(
+        mode === 'log-only' ||
+        mode === 'ethereal' ||
+        mode === 'real'
+      );
+      const prod =
+        (this.config.get<string>('NODE_ENV') || '').toLowerCase() ===
+        'production';
+
+      if (isGmail534 && !explicitMode && !prod) {
+        this.logger.warn(
+          '[EmailService] Gmail 534 detected without app password; auto-switching to Ethereal test account (set EMAIL_MODE=log-only to silence or provide valid credentials).',
+        );
+        try {
+          const testAccount = await nodemailer.createTestAccount();
+          this.isTestAccount = true;
+          this.from = `"Craftivo Test" <${testAccount.user}>`;
+          this.transporter = nodemailer.createTransport({
+            host: testAccount.smtp.host,
+            port: testAccount.smtp.port,
+            secure: testAccount.smtp.secure,
+            auth: { user: testAccount.user, pass: testAccount.pass },
+          });
+          if (!skipVerify) {
+            await this.transporter.verify();
+          }
+          this.logger.log('[EmailService] Mode = ETHEREAL_TEST (auto)');
+          return;
+        } catch (inner) {
+          this.logger.error('Auto Ethereal fallback failed', inner as Error);
+        }
+      }
+
       this.logger.error(
         'Failed to initialize email transporter; operating in log-only mode',
-        err as Error,
+        e,
       );
       this.transporter = undefined;
       this.logger.warn('[EmailService] Mode = LOG_ONLY');

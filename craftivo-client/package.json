@@ -3,11 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "preinstall": "node scripts/preinstall-clean.js",
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "ci:install": "node scripts/ci-install.js",
+    "cleanup": "node scripts/preinstall-clean.js",
     "serve:ssr:craftivo-client": "node dist/craftivo-client/server/server.mjs"
   },
   "prettier": {
@@ -43,10 +46,11 @@
   "devDependencies": {
     "@angular/build": "^20.1.6",
     "@angular/cli": "^20.2.1",
-    "@angular/compiler-cli": "^20.2.0",
+  "@angular/compiler-cli": "20.2.4",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "puppeteer": "^24.20.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

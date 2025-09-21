@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /**
  * JWT Authentication Strategy
  *
@@ -57,20 +58,33 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
        * Priority order:
        * 1. HTTP-only cookie (secure for web browsers)
        * 2. Authorization Bearer header (for API clients)
+       * 3. (Optional) `token` query parameter (useful for short-lived email links / debugging)
        *
        * This approach supports both web and mobile clients seamlessly
        */
       jwtFromRequest: ExtractJwt.fromExtractors([
-        // Primary: Extract from HTTP-only cookie (CSRF-safe)
+        // Primary: look for any recognized auth cookie name
         (request: Request): string | null => {
-          const rawContainer = request as unknown as {
-            cookies?: Record<string, unknown>;
-          };
-          const raw = rawContainer.cookies?.token;
-          return typeof raw === 'string' ? raw : null;
+          const cookies = (request as any).cookies as
+            | Record<string, unknown>
+            | undefined;
+          if (!cookies) return null;
+          const candidateNames = ['token', 'auth_token', 'jwt'];
+          for (const name of candidateNames) {
+            const value = cookies[name];
+            if (typeof value === 'string' && value.length > 0) {
+              return value;
+            }
+          }
+          return null;
         },
         // Fallback: Extract from Authorization: Bearer <token> header
         ExtractJwt.fromAuthHeaderAsBearerToken(),
+        // Optional final fallback: query parameter (?token=)
+        (request: Request): string | null => {
+          const q = (request.query as Record<string, unknown>)?.token;
+          return typeof q === 'string' && q.length > 0 ? q : null;
+        },
       ]),
       ignoreExpiration: false, // Enforce token expiration
       secretOrKey: secret, // Secret key for token verification
