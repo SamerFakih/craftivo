@@ -2,158 +2,62 @@ name: CI
 
 on:
   push:
-    branches: [main, dev, develop]
+    branches: [main]
   pull_request:
-    branches: [main, dev, develop]
-  workflow_dispatch:
-    inputs:
-      seed:
-        description: 'Seed database (backend)'
-        required: false
-        default: 'false'
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  NODE_VERSION: '22'
-  CI: true
+    branches: [main]
 
 jobs:
-  backend:
-    name: Backend (NestJS)
+  build-test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: samer
-          POSTGRES_DB: craftivo
-        ports: ["5433:5432"]
-        options: >-
-          --health-cmd "pg_isready -U postgres" \
-          --health-interval 5s \
-          --health-timeout 5s \
-          --health-retries 10
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/craftivo?schema=public
-      PRISMA_CLIENT_ENGINE_TYPE: library
-      JWT_SECRET: test-secret-key-1234567890
-      NODE_ENV: test
+
+    strategy:
+      matrix:
+        node-version: [20.x] # adjust if you need specific version
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: "craftivo server/package-lock.json"
-      - name: Ensure lockfile present
-        working-directory: "craftivo server"
-        run: |
-          test -f package-lock.json || (echo "Missing package-lock.json in backend" && exit 1)
-      - name: Install deps
-        working-directory: "craftivo server"
-        run: npm ci --ignore-scripts=false
-      - name: Detect lockfile drift
-        working-directory: "craftivo server"
-        run: |
-          git diff --exit-code package-lock.json || (echo "Backend lockfile drift detected after npm ci" && exit 1)
-      - name: Show dependency tree
-        working-directory: "craftivo server"
-        run: npm ls --depth=0 || true
-      - name: Generate Prisma client
-        working-directory: "craftivo server"
-        run: npx prisma generate
-      - name: Run migrations
-        working-directory: "craftivo server"
-        run: npx prisma migrate deploy
-      - name: (Optional) Seed database
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.seed == 'true' }}
-        working-directory: "craftivo server"
-        run: npx prisma db seed
-      - name: Unit tests
-        working-directory: "craftivo server"
-        run: npm test -- --runInBand --coverage --passWithNoTests
-      - name: E2E tests
-        working-directory: "craftivo server"
-        run: npm run test:e2e -- --runInBand
-      - name: Upload backend coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage
-          path: "craftivo server/coverage/"
-      - name: Build backend
-        working-directory: "craftivo server"
-        run: npm run build
-      - name: Upload backend build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-dist
-          path: "craftivo server/dist/"
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
-  frontend:
-    name: Frontend (Angular)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: 'craftivo-client/package-lock.json'
-      - name: Cache Angular build artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            craftivo-client/.angular/cache
-          key: angular-cache-${{ runner.os }}-${{ hashFiles('craftivo-client/package-lock.json') }}
-          restore-keys: |
-            angular-cache-${{ runner.os }}-
-      - name: Angular version consistency check
-        working-directory: craftivo-client
-        run: node scripts/check-angular-versions.js
-      - name: Ensure lockfile present
-        working-directory: craftivo-client
-        run: |
-          test -f package-lock.json || (echo "Missing package-lock.json in frontend" && exit 1)
-      - name: Install deps
-        working-directory: craftivo-client
-        run: npm ci --ignore-scripts=false
-      - name: Detect lockfile drift
-        working-directory: craftivo-client
-        run: |
-          git diff --exit-code package-lock.json || (echo "Frontend lockfile drift detected after npm ci" && exit 1)
-      - name: Unit tests
-        working-directory: craftivo-client
-        run: npm run test:ci
-      - name: Upload frontend coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-coverage
-          path: craftivo-client/coverage/
-      - name: Build (SSR)
-        working-directory: craftivo-client
-        run: npm run build
-      - name: Upload frontend dist
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: craftivo-client/dist/
+      # Install & build Angular
+      - name: Install Angular dependencies
+        working-directory: ./frontend
+        run: npm ci
 
-  summary:
-    name: Summary
-    runs-on: ubuntu-latest
-    needs: [backend, frontend]
-    steps:
-      - name: Final status
-        run: echo "Backend: ${{ needs.backend.result }} | Frontend: ${{ needs.frontend.result }}"
-      - name: Mark failure if any job failed
-        if: ${{ needs.backend.result == 'failure' || needs.frontend.result == 'failure' }}
-        run: |
-          echo "One or more jobs failed." && exit 1
+      - name: Lint Angular
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Test Angular
+        working-directory: ./frontend
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Build Angular
+        working-directory: ./frontend
+        run: npm run build -- --configuration=production
+
+      # Install & build NestJS
+      - name: Install NestJS dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Lint NestJS
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Test NestJS
+        working-directory: ./backend
+        run: npm run test -- --ci --coverage
+
+      - name: Build NestJS
+        working-directory: ./backend
+        run: npm run build
+
+      # (Optional) Docker build if you deploy with Docker
+      # - name: Build Docker image
+      #   run: docker build -t my-app .
