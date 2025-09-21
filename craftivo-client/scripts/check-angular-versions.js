@@ -11,7 +11,7 @@ const path = require('path');
 const pkgPath = path.join(__dirname, '..', 'package.json');
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 
-const deps = { ...(pkg.dependencies||{}), ...(pkg.devDependencies||{}) };
+const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
 
 const angularEntries = Object.entries(deps).filter(([name]) => name.startsWith('@angular/'));
 if (angularEntries.length === 0) {
@@ -21,9 +21,9 @@ if (angularEntries.length === 0) {
 
 // Packages allowed to have version variance (optional peers / tooling)
 const allowedExceptions = new Set([
-  '@angular/ssr',      // may lag behind
-  '@angular/cli',      // tooling can be a different patch
-  '@angular/build'     // build tooling may differ
+  '@angular/ssr', // may lag behind
+  '@angular/cli', // tooling can be a different patch
+  '@angular/build', // build tooling may differ
 ]);
 
 // Collect enforced versions (exclude exceptions)
@@ -44,7 +44,9 @@ for (const [name, version] of enforced) {
 }
 
 if (versionMap.size > 1) {
-  const details = [...versionMap.entries()].map(([ver, list]) => `${ver}: ${list.join(', ')}`).join('\n');
+  const details = [...versionMap.entries()]
+    .map(([ver, list]) => `${ver}: ${list.join(', ')}`)
+    .join('\n');
   problems.push(`Angular packages have mismatched versions:\n${details}`);
 }
 
@@ -57,9 +59,11 @@ if (baselineVersion) {
       // Only enforce major/minor for non-tooling exceptions (@angular/ssr)
       const tooling = name === '@angular/cli' || name === '@angular/build';
       if (!tooling) {
-        const [maj, min] = version.replace(/^[~^]/,'').split('.');
+        const [maj, min] = version.replace(/^[~^]/, '').split('.');
         if (maj !== baseMaj || min !== baseMin) {
-          problems.push(`${name} (${version}) differs in major/minor from baseline ${baselineVersion}`);
+          problems.push(
+            `${name} (${version}) differs in major/minor from baseline ${baselineVersion}`
+          );
         }
       }
     }
