@@ -1,9 +1,9 @@
-<img src="./readme/title1.svg"/>
+<img src="./Readme/title1.svg"/>
 
 <br><br>
 
 <!-- project overview -->
-<img src="./readme/title2.svg"/>
+<img src="./Readme/title2.svg"/>
 
 > AlignPath aims to help every student discover a career that truly aligns with their passions, strengths, and aspirations.
 > The mission is to guide them toward a future where they enter the professional world with confidence, purpose, and enthusiasm.
@@ -11,20 +11,20 @@
 <br><br>
 
 <!-- System Design -->
-<img src="./readme/title3.svg"/>
+<img src="./Readme/title3.svg"/>
 
 ### System Architecture
 
-<img src="./readme/demo/SystemArchitecture.png"/>
+<img src="./Readme/demo/SystemArchitecture.png"/>
 
 ### ER Diagram
 
-<img src="./readme/demo/ERDiagram.png"/>
+<img src="./Readme/demo/ERDiagram.png"/>
 
 <br><br>
 
 <!-- Project Highlights -->
-<img src="./readme/title4.svg"/>
+<img src="./Readme/title4.svg"/>
 
 ### AlignPath main features
 
@@ -39,7 +39,7 @@
   <br><br>
 
 <!-- Demo -->
-<img src="./readme/title5.svg"/>
+<img src="./Readme/title5.svg"/>
 
 ### Users Screens
 
@@ -58,7 +58,7 @@
 <br><br>
 
 <!-- Development & Testing -->
-<img src="./readme/title6.svg"/>
+<img src="./Readme/title6.svg"/>
 
 ### Functionality & Reliability
 
@@ -69,7 +69,7 @@
 <br><br>
 
 <!-- Deployment -->
-<img src="./readme/title7.svg"/>
+<img src="./Readme/title7.svg"/>
 
 ### API Testing with Postman
 
