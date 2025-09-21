@@ -13,7 +13,6 @@ on:
 
 env:
   NODE_VERSION: "20"
-  PNPM_VERSION: "9"
 
 jobs:
   build-and-release:
@@ -30,28 +29,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
-          cd "craftivo-client" && pnpm install --frozen-lockfile
-          cd "../craftivo server" && pnpm install --frozen-lockfile
+          cd "craftivo-client" && npm ci
+          cd "../craftivo server" && npm ci
 
       - name: Generate Prisma Client
         working-directory: craftivo server
-        run: pnpm prisma:gen
+        run: npm run prisma:gen
 
       - name: Build backend
         working-directory: craftivo server
-        run: pnpm build
+        run: npm run build
 
       - name: Build frontend
         working-directory: craftivo-client
-        run: pnpm build --configuration=production
+        run: npm run build -- --configuration=production
 
       - name: Create release package
         run: |

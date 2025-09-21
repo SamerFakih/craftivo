@@ -8,7 +8,6 @@ on:
 
 env:
   NODE_VERSION: "20"
-  PNPM_VERSION: "9"
 
 jobs:
   # Job 1: Install dependencies and cache
@@ -28,11 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+          cache: 'npm'
 
       - name: Cache frontend dependencies
         id: frontend-cache
@@ -40,8 +35,8 @@ jobs:
         with:
           path: |
             craftivo-client/node_modules
-            ~/.pnpm-store
-          key: frontend-deps-${{ runner.os }}-${{ hashFiles('craftivo-client/package.json', 'craftivo-client/pnpm-lock.yaml') }}
+            ~/.npm
+          key: frontend-deps-${{ runner.os }}-${{ hashFiles('craftivo-client/package-lock.json') }}
           restore-keys: |
             frontend-deps-${{ runner.os }}-
 
@@ -51,20 +46,20 @@ jobs:
         with:
           path: |
             craftivo server/node_modules
-            ~/.pnpm-store
-          key: backend-deps-${{ runner.os }}-${{ hashFiles('craftivo server/package.json', 'craftivo server/pnpm-lock.yaml') }}
+            ~/.npm
+          key: backend-deps-${{ runner.os }}-${{ hashFiles('craftivo server/package-lock.json') }}
           restore-keys: |
             backend-deps-${{ runner.os }}-
 
       - name: Install frontend dependencies
         if: steps.frontend-cache.outputs.cache-hit != 'true'
         working-directory: craftivo-client
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Install backend dependencies
         if: steps.backend-cache.outputs.cache-hit != 'true'
         working-directory: craftivo server
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
   # Job 2: Backend Tests and Build
   backend:
@@ -100,47 +95,43 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+          cache: 'npm'
 
       - name: Restore backend dependencies
         uses: actions/cache@v4
         with:
           path: |
             craftivo server/node_modules
-            ~/.pnpm-store
-          key: backend-deps-${{ runner.os }}-${{ hashFiles('craftivo server/package.json', 'craftivo server/pnpm-lock.yaml') }}
+            ~/.npm
+          key: backend-deps-${{ runner.os }}-${{ hashFiles('craftivo server/package-lock.json') }}
 
       - name: Install dependencies (if cache miss)
         working-directory: craftivo server
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Generate Prisma Client
         working-directory: craftivo server
-        run: pnpm prisma:gen
+        run: npm run prisma:gen
 
       - name: Run database migrations
         working-directory: craftivo server
-        run: pnpm db:push
+        run: npm run db:push
 
       - name: Lint backend code
         working-directory: craftivo server
-        run: pnpm lint
+        run: npm run lint
 
       - name: Run backend unit tests
         working-directory: craftivo server
-        run: pnpm test:cov
+        run: npm run test:cov
 
       - name: Run backend e2e tests
         working-directory: craftivo server
-        run: pnpm test:e2e
+        run: npm run test:e2e
 
       - name: Build backend
         working-directory: craftivo server
-        run: pnpm build
+        run: npm run build
 
       - name: Upload backend coverage
         uses: actions/upload-artifact@v4
@@ -172,39 +163,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+          cache: 'npm'
 
       - name: Restore frontend dependencies
         uses: actions/cache@v4
         with:
           path: |
             craftivo-client/node_modules
-            ~/.pnpm-store
-          key: frontend-deps-${{ runner.os }}-${{ hashFiles('craftivo-client/package.json', 'craftivo-client/pnpm-lock.yaml') }}
+            ~/.npm
+          key: frontend-deps-${{ runner.os }}-${{ hashFiles('craftivo-client/package-lock.json') }}
 
       - name: Install dependencies (if cache miss)
         working-directory: craftivo-client
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Lint frontend code
         working-directory: craftivo-client
-        run: pnpm ng lint || echo "Linting not configured"
+        run: npm run ng lint || echo "Linting not configured"
 
       - name: Run frontend unit tests
         working-directory: craftivo-client
-        run: pnpm test --browsers=${{ matrix.browser }} --watch=false --code-coverage
+        run: npm run test -- --browsers=${{ matrix.browser }} --watch=false --code-coverage
 
       - name: Build frontend (development)
         working-directory: craftivo-client
-        run: pnpm build --configuration=development
+        run: npm run build -- --configuration=development
 
       - name: Build frontend (production)
         working-directory: craftivo-client
-        run: pnpm build --configuration=production
+        run: npm run build -- --configuration=production
 
       - name: Upload frontend coverage
         uses: actions/upload-artifact@v4
@@ -233,32 +220,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
-          cd "craftivo-client" && pnpm install --frozen-lockfile
-          cd "../craftivo server" && pnpm install --frozen-lockfile
+          cd "craftivo-client" && npm ci
+          cd "../craftivo server" && npm ci
 
       - name: Run npm audit (backend)
         working-directory: craftivo server
-        run: pnpm audit --audit-level=moderate || true
+        run: npm audit --audit-level=moderate || true
 
       - name: Run npm audit (frontend)
         working-directory: craftivo-client
-        run: pnpm audit --audit-level=moderate || true
+        run: npm audit --audit-level=moderate || true
 
       - name: Check for outdated packages (backend)
         working-directory: craftivo server
-        run: pnpm outdated || true
+        run: npm outdated || true
 
       - name: Check for outdated packages (frontend)
         working-directory: craftivo-client
-        run: pnpm outdated || true
+        run: npm outdated || true
 
   # Job 5: Integration Tests (if both backend and frontend build successfully)
   integration:
@@ -295,11 +278,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+          cache: 'npm'
 
       - name: Download backend build
         uses: actions/download-artifact@v4
@@ -315,18 +294,18 @@ jobs:
 
       - name: Install production dependencies
         run: |
-          cd "craftivo server" && pnpm install --prod --frozen-lockfile
+          cd "craftivo server" && npm ci --only=production
 
       - name: Setup test database
         working-directory: craftivo server
         run: |
-          pnpm prisma:gen
-          pnpm db:push
+          npm run prisma:gen
+          npm run db:push
 
       - name: Start backend server
         working-directory: craftivo server
         run: |
-          pnpm start:prod &
+          npm run start:prod &
           sleep 30
 
       - name: Serve frontend

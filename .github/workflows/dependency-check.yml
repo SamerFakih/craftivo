@@ -19,28 +19,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: "9"
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
-          cd "craftivo-client" && pnpm install --frozen-lockfile
-          cd "../craftivo server" && pnpm install --frozen-lockfile
+          cd "craftivo-client" && npm ci
+          cd "../craftivo server" && npm ci
 
       - name: Check outdated packages (backend)
         working-directory: craftivo server
         run: |
           echo "📦 Checking for outdated backend packages..."
-          pnpm outdated --format=table > ../backend-outdated.txt || true
+          npm outdated > ../backend-outdated.txt || true
 
       - name: Check outdated packages (frontend)
         working-directory: craftivo-client
         run: |
           echo "📦 Checking for outdated frontend packages..."
-          pnpm outdated --format=table > ../frontend-outdated.txt || true
+          npm outdated > ../frontend-outdated.txt || true
 
       - name: Create dependency report
         run: |
