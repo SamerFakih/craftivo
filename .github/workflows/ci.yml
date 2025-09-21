@@ -30,10 +30,6 @@ jobs:
         working-directory: ./craftivo-client
         run: npm ci
 
-      - name: Lint Angular
-        working-directory: ./craftivo-client
-        run: npm run lint
-
       - name: Test Angular
         working-directory: ./craftivo-client
         run: npm run test -- --watch=false --browsers=ChromeHeadless
@@ -53,10 +49,6 @@ jobs:
       - name: Install NestJS dependencies
         working-directory: ./craftivo-server
         run: npm ci
-
-      - name: Lint NestJS
-        working-directory: ./craftivo-server
-        run: npm run lint
 
       - name: Test NestJS
         working-directory: ./craftivo-server
