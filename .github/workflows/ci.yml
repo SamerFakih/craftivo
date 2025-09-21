@@ -37,9 +37,17 @@ jobs:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: 'craftivo server/package-lock.json'
+      - name: Ensure lockfile present
+        working-directory: "craftivo server"
+        run: |
+          test -f package-lock.json || (echo "Missing package-lock.json in backend" && exit 1)
       - name: Install deps
         working-directory: craftivo server
-        run: npm ci
+        run: npm ci --ignore-scripts=false
+      - name: Detect lockfile drift
+        working-directory: "craftivo server"
+        run: |
+          git diff --exit-code package-lock.json || (echo "Backend lockfile drift detected after npm ci" && exit 1)
       - name: Generate Prisma client
         working-directory: craftivo server
         run: npx prisma generate
@@ -74,7 +82,11 @@ jobs:
         run: node scripts/check-angular-versions.js
       - name: Install deps
         working-directory: craftivo-client
-        run: npm ci || npm install
+        run: npm ci --ignore-scripts=false
+      - name: Detect lockfile drift
+        working-directory: craftivo-client
+        run: |
+          git diff --exit-code package-lock.json || (echo "Frontend lockfile drift detected after npm ci" && exit 1)
       - name: Unit tests
         working-directory: craftivo-client
         run: npm run test:ci
