@@ -84,7 +84,10 @@ jobs:
     env:
       DATABASE_URL: postgresql://testuser:testpass@localhost:5432/craftivo_test
       NODE_ENV: test
-      JWT_SECRET: test-secret-key
+      JWT_SECRET: test-secret-key-1234567890
+      FRONTEND_URL: http://localhost:4200
+      INVOICES_INGEST_API_KEY: temp-test-api-key-1234567890123456789012345
+      INVOICES_INGEST_USER_ID: 1
 
     steps:
       - name: Checkout repository
@@ -264,7 +267,10 @@ jobs:
     env:
       DATABASE_URL: postgresql://testuser:testpass@localhost:5432/craftivo_test
       NODE_ENV: test
-      JWT_SECRET: test-secret-key
+      JWT_SECRET: test-secret-key-1234567890
+      FRONTEND_URL: http://localhost:4200
+      INVOICES_INGEST_API_KEY: temp-test-api-key-1234567890123456789012345
+      INVOICES_INGEST_USER_ID: 1
 
     steps:
       - name: Checkout repository
