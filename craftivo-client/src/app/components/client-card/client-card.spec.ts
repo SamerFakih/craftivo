@@ -8,9 +8,8 @@ describe('ClientCard', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ClientCard]
-    })
-    .compileComponents();
+      imports: [ClientCard],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ClientCard);
     component = fixture.componentInstance;
@@ -24,13 +23,13 @@ describe('ClientCard', () => {
       primaryContact: 'Jane Smith',
       industry: 'Tech',
       joinedISO: '2024-01-01',
-      tags: ['priority','retainer'],
+      tags: ['priority', 'retainer'],
       stats: {
         totalProjects: 4,
         activeProjects: 2,
         totalRevenueUSD: 120000,
-        lastContactISO: '2025-09-01'
-      }
+        lastContactISO: '2025-09-01',
+      },
     } as any;
     fixture.detectChanges();
   });

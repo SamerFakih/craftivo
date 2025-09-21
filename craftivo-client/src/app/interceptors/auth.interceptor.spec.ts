@@ -12,7 +12,7 @@ describe('AuthInterceptor', () => {
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-  const authServiceSpy = jasmine.createSpyObj('AuthService', ['logout', 'getToken']);
+    const authServiceSpy = jasmine.createSpyObj('AuthService', ['logout', 'getToken']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({

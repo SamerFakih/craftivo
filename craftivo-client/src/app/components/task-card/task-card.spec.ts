@@ -8,9 +8,8 @@ describe('TaskCard', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TaskCard]
-    })
-    .compileComponents();
+      imports: [TaskCard],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TaskCard);
     component = fixture.componentInstance;
@@ -18,8 +17,8 @@ describe('TaskCard', () => {
       id: 1,
       title: 'Sample Task',
       status: 'open',
-      dueISO: new Date(Date.now()+3600000).toISOString(),
-      assignee: 'Jane'
+      dueISO: new Date(Date.now() + 3600000).toISOString(),
+      assignee: 'Jane',
     } as any;
     fixture.detectChanges();
   });

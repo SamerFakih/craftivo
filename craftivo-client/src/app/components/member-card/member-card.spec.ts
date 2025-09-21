@@ -8,9 +8,8 @@ describe('MemberCard', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MemberCard]
-    })
-    .compileComponents();
+      imports: [MemberCard],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(MemberCard);
     component = fixture.componentInstance;
@@ -22,7 +21,7 @@ describe('MemberCard', () => {
       hourlyRateUSD: 75,
       hoursMonth: 40,
       activeProjects: 3,
-      tasksDone: 10
+      tasksDone: 10,
     } as any;
     fixture.detectChanges();
   });

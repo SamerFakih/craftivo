@@ -8,9 +8,8 @@ describe('InvoiceCard', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InvoiceCard]
-    })
-    .compileComponents();
+      imports: [InvoiceCard],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(InvoiceCard);
     component = fixture.componentInstance;
@@ -23,7 +22,7 @@ describe('InvoiceCard', () => {
       dueISO: new Date(Date.now() + 86400000).toISOString(),
       paidISO: undefined,
       status: 'pending',
-      currency: 'USD'
+      currency: 'USD',
     } as any;
     fixture.detectChanges();
   });

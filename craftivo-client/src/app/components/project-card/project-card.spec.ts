@@ -8,9 +8,8 @@ describe('ProjectCard', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProjectCard]
-    })
-    .compileComponents();
+      imports: [ProjectCard],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ProjectCard);
     component = fixture.componentInstance;
@@ -19,20 +18,20 @@ describe('ProjectCard', () => {
       name: 'Sample Project',
       client: 'Acme',
       progress: 50,
-      end_date: new Date(Date.now() + 7*86400000).toISOString(),
+      end_date: new Date(Date.now() + 7 * 86400000).toISOString(),
       tasks: [
         { id: 11, title: 'Task A', status: 'open' },
         { id: 12, title: 'Task B', status: 'done' },
-        { id: 13, title: 'Task C', status: 'in-progress' }
+        { id: 13, title: 'Task C', status: 'in-progress' },
       ],
       team: [
         { id: 1, name: 'Alice', avatarUrl: '', role: 'Dev' },
-        { id: 2, name: 'Bob', avatarUrl: '', role: 'PM' }
+        { id: 2, name: 'Bob', avatarUrl: '', role: 'PM' },
       ],
       spent_amount: 10000,
       budget: 20000,
       status: 'active',
-      description: 'Test project'
+      description: 'Test project',
     } as any;
     fixture.detectChanges();
   });
