@@ -54,5 +54,5 @@ jobs:
         run: npm ci
 
       - name: Build NestJS app
-        working-directory: ./craftivo-server
+        working-directory: ./craftivo server
         run: npm run build --if-present
