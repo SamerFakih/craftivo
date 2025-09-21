@@ -15,7 +15,7 @@
 
 ### System Architecture
 
-<img src="./Readme/demo/SoftwareArchitecture.jpg"/>
+<img src="./Readme/demo/softwareArchitecture.jpg"/>
 
 ### ER Diagram
 
