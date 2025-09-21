@@ -15,51 +15,44 @@ jobs:
         node-version: [20.x]
 
     steps:
-      # Checkout code
+      # -------------------------
+      # 1. Checkout code
+      # -------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup Node.js
-      - name: Setup Node.js
+      # -------------------------
+      # 2. Angular (craftivo-client)
+      # -------------------------
+      - name: Setup Node.js for Angular
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-
-      # -------------------------
-      # Client (Angular)
-      # -------------------------
-      - name: Cache Angular dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-angular-${{ hashFiles('craftivo-client/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-angular-
+          cache: "npm"
+          cache-dependency-path: craftivo-client/package-lock.json
 
       - name: Install Angular dependencies
-        working-directory: craftivo-client
+        working-directory: ./craftivo-client
         run: npm ci
 
       - name: Build Angular app
-        working-directory: craftivo-client
+        working-directory: ./craftivo-client
         run: npm run build --if-present
 
       # -------------------------
-      # Server (NestJS)
+      # 3. NestJS (craftivo-server)
       # -------------------------
-      - name: Cache NestJS dependencies
-        uses: actions/cache@v4
+      - name: Setup Node.js for NestJS
+        uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-nest-${{ hashFiles('craftivo-server/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nest-
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: craftivo-server/package-lock.json
 
       - name: Install NestJS dependencies
-        working-directory: craftivo-server
+        working-directory: ./craftivo-server
         run: npm ci
 
       - name: Build NestJS app
-        working-directory: craftivo-server
+        working-directory: ./craftivo-server
         run: npm run build --if-present
