@@ -3,67 +3,67 @@ name: Security Scan
 on:
   schedule:
     # Run security scan daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 jobs:
   security-scan:
     name: Security Vulnerability Scan
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        
-    - name: Install dependencies
-      run: |
-        cd "craftivo-client" && npm ci
-        cd "../craftivo server" && npm ci
-        
-    - name: Run security audit (backend)
-      working-directory: craftivo server
-      run: |
-        echo "🔍 Running security audit for backend..."
-        npm audit --audit-level=high --json > backend-audit.json || true
-        
-    - name: Run security audit (frontend)
-      working-directory: craftivo-client
-      run: |
-        echo "🔍 Running security audit for frontend..."
-        npm audit --audit-level=high --json > frontend-audit.json || true
-        
-    - name: Upload audit results
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-audit-reports
-        path: |
-          craftivo server/backend-audit.json
-          craftivo-client/frontend-audit.json
-        retention-days: 30
-        
-    - name: Create security report
-      run: |
-        echo "# Security Audit Report" > security-report.md
-        echo "Generated on: $(date)" >> security-report.md
-        echo "" >> security-report.md
-        
-        echo "## Backend Vulnerabilities" >> security-report.md
-        if [ -f "craftivo server/backend-audit.json" ]; then
-          echo "Backend audit completed" >> security-report.md
-        fi
-        
-        echo "## Frontend Vulnerabilities" >> security-report.md
-        if [ -f "craftivo-client/frontend-audit.json" ]; then
-          echo "Frontend audit completed" >> security-report.md
-        fi
-        
-    - name: Upload security report
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-report
-        path: security-report.md
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: |
+          cd "craftivo-client" && npm ci
+          cd "../craftivo server" && npm ci
+
+      - name: Run security audit (backend)
+        working-directory: craftivo server
+        run: |
+          echo "🔍 Running security audit for backend..."
+          npm audit --audit-level=high --json > backend-audit.json || true
+
+      - name: Run security audit (frontend)
+        working-directory: craftivo-client
+        run: |
+          echo "🔍 Running security audit for frontend..."
+          npm audit --audit-level=high --json > frontend-audit.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-reports
+          path: |
+            craftivo server/backend-audit.json
+            craftivo-client/frontend-audit.json
+          retention-days: 30
+
+      - name: Create security report
+        run: |
+          echo "# Security Audit Report" > security-report.md
+          echo "Generated on: $(date)" >> security-report.md
+          echo "" >> security-report.md
+
+          echo "## Backend Vulnerabilities" >> security-report.md
+          if [ -f "craftivo server/backend-audit.json" ]; then
+            echo "Backend audit completed" >> security-report.md
+          fi
+
+          echo "## Frontend Vulnerabilities" >> security-report.md
+          if [ -f "craftivo-client/frontend-audit.json" ]; then
+            echo "Frontend audit completed" >> security-report.md
+          fi
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.md
