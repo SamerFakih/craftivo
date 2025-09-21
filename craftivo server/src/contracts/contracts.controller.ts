@@ -395,7 +395,10 @@ export class ContractsController {
     description:
       'Deprecated alias for /contracts/agent/run kept temporarily for test compatibility.',
   })
-  @ApiResponse({ status: 201, description: 'Contract generated (legacy endpoint)' })
+  @ApiResponse({
+    status: 201,
+    description: 'Contract generated (legacy endpoint)',
+  })
   async legacyGenerateAndSave(
     @Body() dto: AgentGenerateAndSaveDto,
     @UserId() userId: number,
