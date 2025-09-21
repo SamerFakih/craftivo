@@ -74,7 +74,7 @@ jobs:
         run: npm ci || npm install
       - name: Unit tests
         working-directory: craftivo-client
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        run: npm run test:ci
       - name: Build (SSR)
         working-directory: craftivo-client
         run: npm run build
