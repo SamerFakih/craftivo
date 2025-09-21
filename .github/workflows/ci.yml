@@ -50,7 +50,7 @@ jobs:
           cache-dependency-path: craftivo-server/package-lock.json
 
       - name: Install NestJS dependencies
-        working-directory: ./craftivo-server
+        working-directory: ./craftivo server
         run: npm ci
 
       - name: Build NestJS app
