@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          # cache: 'npm'
           cache-dependency-path: craftivo-client/package-lock.json
 
       - name: Install Angular dependencies
@@ -46,7 +46,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          # cache: 'npm'
           cache-dependency-path: craftivo-server/package-lock.json
 
       - name: Install NestJS dependencies
