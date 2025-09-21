@@ -12,19 +12,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x] # adjust if you need specific version
+        node-version: [20.x]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      # Angular setup + cache
+      - name: Setup Node.js for Angular
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-      # Install & build Angular
       - name: Install Angular dependencies
         working-directory: ./frontend
         run: npm ci
@@ -41,7 +42,14 @@ jobs:
         working-directory: ./frontend
         run: npm run build -- --configuration=production
 
-      # Install & build NestJS
+      # NestJS setup + cache
+      - name: Setup Node.js for NestJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
       - name: Install NestJS dependencies
         working-directory: ./backend
         run: npm ci
@@ -57,7 +65,3 @@ jobs:
       - name: Build NestJS
         working-directory: ./backend
         run: npm run build
-
-      # (Optional) Docker build if you deploy with Docker
-      # - name: Build Docker image
-      #   run: docker build -t my-app .
