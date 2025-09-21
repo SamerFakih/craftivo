@@ -99,8 +99,8 @@
 
 - Screenshots of Swagger tests for the core APIs: Login, Create a client, and update a time entry.
 
-| Swagger API 1                                  | Swagger API 2                                         | Swagger API 3                                            |
-| ---------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------- |
-| ![SwaggerAPI1](./Readme/demo/swaggerLogin.png) | ![SwaggerAPI2](./Readme/demo/swaggerCreateClient.png) | ![SwaggerAPI3](./Readme/demo/swaggerUpdateTimeEntry.png) |
+| Swagger API 1                                  | Swagger API 2                                    | Swagger API 3                                        |
+| ---------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------- |
+| ![SwaggerAPI1](./Readme/demo/swaggerLogin.png) | ![SwaggerAPI2](./Readme/demo/swaggerClients.png) | ![SwaggerAPI3](./Readme/demo/swaggerTimeEntries.png) |
 
 <br><br>
