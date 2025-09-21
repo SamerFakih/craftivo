@@ -5,8 +5,8 @@
 <!-- project overview -->
 <img src="./Readme/title2.svg"/>
 
-> AlignPath aims to help every student discover a career that truly aligns with their passions, strengths, and aspirations.
-> The mission is to guide them toward a future where they enter the professional world with confidence, purpose, and enthusiasm.
+> Craftivo is a web application targeted freelancers to help them manage their projects, track time, collaborate with clients effectively and generate contracts
+> the mission to add tasks for the projects and team members to each project, track invoice and time of the team they worked on and generate contract by AI.
 
 <br><br>
 
@@ -15,7 +15,7 @@
 
 ### System Architecture
 
-<img src="./Readme/demo/SystemArchitecture.png"/>
+<img src="./Readme/demo/SoftwareArchitecture.jpg"/>
 
 ### ER Diagram
 
@@ -28,14 +28,16 @@
 
 ### AlignPath main features
 
-- Personalized Career Recommendations:
-  Analyzes students' preferences to suggest tailored career paths and to generate quests, problems and skills that best fit their unique profiles with an AI chatbot to elaborate more on the saved careers.
+- Intelligent Document Creation:
+  The system automatically fetches user emails, identifies those containing invoices, scrapes the invoice data, and securely stores it in the database.
 
-- Chatting feature with speech-to-text:
-  Allows students to start conversations with mentors and vice-versa with an option to record a voice and auto transcribe it to text to facilitates communication.
+- Smart Invoice Scraping:
+  The system automatically fetches user emails, identifies those containing invoices, scrapes the invoice data, and securely stores it in the database.
 
-- Automated Workflow:
-  Collects chats between users and the AI-chatbot and provides a summary about each chat to assess the chatbot responses and users intentions while using the chatbot.
+- CSV Report Generation:
+  Easily export member work hours into a structured CSV file, making tracking and reporting seamless.
+
+  <img src="./Readme/demo/features.png">
   <br><br>
 
 <!-- Demo -->
@@ -43,17 +45,31 @@
 
 ### Users Screens
 
-| Get Recommendations                                   | Save Path                                   |
-| ----------------------------------------------------- | ------------------------------------------- |
-| ![Recommendations](./readme/demo/Recommendations.gif) | ![SavingPath](./readme/demo/SavingPath.gif) |
+| Landing Page                                  | Login Page                             |
+| --------------------------------------------- | -------------------------------------- |
+| ![LandingPage](./Readme/demo/landingPage.png) | ![LoginPage](./readme/demo/signin.png) |
 
-| Quests & Problems                                         | AI-Chatbot                            |
-| --------------------------------------------------------- | ------------------------------------- |
-| ![QuestsAndProblems](./readme/demo/QuestsAndProblems.gif) | ![Chatbot](./readme/demo/Chatbot.gif) |
+| Registration                              | Projects                                |
+| ----------------------------------------- | --------------------------------------- |
+| ![Registration](./Readme/demo/signup.png) | ![Projects](./Readme/demo/projects.png) |
 
-| Live Chatting                            | Speech to Text                                  |
-| ---------------------------------------- | ----------------------------------------------- |
-| ![Chatting](./readme/demo/LiveChats.gif) | ![SpeechToText](./readme/demo/SpeechToText.gif) |
+| Teams                                | Time Tracking                                   |
+| ------------------------------------ | ----------------------------------------------- |
+| ![Chatting](./Readme/demo/teams.png) | ![SpeechToText](./Readme/demo/timeTracking.png) |
+
+| invoices                                | contracts                                 |
+| --------------------------------------- | ----------------------------------------- |
+| ![Invoices](./Readme/demo/invoices.png) | ![Contracts](./Readme/demo/contracts.png) |
+
+| clients                               |
+| ------------------------------------- |
+| ![Clients](./Readme/demo/clients.png) |
+
+### AI Automation
+
+| N8N Workflow                          |
+| ------------------------------------- |
+| ![N8NWorkflow](./Readme/demo/n8n.png) |
 
 <br><br>
 
@@ -66,10 +82,18 @@
 | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | ![FrontendService](./readme/demo/FrontendService.png) ![BackendService](./readme/demo/BackendService.png) | ![FrontendValidation](./readme/demo/FrontendValidation.png) ![BackendValidation](./readme/demo/BackendValidation.png) | ![FrontendTest](./readme/demo/FrontendTest.png) ![BackendTest](./readme/demo/BackendTest.png) |
 
+| CI Workflow                         |
+| ----------------------------------- |
+| ![CIWorkflow](./Readme/demo/CI.png) |
+
 <br><br>
 
 <!-- Deployment -->
 <img src="./Readme/title7.svg"/>
+
+### Deployment Architecture
+
+<img src="./Readme/demo/deployment.jpg"/>
 
 ### API Testing with Postman
 
