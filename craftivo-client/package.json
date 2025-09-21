@@ -9,7 +9,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --progress=false",
+  "test:ci": "ng test --watch=false --browsers=ChromeHeadless --progress=false --code-coverage",
     "ci:install": "node scripts/ci-install.js",
     "cleanup": "node scripts/preinstall-clean.js",
     "serve:ssr:craftivo-client": "node dist/craftivo-client/server/server.mjs"

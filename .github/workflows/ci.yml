@@ -76,9 +76,6 @@ jobs:
         run: npx prisma db seed
       - name: Unit tests
         working-directory: "craftivo server"
-        run: npm test -- --runInBand --passWithNoTests
-      - name: Coverage (unit)
-        working-directory: "craftivo server"
         run: npm test -- --runInBand --coverage --passWithNoTests
       - name: E2E tests
         working-directory: "craftivo server"
@@ -134,9 +131,6 @@ jobs:
       - name: Unit tests
         working-directory: craftivo-client
         run: npm run test:ci
-      - name: Unit tests with coverage
-        working-directory: craftivo-client
-        run: npm run test:ci -- --code-coverage
       - name: Upload frontend coverage
         if: always()
         uses: actions/upload-artifact@v4
