@@ -1,0 +1,33 @@
+<section class="panel">
+    <div class="panel__head">
+        <h2>Team Overview</h2>
+        <p class="muted">Track your team's productivity and hours</p>
+    </div>
+
+    <div class="table">
+        <div class="tr th">
+            <div class="td name">Member</div>
+            <div class="td">Today</div>
+            <div class="td">This Week</div>
+            <div class="td">Total Hours</div>
+            <div class="td">Revenue</div>
+            <div class="td progress">Progress</div>
+        </div>
+
+        @for (m of members; track m.name) {
+        <div class="tr">
+            <div class="td name">{{ m.name }}</div>
+            <div class="td">{{ m.todayHours | number:'1.0-2' }}h</div>
+            <div class="td">{{ m.weekHours | number:'1.0-2' }}h</div>
+            <div class="td">{{ m.totalHours | number:'1.0-2' }}h</div>
+            <div class="td">${{ m.revenueUSD | number:'1.0-1' }}</div>
+            <div class="td progress">
+                <div class="bar">
+                    <div class="fill" [style.width.%]="m.progressPct"></div>
+                </div>
+                <span class="pct">{{ m.progressPct }}%</span>
+            </div>
+        </div>
+        }
+    </div>
+</section>

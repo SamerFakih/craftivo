@@ -1,0 +1,327 @@
+/* Base page styling - consistent with other pages */
+.page {
+  padding: 14px;
+}
+
+/* Header section - matches team.css and task.css */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0b0f14;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* Button styling - consistent with other pages */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid teal;
+  background: teal;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn.btn--ghost {
+  background: #fff;
+  color: teal;
+  border-color: #c2c2c2;
+  font-weight: 600;
+}
+.btn.btn--ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.head__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn .icon {
+  width: 18px;
+  height: 18px;
+  fill: #fff;
+}
+
+/* KPI section */
+.kpis {
+  margin: 12px 0;
+}
+
+/* Content grid layout */
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* Panel styling - consistent with other pages */
+.content-panel {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #c2c2c2;
+}
+
+.panel__head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0b0f14;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 2px 0 0;
+}
+
+.view-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: teal;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.view-all-link:hover {
+  color: #0d7377;
+}
+
+.view-all-link .icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* List styling */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Project card styling */
+.project-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  transition: border-color 0.2s;
+}
+
+.project-info {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.project-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0b0f14;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #6b7280;
+  min-width: 30px;
+}
+
+.project-meta {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.budget {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0b0f14;
+}
+
+.due-date {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Task card styling */
+.task-card {
+  padding: 12px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  transition: border-color 0.2s;
+}
+
+.task-card:hover {
+  border-color: #cbd5e1;
+}
+
+.task-card h3 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0b0f14;
+}
+
+.task-meta {
+  margin: 6px 0 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Activity card styling */
+.activity-card {
+  padding: 12px;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  transition: border-color 0.2s;
+}
+
+.activity-card h3 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0b0f14;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-button:hover {
+  border-color: teal;
+  color: teal;
+}
+
+.action-button .icon {
+  width: 20px;
+  height: 20px;
+  fill: #6b7280;
+}
+
+.action-button span {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Error + utility */
+.error-banner {
+  border: 1px solid #ef4444;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: teal;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .project-info {
+    margin-right: 0;
+  }
+
+  .project-meta {
+    text-align: left;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 560px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .panel__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

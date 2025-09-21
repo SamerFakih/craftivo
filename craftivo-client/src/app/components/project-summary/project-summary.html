@@ -1,0 +1,20 @@
+<section class="grid">
+    <article class="card" *ngFor="let c of cards">
+        <header>
+            <h3>{{ c.project }}</h3>
+            <p class="muted">{{ c.client }}</p>
+        </header>
+
+        <div class="stats">
+            <div><span class="lbl">Total Hours</span><span class="val">{{ c.totalHours }}h</span></div>
+            <div><span class="lbl">Revenue</span><span class="val">${{ c.revenueUSD | number:'1.0-0' }}</span></div>
+        </div>
+
+        <div class="recent">
+            <span class="lbl">Recent Activity</span>
+            <ul>
+                <li *ngFor="let r of c.recent">{{ r.label }} <span class="muted">{{ r.hours }}h</span></li>
+            </ul>
+        </div>
+    </article>
+</section>

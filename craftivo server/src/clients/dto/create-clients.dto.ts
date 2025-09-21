@@ -1,39 +1,63 @@
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateClientDto {
   @ApiProperty({ description: 'Client name', example: 'Client Name' })
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
   @ApiProperty({ description: 'Client email', example: 'client@example.com' })
+  @IsEmail()
   email: string;
 
   @ApiProperty({ description: 'Client phone', example: '+1234567890' })
-  phone: string;
+  @IsString()
+  @IsOptional()
+  phone?: string;
 
   @ApiProperty({ description: 'Client company', example: 'Client Company' })
-  company: string;
+  @IsString()
+  @IsOptional()
+  company?: string;
 
   @ApiProperty({
     description: 'Client address',
     example: '123 Main St, City, Country',
   })
-  address: string;
+  @IsString()
+  @IsOptional()
+  address?: string;
 
   @ApiProperty({
     description: 'Client website',
     example: 'https://clientwebsite.com',
   })
-  website: string;
+  @IsString()
+  @IsOptional()
+  website?: string;
 
   @ApiProperty({
     description: 'Client notes',
     example: 'Some notes about the client',
   })
-  notes: string;
+  @IsString()
+  @IsOptional()
+  notes?: string;
 
-  @ApiProperty({ description: 'created by', example: 'User ID' })
+  @ApiProperty({ description: 'created by', example: 1 })
+  @IsNumber()
   created_by: number;
 
   @ApiProperty({ description: 'active status', example: true })
-  active: boolean;
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean;
 }

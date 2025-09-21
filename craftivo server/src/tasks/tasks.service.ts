@@ -1,32 +1,65 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
-    return this.prisma.tasks.findMany({
-      where: { active: true },
+  async findAllByUser(userId: number) {
+    const tasks = await this.prisma.tasks.findMany({
+      where: {
+        OR: [{ created_by: userId }, { assigned_to: userId }],
+      },
       include: {
         projects: {
-          select: { id: true, name: true },
+          select: {
+            name: true,
+            clients: { select: { name: true } },
+          },
         },
         assigned_user: {
-          select: { id: true, first_name: true, last_name: true },
+          select: {
+            first_name: true,
+            last_name: true,
+            profile_image: true,
+          },
         },
-        creator: {
-          select: { id: true, first_name: true, last_name: true },
-        },
+        task_attachments: true,
+        task_comments: true,
+        task_tags: { select: { tag_name: true } },
       },
       orderBy: { created_at: 'desc' },
     });
+    return tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      subtitle: t.description || '',
+      project: t.projects?.name || '',
+      client: t.projects?.clients?.name || '',
+      dueISO: t.due_date ? t.due_date.toISOString() : null,
+      assignee: {
+        name: [t.assigned_user?.first_name, t.assigned_user?.last_name]
+          .filter(Boolean)
+          .join(' '),
+        avatarUrl: t.assigned_user?.profile_image || '',
+      },
+      emailReminder: t.email_reminder || false,
+      attachmentsCount: t.task_attachments?.length || 0,
+      commentsCount: t.task_comments?.length || 0,
+      tags: t.task_tags?.map((tag) => tag.tag_name) || [],
+      status: t.status,
+    }));
   }
 
-  async findOne(id: number) {
-    const task = await this.prisma.tasks.findUnique({
-      where: { id },
+  async findOne(id: number, userId: number) {
+    const task = await this.prisma.tasks.findFirst({
+      where: {
+        id,
+        OR: [{ created_by: userId }, { assigned_to: userId }],
+        active: true,
+      },
       include: {
         projects: true,
         assigned_user: {
@@ -48,7 +81,9 @@ export class TasksService {
     });
 
     if (!task) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      throw new NotFoundException(
+        `Task with ID ${id} not found or access denied`,
+      );
     }
 
     return task;
@@ -78,15 +113,26 @@ export class TasksService {
     }
   }
 
-  async update(id: number, data: CreateTaskDto) {
+  async update(id: number, data: UpdateTaskDto, userId: number) {
     try {
       const taskData = {
         ...data,
         due_date: data.due_date ? new Date(data.due_date) : undefined,
       };
-      const task = await this.prisma.tasks.findUnique({ where: { id } });
+
+      // Check if user has permission to update this task
+      const task = await this.prisma.tasks.findFirst({
+        where: {
+          id,
+          OR: [{ created_by: userId }, { assigned_to: userId }],
+          active: true,
+        },
+      });
+
       if (!task) {
-        throw new NotFoundException(`Task with ID ${id} not found`);
+        throw new NotFoundException(
+          `Task with ID ${id} not found or access denied`,
+        );
       }
 
       return await this.prisma.tasks.update({
@@ -108,11 +154,21 @@ export class TasksService {
     }
   }
 
-  async delete(id: number) {
+  async delete(id: number, userId: number) {
     try {
-      const task = await this.prisma.tasks.findUnique({ where: { id } });
+      // Check if user has permission to delete this task (only creator can delete)
+      const task = await this.prisma.tasks.findFirst({
+        where: {
+          id,
+          created_by: userId, // Only creator can delete
+          active: true,
+        },
+      });
+
       if (!task) {
-        throw new NotFoundException(`Task with ID ${id} not found`);
+        throw new NotFoundException(
+          `Task with ID ${id} not found or insufficient permissions`,
+        );
       }
 
       return await this.prisma.tasks.update({

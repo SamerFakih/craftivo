@@ -1,0 +1,108 @@
+<header class="header">
+    <div class="header-left">
+        <!-- Mobile sidebar toggle -->
+        <button (click)="toggleSidebar()" class="sidebar-toggle-btn mobile-only">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M3 12h18M3 6h18M3 18h18" />
+            </svg>
+        </button>
+
+        <div class="logo-section">
+            <img src="/craftivo-logo.png" alt="Craftivo Logo" class="logo" />
+            <h1 class="app-title">{{ title() }}</h1>
+        </div>
+    </div>
+
+    <nav class="nav">
+        <!-- Not logged in - Landing page navigation -->
+        <ng-container *ngIf="!isLoggedIn(); else loggedInNav">
+            <ul class="nav-list">
+                <li><a routerLink="/signin" class="nav-link">Sign In</a></li>
+                <li><a routerLink="/signup" class="nav-link nav-link--primary">Get Started</a></li>
+            </ul>
+        </ng-container>
+
+        <!-- Logged in - Dashboard navigation -->
+        <ng-template #loggedInNav>
+            <div class="nav-logged-in">
+                <!-- Search bar -->
+                <div class="search-container">
+                    <svg class="search-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" />
+                    </svg>
+                    <input type="text" class="search-bar" placeholder="Search projects, tasks, clients..."
+                        [(ngModel)]="searchQuery" (input)="onSearch($event)" />
+                </div>
+
+                <!-- Notifications -->
+                <button class="notif-btn" (click)="toggleNotifications()"
+                    [class.has-notifications]="hasNotifications()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <span *ngIf="notificationCount() > 0" class="notification-badge">{{ notificationCount() }}</span>
+                </button>
+
+                <!-- User menu -->
+                <div class="user-menu" (click)="toggleUserMenu()">
+                    <img [src]="userAvatar()" alt="User Avatar" class="avatar" />
+                    <div class="user-info desktop-only">
+                        <span class="user-name">{{ userName() }}</span>
+                    </div>
+                    <svg class="dropdown-icon desktop-only" viewBox="0 0 24 24">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- User dropdown menu -->
+            <div class="user-dropdown" *ngIf="showUserMenu()">
+                <div class="dropdown-item">
+                    <svg class="dropdown-icon" viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span>Profile</span>
+                </div>
+                <div class="dropdown-item">
+                    <svg class="dropdown-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <span>Settings</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item logout" (click)="logout()">
+                    <svg class="dropdown-icon" viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                    </svg>
+                    <span>Logout</span>
+                </div>
+            </div>
+
+            <!-- Notifications dropdown -->
+            <div class="notifications-dropdown" *ngIf="showNotifications()">
+                <div class="dropdown-header">
+                    <h3>Notifications</h3>
+                    <button class="mark-all-read" (click)="markAllAsRead()">Mark all as read</button>
+                </div>
+                <div class="notifications-list">
+                    <div class="notification-item" *ngFor="let notification of notifications()">
+                        <div class="notification-icon">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 15l-5-5 1.41-1.41L12 14.17l7.59-7.58L21 8l-9 9z" />
+                            </svg>
+                        </div>
+                        <div class="notification-content">
+                            <p class="notification-text">{{ notification.message }}</p>
+                            <span class="notification-time">{{ notification.time }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+    </nav>
+</header>

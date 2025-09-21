@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// Removed legacy eslint-disable directives after refactor
 import {
   Body,
   Controller,
@@ -7,10 +6,12 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
-  Req,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,36 +22,39 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectsService } from './projects.service';
+import { UserId } from '../common/decorators/user-id.decorator';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('projects')
 @ApiBearerAuth()
 @Controller('projects')
+@UseGuards(AuthGuard('jwt'))
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
-  @ApiOperation({ summary: 'Get all projects' })
-  @ApiResponse({ status: 200, description: 'Return all projects.' })
+  @ApiOperation({ summary: 'Get all projects for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all projects for the user.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@UserId() userId: number) {
+    return this.projectsService.findAll(userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   @ApiOperation({ summary: 'Get a project by id' })
   @ApiParam({ name: 'id', type: 'number', description: 'Project ID' })
   @ApiResponse({ status: 200, description: 'Return the project.' })
   @ApiResponse({ status: 404, description: 'Project not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.projectsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.projectsService.findOne(id, userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: 'Create a new project' })
   @ApiBody({ type: CreateProjectDto })
@@ -60,19 +64,14 @@ export class ProjectsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createProjectDto: CreateProjectDto, @Req() req) {
-    const userId = req.user.userId;
-    return this.projectsService.create({
-      ...createProjectDto,
-      owner_id: userId,
-    });
+  create(@Body() createProjectDto: CreateProjectDto, @UserId() userId: number) {
+    return this.projectsService.create(createProjectDto, userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   @ApiOperation({ summary: 'Update a project' })
   @ApiParam({ name: 'id', type: 'number', description: 'Project ID' })
-  @ApiBody({ type: CreateProjectDto })
+  @ApiBody({ type: UpdateProjectDto })
   @ApiResponse({
     status: 200,
     description: 'The project has been successfully updated.',
@@ -81,9 +80,38 @@ export class ProjectsController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateProjectDto: CreateProjectDto,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @UserId() userId: number,
   ) {
-    return this.projectsService.update(id, updateProjectDto);
+    return this.projectsService.update(id, updateProjectDto, userId);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Partially update a project' })
+  @ApiParam({ name: 'id', type: 'number', description: 'Project ID' })
+  @ApiBody({ type: UpdateProjectDto })
+  @ApiResponse({
+    status: 200,
+    description: 'The project has been successfully updated.',
+  })
+  @ApiResponse({ status: 404, description: 'Project not found.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+      skipMissingProperties: true,
+      forbidUnknownValues: false,
+    }),
+  )
+  patchUpdate(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @UserId() userId: number,
+  ) {
+    return this.projectsService.update(id, updateProjectDto, userId);
   }
 
   @Delete(':id')
@@ -94,7 +122,7 @@ export class ProjectsController {
     description: 'The project has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Project not found.' })
-  delete(@Param('id') id: number) {
-    return this.projectsService.delete(id);
+  delete(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.projectsService.delete(id, userId);
   }
 }

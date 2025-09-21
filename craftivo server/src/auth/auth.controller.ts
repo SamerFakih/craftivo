@@ -1,29 +1,140 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+// Cleaned unused eslint-disable directives
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Res,
+  UseGuards,
+  Request,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UserId } from '../common/decorators/user-id.decorator';
+import { JwtAuthGuard } from './jwt.guard';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+import { LoginUserDto, AuthResponseDto } from './dto/index';
+import { UserProfileDto } from './dto/user-profile.dto';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
-
-  @Post('login')
-  @ApiOperation({ summary: 'Login a user' })
-  @ApiBody({ type: CreateUserDto })
-  @ApiResponse({ status: 200, description: 'User logged in successfully.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async login(@Body() Body: { email: string; password: string }) {
-    const user = await this.authService.validateUser(Body.email, Body.password);
-    return this.authService.login(user);
-  }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Register a new user',
+    description: 'Create a new user account with email and password',
+  })
   @ApiBody({ type: CreateUserDto })
-  @ApiResponse({ status: 201, description: 'User registered successfully.' })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
-  async register(@Body() CreateUserDto: CreateUserDto) {
-    return this.authService.register(CreateUserDto);
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'User registered successfully',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation error or user already exists',
+  })
+  async register(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthResponseDto> {
+    return this.authService.register(createUserDto, response);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login user',
+    description: 'Authenticate user with email and password',
+  })
+  @ApiBody({ type: LoginUserDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User logged in successfully',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid credentials',
+  })
+  async login(
+    @Body() loginDto: LoginUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<AuthResponseDto> {
+    return this.authService.login(loginDto, response);
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get current user profile',
+    description: 'Retrieve authenticated user information',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User profile retrieved successfully',
+    type: UserProfileDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or missing authentication token',
+  })
+  async getProfile(@UserId() userId: number): Promise<UserProfileDto> {
+    return this.authService.getProfile(userId);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Logout user',
+    description: 'Clear authentication cookie and logout user',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User logged out successfully',
+  })
+  logout(@Res({ passthrough: true }) response: Response): { message: string } {
+    return this.authService.logout(response);
+  }
+
+  @Get('verify')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Verify token',
+    description: 'Check if current token is valid',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Token is valid',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Token is invalid or expired',
+  })
+  verifyToken(
+    @Request() req: { user: { user_id: number; email: string; role: string } },
+  ): {
+    valid: boolean;
+    user: { id: number; email: string; role: string };
+  } {
+    const { user } = req;
+    return {
+      valid: true,
+      user: { id: user.user_id, email: user.email, role: user.role },
+    };
   }
 }

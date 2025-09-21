@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   IsOptional,
   IsString,
   IsInt,
   IsBoolean,
   IsDateString,
-  IsDecimal,
+  IsNumber,
   IsEnum,
   Min,
 } from 'class-validator';
@@ -53,12 +52,12 @@ export class UpdateTimeEntriesDto extends PartialType(CreateTimeEntriesDto) {
   billable?: boolean;
 
   @IsOptional()
-  @IsDecimal({ decimal_digits: '2' })
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Type(() => Number)
   hourly_rate?: number;
 
   @IsOptional()
-  @IsDecimal({ decimal_digits: '2' })
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Type(() => Number)
   amount?: number;
 

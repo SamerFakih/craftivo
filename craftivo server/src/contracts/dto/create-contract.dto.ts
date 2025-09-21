@@ -2,7 +2,7 @@ import {
   IsString,
   IsInt,
   IsOptional,
-  IsDecimal,
+  IsNumber,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -65,9 +65,10 @@ export class CreateContractDto {
   @ApiPropertyOptional({
     description: 'Contract value',
     example: 5000.0,
+    type: 'number',
   })
   @IsOptional()
-  @IsDecimal()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   contract_value?: number;
 

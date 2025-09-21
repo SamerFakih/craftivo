@@ -1,0 +1,65 @@
+{
+  "name": "craftivo-client",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "preinstall": "node scripts/preinstall-clean.js",
+    "ng": "ng",
+    "start": "ng serve --proxy-config proxy.conf.json",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --progress=false --code-coverage",
+    "ci:install": "node scripts/ci-install.js",
+    "cleanup": "node scripts/preinstall-clean.js",
+    "serve:ssr:craftivo-client": "node dist/craftivo-client/server/server.mjs",
+    "check:angular": "node scripts/check-angular-versions.js"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "dependencies": {
+    "@angular/animations": "20.2.4",
+    "@angular/cdk": "20.2.4",
+    "@angular/common": "20.2.4",
+    "@angular/compiler": "20.2.4",
+    "@angular/core": "20.2.4",
+    "@angular/forms": "20.2.4",
+    "@angular/material": "20.2.4",
+    "@angular/platform-browser": "20.2.4",
+    "@angular/platform-browser-dynamic": "20.2.4",
+    "@angular/platform-server": "20.2.4",
+    "@angular/router": "20.2.4",
+    "@angular/ssr": "20.2.2",
+    "@primeuix/themes": "1.2.3",
+    "primeicons": "7.0.0",
+    "primeng": "20.1.2",
+    "zone.js": "0.15.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^20.2.2",
+    "@angular/build": "20.1.6",
+    "@angular/cli": "20.2.1",
+    "@angular/compiler-cli": "20.2.4",
+    "@types/express": "^5.0.1",
+    "@types/jasmine": "~5.1.0",
+    "@types/node": "^20.17.19",
+    "jasmine-core": "~5.9.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "puppeteer": "24.20.0",
+    "typescript": "~5.8.3"
+  }
+}

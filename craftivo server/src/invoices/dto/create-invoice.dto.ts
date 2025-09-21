@@ -2,10 +2,10 @@ import {
   IsString,
   IsInt,
   IsOptional,
-  IsDecimal,
   IsDateString,
   IsEnum,
   IsArray,
+  IsNumber,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { InvoiceStatus } from '@prisma/client';
@@ -26,11 +26,11 @@ export class CreateInvoiceItemDto {
   description: string;
 
   @ApiProperty({ description: 'The quantity of the item', example: 2 })
-  @IsDecimal()
+  @IsNumber({ maxDecimalPlaces: 2 })
   quantity: number;
 
   @ApiProperty({ description: 'The unit price of the item', example: 100 })
-  @IsDecimal()
+  @IsNumber({ maxDecimalPlaces: 2 })
   unit_price: number;
 
   @ApiPropertyOptional({
@@ -55,6 +55,10 @@ export class CreateInvoiceDto {
   @IsInt()
   client_id?: number;
 
+  @IsOptional()
+  @IsNumber()
+  discount_amount?: number;
+
   @ApiPropertyOptional({ description: 'Project ID', example: 1 })
   @IsOptional()
   @IsInt()
@@ -76,7 +80,7 @@ export class CreateInvoiceDto {
 
   @ApiPropertyOptional({
     description: 'The status of the invoice',
-    example: 'PENDING',
+    example: 'Paid',
   })
   @IsOptional()
   @IsEnum(InvoiceStatus)
@@ -87,7 +91,7 @@ export class CreateInvoiceDto {
     example: 20,
   })
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   tax_rate?: number;
 
   @ApiPropertyOptional({

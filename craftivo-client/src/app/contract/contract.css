@@ -1,0 +1,563 @@
+:host {
+  --surface: #fff;
+  --border: #c2c2c2; /* align with rest of app */
+  --muted: #6b7280;
+  --text: #0b0f14;
+  --teal: teal;
+  --purple: #7c3aed;
+}
+
+.contracts-page {
+  padding: 24px;
+}
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.page-header h1 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  color: #0b0f14;
+}
+.page-header .subtitle {
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+/* KPI grid matching SummaryCards */
+.kpi .summary {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+}
+.kpi .card-summary {
+  grid-column: span 3;
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 14px;
+}
+.kpi .summary-label {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.kpi .summary-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0b0f14;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kpi .summary-icon {
+  width: 18px;
+  .my-contracts {
+    padding: 12px 12px 6px;
+  }
+  .contract-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 6px;
+  }
+  .contract-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--border, #c2c2c2);
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+  }
+  .contract-row .left {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .status-icon {
+    font-size: 18px;
+  }
+  .status-icon.signed {
+    color: #16a34a;
+  }
+  .status-icon.pending {
+    color: #f59e0b;
+  }
+  .status-icon.draft {
+    color: #64748b;
+  }
+  .contract-row .info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .contract-row .title-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .contract-row .title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .contract-row .sub {
+    color: var(--muted, #6b7280);
+    font-size: 13px;
+  }
+  .contract-row .created {
+    color: #9ca3af;
+    font-size: 12px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: lowercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .badge-signed {
+    background: #e7f7eb;
+    color: #16a34a;
+  }
+  .badge-pending {
+    background: #fff6e6;
+    color: #b45309;
+  }
+  .badge-draft {
+    background: #eef2f7;
+    color: #475569;
+  }
+  .contract-row .right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .contract-row .amount {
+    color: #b45309;
+    font-weight: 800;
+  }
+  .icon-btn {
+    background: #fff;
+    border: 1px solid var(--border, #c2c2c2);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .icon-btn:hover {
+    background: #f8fafc;
+  }
+  height: 18px;
+  color: teal;
+}
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  .contract-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  border: 1px solid #c2c2c2;
+  border-radius: 10px; /* consistent radius */
+}
+.stat .icon {
+  font-size: 20px;
+}
+.stat .icon.success {
+  color: #16a34a;
+}
+.stat .icon.warning {
+  color: #f59e0b;
+}
+.stat .icon.text-purple {
+  color: var(--purple);
+}
+.stat .label {
+  color: var(--muted);
+  font-size: 12px;
+}
+.stat .value {
+  .contract-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  color: var(--text);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.actions {
+  justify-self: end;
+  display: flex;
+  gap: 12px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border, #c2c2c2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: teal;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.btn.primary {
+  background: teal;
+  color: #fff;
+  border-color: var(--teal, teal);
+}
+.btn.ghost {
+  background: #fff;
+  color: #0b0f14;
+  border-color: var(--border, #c2c2c2);
+}
+.btn.ghost:hover {
+  background: #f3f4f6;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.15);
+}
+
+.tabs {
+  margin-top: 12px;
+  display: inline-flex;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #c2c2c2);
+  margin-bottom: 14px;
+}
+.tab {
+  border: 1px solid var(--border, #c2c2c2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+}
+.tab.active {
+  background: teal;
+  color: #fff;
+}
+
+.templates-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.template-card {
+  border: 1px solid var(--border, #c2c2c2);
+  border-radius: 10px;
+  padding: 16px;
+}
+.template-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.template-card .badge {
+  font-size: 12px;
+  border: 1px solid var(--border, #c2c2c2);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f8fafc;
+}
+.template-card .price {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+}
+.template-card .title {
+  margin: 10px 0 4px 0;
+  font-size: 18px;
+}
+.template-card .subtitle {
+  margin: 0 0 10px 0;
+  color: var(--muted);
+}
+.template-card .chip {
+  display: inline-flex;
+  padding: 4px 8px;
+  border: 1px solid var(--border, #c2c2c2);
+  border-radius: 999px;
+  font-size: 12px;
+  background: #fff;
+  color: #334155;
+}
+.template-card .includes h4 {
+  margin: 12px 0 8px 0;
+}
+.template-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+.template-card li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+.template-card .card-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.placeholder {
+  margin-top: 20px;
+  color: var(--muted);
+}
+
+/* Contract Generator */
+.generator-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.card {
+  border: 1px solid #c2c2c2;
+  border-radius: 10px;
+  padding: 16px;
+}
+.card-title {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+}
+.muted {
+  color: var(--muted, #6b7280);
+  margin: 0 0 12px 0;
+}
+
+.form .grid.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form .field.full,
+.terms-grid .field.full {
+  grid-column: 1 / -1;
+}
+.form label {
+  font-size: 12px;
+  color: #334155;
+  font-weight: 600;
+}
+.form input,
+.form select,
+.form textarea {
+  border: 1px solid var(--border, #c2c2c2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #0b0f14;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.form textarea {
+  resize: vertical;
+}
+.form input::placeholder,
+.form textarea::placeholder {
+  color: #9ca3af;
+}
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  border-color: teal;
+  box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.12);
+  background: #fff;
+}
+
+/* Locked (auto-filled) project fields */
+.form .locked[disabled] {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+.form .locked[disabled]::placeholder {
+  color: #94a3b8;
+}
+
+.preview-card .paper {
+  margin-top: 8px;
+  border: 1px solid #c2c2c2;
+  border-radius: 12px;
+  padding: 18px;
+}
+.paper-title {
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+.paper-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.paper hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 10px 0;
+}
+.paper .meta {
+  font-size: 12px;
+  color: #111827;
+  margin: 6px 0;
+}
+.paper .meta span {
+  font-weight: 700;
+  color: #111827;
+}
+.paper .note {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.terms-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.term {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border, #c2c2c2);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.term-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+.term-sub {
+  color: var(--muted);
+  font-size: 12px;
+}
+.term-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* iOS-like switch */
+.switch {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  display: inline-block;
+}
+.switch input {
+  display: none;
+}
+.switch span {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #e5e7eb;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+.switch span::after {
+  content: '';
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+.switch input:checked + span {
+  background: teal;
+}
+.switch input:checked + span::after {
+  transform: translateX(18px);
+}
+
+.footer-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.error-banner {
+  padding: 10px 12px;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 1024px) {
+  .templates-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kpi .card-summary {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 640px) {
+  .contracts-page {
+    padding: 16px;
+  }
+  .generator-grid {
+    grid-template-columns: 1fr;
+  }
+  .form .grid.two {
+    grid-template-columns: 1fr;
+  }
+  .stats {
+    grid-template-columns: 1fr;
+  }
+  .actions {
+    justify-self: start;
+  }
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+  .kpi .card-summary {
+    grid-column: span 12;
+  }
+}

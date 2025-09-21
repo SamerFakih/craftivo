@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   IsNotEmpty,
   IsOptional,
@@ -8,7 +5,7 @@ import {
   IsInt,
   IsBoolean,
   IsDateString,
-  IsDecimal,
+  IsNumber,
   IsEnum,
   Min,
 } from 'class-validator';
@@ -91,7 +88,7 @@ export class CreateTimeEntriesDto {
     example: 25.0,
   })
   @IsOptional()
-  @IsDecimal({ decimal_digits: '2' })
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Type(() => Number)
   hourly_rate?: number;
 
@@ -100,7 +97,7 @@ export class CreateTimeEntriesDto {
     example: 100.0,
   })
   @IsOptional()
-  @IsDecimal({ decimal_digits: '2' })
+  @IsNumber({ maxDecimalPlaces: 2 })
   @Type(() => Number)
   amount?: number;
 

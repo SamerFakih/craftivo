@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Body,
   Controller,
@@ -10,9 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Req,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,16 +19,18 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
 import { AuthGuard } from '@nestjs/passport';
+import { UserId } from '../common/decorators/user-id.decorator';
 
 @ApiTags('tasks')
 @ApiBearerAuth()
 @Controller('tasks')
+@UseGuards(AuthGuard('jwt'))
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   @ApiOperation({ summary: 'Get all tasks' })
   @ApiQuery({
@@ -43,35 +40,28 @@ export class TasksController {
   })
   @ApiResponse({ status: 200, description: 'Return all tasks.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findAll(@Query('project_id') projectId?: string) {
-    if (projectId) {
-      return this.tasksService.findByProject(parseInt(projectId));
-    }
-    return this.tasksService.findAll();
+  findAll(@UserId() userId: number) {
+    return this.tasksService.findAllByUser(userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('my-tasks')
   @ApiOperation({ summary: 'Get tasks assigned to or created by current user' })
   @ApiResponse({ status: 200, description: 'Return user tasks.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findMyTasks(@Req() req) {
-    const userId = req.user.userId;
+  findMyTasks(@UserId() userId: number) {
     return this.tasksService.findByUser(userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   @ApiOperation({ summary: 'Get a task by id' })
   @ApiParam({ name: 'id', type: 'number', description: 'Task ID' })
   @ApiResponse({ status: 200, description: 'Return the task.' })
   @ApiResponse({ status: 404, description: 'Task not found.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.tasksService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.tasksService.findOne(id, userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: 'Create a new task' })
   @ApiBody({ type: CreateTaskDto })
@@ -81,19 +71,17 @@ export class TasksController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  create(@Body() createTaskDto: CreateTaskDto, @Req() req) {
-    const userId = req.user.userId;
+  create(@Body() createTaskDto: CreateTaskDto, @UserId() userId: number) {
     return this.tasksService.create({
       ...createTaskDto,
       created_by: userId,
     });
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
   @ApiOperation({ summary: 'Update a task' })
   @ApiParam({ name: 'id', type: 'number', description: 'Task ID' })
-  @ApiBody({ type: CreateTaskDto })
+  @ApiBody({ type: UpdateTaskDto })
   @ApiResponse({
     status: 200,
     description: 'The task has been successfully updated.',
@@ -102,12 +90,12 @@ export class TasksController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateTaskDto: CreateTaskDto,
+    @Body() updateTaskDto: UpdateTaskDto,
+    @UserId() userId: number,
   ) {
-    return this.tasksService.update(id, updateTaskDto);
+    return this.tasksService.update(id, updateTaskDto, userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a task' })
   @ApiParam({ name: 'id', type: 'number', description: 'Task ID' })
@@ -116,7 +104,7 @@ export class TasksController {
     description: 'The task has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Task not found.' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.tasksService.delete(id);
+  delete(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
+    return this.tasksService.delete(id, userId);
   }
 }
