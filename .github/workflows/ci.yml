@@ -29,9 +29,9 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: samer
           POSTGRES_DB: craftivo
-        ports: ["5432:5432"]
+        ports: ["5433:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres" \
           --health-interval 5s \
