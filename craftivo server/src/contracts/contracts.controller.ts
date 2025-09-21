@@ -387,6 +387,22 @@ export class ContractsController {
     return this.contractsAgent.run(dto, userId);
   }
 
+  // Backwards compatibility for existing tests expecting /contracts/ai/generate-and-save
+  // Can be removed once tests are updated to use /contracts/agent/run
+  @Post('ai/generate-and-save')
+  @ApiOperation({
+    summary: 'LEGACY: Generate contract draft via AI agent (deprecated)',
+    description:
+      'Deprecated alias for /contracts/agent/run kept temporarily for test compatibility.',
+  })
+  @ApiResponse({ status: 201, description: 'Contract generated (legacy endpoint)' })
+  async legacyGenerateAndSave(
+    @Body() dto: AgentGenerateAndSaveDto,
+    @UserId() userId: number,
+  ) {
+    return this.contractsAgent.run(dto, userId);
+  }
+
   @Post('agent/from-project/:projectId')
   @ApiOperation({
     summary: 'Generate contract from a project',

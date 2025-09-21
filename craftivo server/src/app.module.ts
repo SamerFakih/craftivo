@@ -28,7 +28,12 @@ import { PrismaModule } from './prisma/prisma.module';
     InvoicesModule,
     TeamsModule,
     ContractsModule,
-    ConfigModule.forRoot({ isGlobal: true, validationSchema }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema,
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : undefined,
+      ignoreEnvFile: false,
+    }),
     ThrottlerModule.forRoot({
       throttlers: [
         {
