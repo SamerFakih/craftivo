@@ -14,6 +14,17 @@ describe('InvoiceCard', () => {
 
     fixture = TestBed.createComponent(InvoiceCard);
     component = fixture.componentInstance;
+    component.invoice = {
+      id: 1,
+      client: 'Acme Co',
+      project: 'Demo',
+      amountUSD: 1000,
+      issuedISO: new Date().toISOString(),
+      dueISO: new Date(Date.now() + 86400000).toISOString(),
+      paidISO: undefined,
+      status: 'pending',
+      currency: 'USD'
+    } as any;
     fixture.detectChanges();
   });
 

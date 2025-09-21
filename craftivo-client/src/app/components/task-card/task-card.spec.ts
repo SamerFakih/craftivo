@@ -14,6 +14,13 @@ describe('TaskCard', () => {
 
     fixture = TestBed.createComponent(TaskCard);
     component = fixture.componentInstance;
+    component.task = {
+      id: 1,
+      title: 'Sample Task',
+      status: 'open',
+      dueISO: new Date(Date.now()+3600000).toISOString(),
+      assignee: 'Jane'
+    } as any;
     fixture.detectChanges();
   });
 

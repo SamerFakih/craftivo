@@ -2,8 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
-
 import { AuthInterceptor } from './auth.interceptor';
 import { AuthService } from '../services/auth.service';
 
@@ -14,7 +12,7 @@ describe('AuthInterceptor', () => {
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    const authServiceSpy = jasmine.createSpyObj('AuthService', ['logout']);
+  const authServiceSpy = jasmine.createSpyObj('AuthService', ['logout', 'getToken']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
@@ -45,22 +43,34 @@ describe('AuthInterceptor', () => {
     expect(interceptor).toBeTruthy();
   });
 
-  it('should add withCredentials to requests', () => {
-    httpClient.get('/test').subscribe();
+  it('should add withCredentials and headers (token absent)', () => {
+    (authService.getToken as jasmine.Spy).and.returnValue(null);
+    httpClient.get('/test-no-token').subscribe();
 
-    const req = httpTestingController.expectOne('/test');
+    const req = httpTestingController.expectOne('/test-no-token');
     expect(req.request.withCredentials).toBe(true);
     expect(req.request.headers.get('Content-Type')).toBe('application/json');
+    expect(req.request.headers.has('Authorization')).toBeFalse();
+    req.flush({ ok: true });
+  });
+
+  it('should add Authorization header when token present', () => {
+    (authService.getToken as jasmine.Spy).and.returnValue('abc123');
+    httpClient.get('/token-test').subscribe();
+    const req = httpTestingController.expectOne('/token-test');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer abc123');
+    req.flush({ ok: true });
   });
 
   it('should handle 401 errors by calling logout', () => {
-    authService.logout.and.returnValue(of({}));
+    (authService.getToken as jasmine.Spy).and.returnValue('abc123');
+    authService.logout.and.stub();
 
-    httpClient.get('/test').subscribe({
-      error: () => {}, // Expected error
+    httpClient.get('/unauthorized').subscribe({
+      error: () => {},
     });
 
-    const req = httpTestingController.expectOne('/test');
+    const req = httpTestingController.expectOne('/unauthorized');
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     expect(authService.logout).toHaveBeenCalled();

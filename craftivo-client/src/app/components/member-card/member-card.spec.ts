@@ -14,6 +14,16 @@ describe('MemberCard', () => {
 
     fixture = TestBed.createComponent(MemberCard);
     component = fixture.componentInstance;
+    component.member = {
+      id: 1,
+      name: 'Jane Dev',
+      avatarUrl: 'http://example/avatar.png',
+      status: 'active',
+      hourlyRateUSD: 75,
+      hoursMonth: 40,
+      activeProjects: 3,
+      tasksDone: 10
+    } as any;
     fixture.detectChanges();
   });
 
