@@ -21,6 +21,8 @@
 
 <img src="./Readme/demo/ERdiagram.png"/>
 
+[Eraser Link](https://app.eraser.io/workspace/6fewLxrq1LB6N6Xzr0Rt)
+
 <br><br>
 
 <!-- Project Highlights -->
@@ -61,6 +63,10 @@
 | --------------------------------------- | ----------------------------------------- |
 | ![Invoices](./Readme/demo/invoices.png) | ![Contracts](./Readme/demo/contracts.png) |
 
+| Ai Contracts                              |
+| ----------------------------------------- |
+| ![Invoices](./Readme/demo/aiContract.gif) |
+
 ### AI Automation
 
 | N8N Workflow                          |
@@ -73,10 +79,6 @@
 <img src="./Readme/title6.svg"/>
 
 ### Functionality & Reliability
-
-| Services                                                                                                  | Validation                                                                                                            | Testing                                                                                       |
-| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| ![FrontendService](./readme/demo/FrontendService.png) ![BackendService](./readme/demo/BackendService.png) | ![FrontendValidation](./readme/demo/FrontendValidation.png) ![BackendValidation](./readme/demo/BackendValidation.png) | ![FrontendTest](./readme/demo/FrontendTest.png) ![BackendTest](./readme/demo/BackendTest.png) |
 
 | CI Workflow                         |
 | ----------------------------------- |
