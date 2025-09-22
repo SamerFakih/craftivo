@@ -95,7 +95,11 @@ export class ContractViewerComponent {
           // eslint-disable-next-line no-console
           console.warn('[ContractViewer] Loaded contract missing id field, raw:', c);
         }
-        this.contract.set(c as any);
+        // Enrich with fallback names if backend didn't flatten
+        const anyC: any = c;
+        const clientName = anyC.clientName || anyC.clients?.name;
+        const freelancerName = anyC.freelancerName || anyC.signed_by_freelancer || anyC.users?.name;
+        this.contract.set({ ...anyC, clientName, freelancerName });
         this.loading.set(false);
       },
       error: (e) => {
@@ -112,12 +116,6 @@ export class ContractViewerComponent {
     this.showSign.set(true);
   }
 
-  /**
-   * Collect values from the send modal inputs, validate, then delegate to doSend.
-   * Moved out of the template to avoid complex inline array/filter expressions that
-   * broke the template parser and to give us a single place to enhance validation
-   * or instrumentation (e.g. logging a 400 payload) while debugging backend schema.
-   */
   onSendClick(clientEmail?: string, freelancerEmail?: string, message?: string) {
     const recipients: { role: 'client' | 'freelancer'; email: string }[] = [];
     const push = (role: 'client' | 'freelancer', email?: string) => {
@@ -145,9 +143,6 @@ export class ContractViewerComponent {
     // Trim and omit empty message
     const payloadMessage = (message || '').trim() || undefined;
 
-    // Optional debug hook (uncomment while diagnosing 400s)
-    // console.debug('[ContractViewer] Sending contract payload', { recipients, message: payloadMessage });
-
     this.doSend({ recipients, message: payloadMessage });
   }
 
@@ -169,8 +164,6 @@ export class ContractViewerComponent {
       merged.push({ role: r.role, email: r.email });
     }
     const finalPayload: SendContractPayload = { recipients: merged, message: payload.message };
-    // Debug log to help diagnose backend 400s (safe to keep; remove if noisy)
-    // eslint-disable-next-line no-console
     console.debug('[ContractViewer] doSend final payload', finalPayload);
     this.sending.set(true);
     this.service.sendForSignature(c.id, finalPayload).subscribe({

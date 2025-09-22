@@ -8,20 +8,18 @@ export interface CreateContractPayload {
   clientEmail?: string;
   projectTitle: string;
   description?: string;
-  startDate?: string; // 'YYYY-MM-DD'
-  endDate?: string; // 'YYYY-MM-DD'
+  startDate?: string;
+  endDate?: string;
   totalAmount?: number;
-  paymentSchedule?: string; // UI label
-  // Optional extended fields if available from other parts of the app
+  paymentSchedule?: string;
   projectType?: string;
-  currency?: string; // default USD
+  currency?: string;
   deliverables?: string[];
   clientId?: number;
   projectId?: number;
   clientIndustry?: string;
   freelancerName?: string;
   title?: string;
-  // snake_case synonyms for compatibility if caller passes raw values
   client_id?: number;
   project_id?: number;
   contract_value?: number;
@@ -115,55 +113,38 @@ export interface PublicSignPayload {
 
 @Injectable({ providedIn: 'root' })
 export class ContractService {
-  // Backend has a global prefix in main.ts: app.setGlobalPrefix('api/v1')
   private apiUrl = API_BASE;
   private http = inject(HttpClient);
 
-  // Lightweight client-side cache (can be replaced with DataCacheService later)
   contracts = signal<ContractEntity[] | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
 
-  // ————— AI: Generate and save a draft from your form —————
   generateFromForm(payload: CreateContractPayload): Observable<{ contract: any; aiMeta: any }> {
     const body = this.mapUiToBackend(payload);
-    // Optional: enable debug logging by uncommenting below
-    // console.debug('[Contract] generate-and-save payload', body);
-    return (
-      this.http
-        // Updated endpoint per backend change: /contracts/agent/run
-        .post<any>(`${this.apiUrl}/contracts/agent/run`, body, { withCredentials: true })
-        .pipe(
-          map((resp) => {
-            // Backend swagger example may return flat contract fields + optional AI metadata
-            // Try to detect aiMeta nested or meta field
-            if (!resp) return { contract: {}, aiMeta: null } as any;
-            const aiMeta = resp.aiMeta || resp.meta || resp.ai_meta || null;
-            // If backend wraps contract inside resp.contract use it; else treat resp as contract
-            const rawContract = resp.contract || resp;
-            return { contract: rawContract, aiMeta };
-          }),
-          catchError((err) => {
-            // Provide clearer diagnostics for common local dev issues
-            if (err.status === 0) {
-              // eslint-disable-next-line no-console
-              console.error(
-                '[ContractService] Network/Proxy error calling agent/run. Check that:',
-                {
-                  suggestion:
-                    'Backend running on http://localhost:3000 and proxy.conf.json active (--proxy-config).',
-                  attemptedUrl: `${this.apiUrl}/contracts/agent/run`,
-                  original: err,
-                }
-              );
-            }
-            return this.handleError('Failed to generate contract', err);
-          })
-        )
-    );
+    return this.http
+      .post<any>(`${this.apiUrl}/contracts/agent/run`, body, { withCredentials: true })
+      .pipe(
+        map((resp) => {
+          if (!resp) return { contract: {}, aiMeta: null } as any;
+          const aiMeta = resp.aiMeta || resp.meta || resp.ai_meta || null;
+          const rawContract = resp.contract || resp;
+          return { contract: rawContract, aiMeta };
+        }),
+        catchError((err) => {
+          if (err.status === 0) {
+            console.error('[ContractService] Network/Proxy error calling agent/run. Check that:', {
+              suggestion:
+                'Backend running on http://localhost:3000 and proxy.conf.json active (--proxy-config).',
+              attemptedUrl: `${this.apiUrl}/contracts/agent/run`,
+              original: err,
+            });
+          }
+          return this.handleError('Failed to generate contract', err);
+        })
+      );
   }
 
-  // ————— Contracts —————
   getContracts(): Observable<ContractEntity[]> {
     this.loading.set(true);
     this.error.set(null);
@@ -184,7 +165,6 @@ export class ContractService {
       .pipe(catchError((err) => this.handleError('Failed to load contract', err)));
   }
 
-  // Persist a generated contract if agent/run only returns draft data
   saveContract(draft: any): Observable<ContractEntity> {
     const body: any = this.mapDraftToCreate(draft);
     return this.http
@@ -192,20 +172,17 @@ export class ContractService {
       .pipe(catchError((err) => this.handleError('Failed to save contract', err)));
   }
 
-  // Send for signature (placeholder until backend live)
   sendForSignature(id: number | string, payload: SendContractPayload): Observable<any> {
     return this.http
       .post(`${this.apiUrl}/contracts/${id}/send`, payload, { withCredentials: true })
       .pipe(
         catchError((err) => {
-          // eslint-disable-next-line no-console
           console.error('[ContractService] sendForSignature failed', {
             id,
             payload,
             status: err?.status,
             backendBody: err?.error,
           });
-          // Try to build a richer validation message
           const body = err?.error;
           if (body) {
             let msg: string | undefined;
@@ -292,12 +269,8 @@ export class ContractService {
       .pipe(catchError((err) => this.handleError('Failed to sign public contract', err)));
   }
 
-  // ————— helpers —————
-
   private mapUiToBackend(p: CreateContractPayload) {
-    // Ensure 'YYYY-MM-DD' (backend converts to Date)
     const toIsoDate = (d?: string) => (d ? new Date(d).toISOString().slice(0, 10) : undefined);
-    // Full ISO 8601 date-time string
     const toIsoDateTime = (d?: string) => (d ? new Date(d).toISOString() : undefined);
     const start = p.startDate ? new Date(p.startDate) : undefined;
     const end = p.endDate ? new Date(p.endDate) : undefined;
@@ -312,7 +285,6 @@ export class ContractService {
         ? Number(p.totalAmount)
         : undefined;
 
-    // Map UI to backend example schema; send both camelCase and snake_case where helpful
     const body: any = {
       projectTitle: p.projectTitle,
       projectDescription: p.description,
@@ -320,17 +292,13 @@ export class ContractService {
       currency: p.currency || 'USD',
       paymentStructure,
       durationWeeks,
-      // Provide startDate in camelCase as full ISO 8601 per backend validation
       startDate: toIsoDateTime(p.startDate || p.start_date),
-      // Prefer snake_case for dates to satisfy other backend consumers
       clientName: p.clientName,
       title: p.title || `${p.projectTitle} Agreement`,
-      // Project type must be one of the allowed enums
       projectType: p.projectType || 'web-development',
       deliverables: p.deliverables,
       clientIndustry: p.clientIndustry,
       freelancerName: p.freelancerName,
-      // Duplicates for compatibility with backend accepting snake_case
       contract_value: budget,
       start_date: toIsoDate(p.start_date || p.startDate),
       end_date: toIsoDate(p.end_date || p.endDate),
@@ -338,12 +306,10 @@ export class ContractService {
       project_id: p.project_id ?? p.projectId,
     };
 
-    // Remove undefined keys to keep payload clean
     Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
     return body;
   }
 
-  // Map agent draft response to create payload expected by POST /contracts
   private mapDraftToCreate(d: any) {
     if (!d) return {};
     const pick = (k: string) => (d[k] !== undefined ? d[k] : undefined);
@@ -372,7 +338,6 @@ export class ContractService {
     return label;
   }
 
-  // ————— Error helpers —————
   private extractMessage(err: any, fallback: string) {
     if (!err) return fallback;
     const body = err.error;
@@ -385,7 +350,6 @@ export class ContractService {
 
   private handleError<T = never>(fallback: string, err: any): Observable<T> {
     const msg = this.extractMessage(err, fallback);
-    // Optionally set a global error signal here
     return throwError(() => new Error(msg));
   }
 

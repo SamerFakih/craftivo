@@ -248,10 +248,7 @@ export class Contract {
     // Use AI-assisted backend to generate and save a draft (endpoint now /contracts/agent/run)
     this.contractService.generateFromForm(payload).subscribe({
       next: (res) => {
-        // Debug: log raw response shape for mismatch diagnostics
-        // eslint-disable-next-line no-console
         console.debug('[Contract Generate] raw response', res);
-        // Expected shape: { contract: {...}, aiMeta: {...} }
         const maybeContract = (res as any)?.contract ?? res;
         if (!maybeContract) {
           this.submitError.set('Empty response from server.');

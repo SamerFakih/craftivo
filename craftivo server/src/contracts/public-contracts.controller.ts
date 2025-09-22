@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Param, Body } from '@nestjs/common';
 import { ContractsService } from './contracts.service';
+import { mapContract } from './dto/contract-response.dto';
 import { PublicSignDto } from './dto/public-sign.dto';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
@@ -12,7 +13,9 @@ export class PublicContractsController {
   @ApiParam({ name: 'token', description: 'Public signing/view token' })
   @ApiOperation({ summary: 'Public view limited contract content via token' })
   view(@Param('token') token: string) {
-    return this.contractsService.publicView(token);
+    return this.contractsService
+      .publicView(token)
+      .then((c: any) => mapContract(c));
   }
 
   @Post(':token/sign')

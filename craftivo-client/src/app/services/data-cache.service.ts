@@ -53,9 +53,6 @@ export class DataCacheService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Get projects with caching
-   */
   getProjects(): Observable<any[]> {
     const cache = this.projectsCache$.value;
 
@@ -109,9 +106,6 @@ export class DataCacheService {
     return request$;
   }
 
-  /**
-   * Get tasks with caching
-   */
   getTasks(): Observable<any[]> {
     const cache = this.tasksCache$.value;
 
@@ -161,9 +155,6 @@ export class DataCacheService {
     return request$;
   }
 
-  /**
-   * Get team members with caching
-   */
   getTeamMembers(): Observable<any[]> {
     const cache = this.teamCache$.value;
 
@@ -215,9 +206,6 @@ export class DataCacheService {
     return request$;
   }
 
-  /**
-   * Get overview data with caching
-   */
   getOverview(): Observable<any> {
     const cache = this.overviewCache$.value;
 
@@ -259,7 +247,6 @@ export class DataCacheService {
         const normalizeTask = (t: any) => ({
           id: t?.id ?? t?._id ?? t?.task_id ?? undefined,
           title: t?.title ?? t?.name ?? 'Untitled Task',
-          // Bind supports template's task.projects?.name
           projects: t?.projects || t?.project || { name: t?.project_name ?? t?.projectName ?? '—' },
           due_time: t?.due_time ?? t?.due ?? t?.due_date ?? '',
           status: t?.status ?? t?.state ?? 'pending',
@@ -345,9 +332,6 @@ export class DataCacheService {
     return request$;
   }
 
-  /**
-   * Get loading state observables
-   */
   getProjectsLoading(): Observable<boolean> {
     return this.projectsCache$.pipe(map((cache: CacheItem<any[]>) => cache.loading));
   }
@@ -356,9 +340,6 @@ export class DataCacheService {
     return this.tasksCache$.pipe(map((cache: CacheItem<any[]>) => cache.loading));
   }
 
-  /**
-   * Invalidate specific cache
-   */
   invalidateProjects(): void {
     this.projectsCache$.next({
       data: [],
@@ -386,9 +367,6 @@ export class DataCacheService {
     console.log('🗑️ Team cache invalidated');
   }
 
-  /**
-   * Clear all caches
-   */
   clearAllCaches(): void {
     this.invalidateProjects();
     this.invalidateTasks();
@@ -403,9 +381,6 @@ export class DataCacheService {
     console.log('🗑️ All caches cleared');
   }
 
-  /**
-   * Get time entries with caching
-   */
   getTimeEntries(): Observable<any> {
     const cache = this.timeEntriesCache$.getValue();
 
@@ -462,9 +437,6 @@ export class DataCacheService {
     return request$;
   }
 
-  /**
-   * Invalidate time entries cache
-   */
   invalidateTimeEntries(): void {
     this.timeEntriesCache$.next({
       data: [],
@@ -474,9 +446,6 @@ export class DataCacheService {
     console.log('🗑️ Time entries cache invalidated');
   }
 
-  /**
-   * Check if cache is still valid
-   */
   private isCacheValid(timestamp: number): boolean {
     return Date.now() - timestamp < this.CACHE_DURATION;
   }

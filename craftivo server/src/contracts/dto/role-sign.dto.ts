@@ -29,6 +29,4 @@ export class SignRoleDto {
   signatureData?: string;
 }
 
-// Backward compatibility export (deprecated)
-// Remove after clients migrate to SignRoleDto
 export { SignRoleDto as RoleSignDto };

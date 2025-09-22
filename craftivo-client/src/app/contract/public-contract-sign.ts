@@ -11,8 +11,6 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ContractService, PublicContractEntity } from '../services/contract.service';
 
-// Placeholder public fetch (will hit /contracts/public/:token later). For now reuse standard get by id if numeric.
-
 @Component({
   selector: 'app-public-contract-sign',
   standalone: true,

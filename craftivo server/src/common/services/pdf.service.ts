@@ -5,11 +5,6 @@ import * as puppeteer from 'puppeteer';
 export class PdfService {
   private readonly logger = new Logger(PdfService.name);
 
-  /**
-   * Generate a PDF Buffer from provided HTML string.
-   * NOTE: For production you may want to launch with a shared browser instance or
-   * use chromium in headless:new with proper sandbox flags in Docker.
-   */
   async htmlToPdfBuffer(
     html: string,
     pdfOptions: puppeteer.PDFOptions = {},
@@ -36,19 +31,15 @@ export class PdfService {
         try {
           await browser.close();
         } catch {
-          /* ignore */
+          // ignore
         }
       }
     }
   }
 
-  /**
-   * Creates a styled HTML document for a contract ensuring consistent fonts, spacing, and printable layout.
-   * `content` may already be HTML (e.g., rich text from editor). We wrap it in a controlled container.
-   */
   renderContractHtml(params: {
     title: string;
-    content: string; // raw or html
+    content: string;
     meta?: Record<string, unknown>;
     branding?: {
       primaryColor?: string;
@@ -131,7 +122,6 @@ export class PdfService {
 </html>`;
   }
 
-  /** Escape minimal HTML to avoid layout breakage for meta keys/values */
   private escapeHtml(str: string) {
     return str
       .replace(/&/g, '&amp;')
@@ -141,13 +131,6 @@ export class PdfService {
       .replace(/'/g, '&#39;');
   }
 
-  /**
-   * Attempts to auto-structure plain text content into semantic HTML.
-   * Heuristics:
-   * - Lines in ALL CAPS or Title Case without trailing punctuation -> heading (h2)
-   * - Lines starting with digits or bullets ("1.", "-", "*") grouped into list
-   * - Blank line => paragraph break
-   */
   formatContractContent(raw: string): string {
     if (!raw) return '';
     // If already contains HTML tags assume author provided structure.
@@ -218,9 +201,6 @@ export class PdfService {
     return blocks.join('\n');
   }
 
-  /**
-   * High-level convenience: render styled HTML then export to PDF with header/footer page numbers.
-   */
   async generateContractPdfBuffer(
     renderedHtml: string,
     headerTitle?: string,

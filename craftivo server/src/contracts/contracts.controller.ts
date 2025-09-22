@@ -37,6 +37,7 @@ import { SignRoleDto as RoleSignDto } from './dto/role-sign.dto';
 import { RegenerateContractDto } from './dto/regenerate-contract.dto';
 import { UserId } from '../common/decorators/user-id.decorator';
 import { ContractVersionDto } from './dto/contract-version.dto';
+import { mapContract, mapContractsArray } from './dto/contract-response.dto';
 
 @ApiTags('contracts')
 @ApiBearerAuth()
@@ -127,20 +128,25 @@ export class ContractsController {
         ? statusParam[0]
         : statusParam
       : undefined;
-    return this.contractsService.list(userId, {
-      clientId: clientId ? Number(clientId) : undefined,
-      projectId: projectId ? Number(projectId) : undefined,
-      // Casting narrowed union / array to service's accepted shape (already validated loosely)
-      status: statusValue as unknown as
-        | ContractStatus
-        | ContractStatus[]
-        | undefined,
-      search,
-      from,
-      to,
-      skip: skip ? Number(skip) : undefined,
-      take: take ? Math.min(Number(take), 100) : undefined,
-    });
+    return this.contractsService
+      .list(userId, {
+        clientId: clientId ? Number(clientId) : undefined,
+        projectId: projectId ? Number(projectId) : undefined,
+        // Casting narrowed union / array to service's accepted shape (already validated loosely)
+        status: statusValue as unknown as
+          | ContractStatus
+          | ContractStatus[]
+          | undefined,
+        search,
+        from,
+        to,
+        skip: skip ? Number(skip) : undefined,
+        take: take ? Math.min(Number(take), 100) : undefined,
+      })
+      .then((res) => ({
+        ...res,
+        data: mapContractsArray(res.data as any[]),
+      }));
   }
 
   @Get(':id')
@@ -152,7 +158,9 @@ export class ContractsController {
   })
   @ApiResponse({ status: 404, description: 'Contract not found.' })
   findOne(@Param('id', ParseIntPipe) id: number, @UserId() userId: number) {
-    return this.contractsService.findOne(id, userId);
+    return this.contractsService
+      .findOne(id, userId)
+      .then((c: any) => mapContract(c));
   }
 
   @Patch(':id/status')

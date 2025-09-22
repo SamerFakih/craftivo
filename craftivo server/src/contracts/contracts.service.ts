@@ -384,7 +384,7 @@ export class ContractsService {
         subject: `Contract Resent #${id}`,
       });
     } catch {
-      /* ignore email errors */
+      //IGNORE
     }
     return { success: true };
   }

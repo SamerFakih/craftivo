@@ -53,7 +53,6 @@ export class ClientService {
     return this.http.delete<void>(`${this.apiUrl}/clients/${id}`, { withCredentials: true });
   }
 
-  // ——— helpers ———
   private normalizeClient = (c: any): ClientModel => {
     const rawId = c?.id ?? c?._id ?? c?.client_id;
     const hasBackendId = rawId != null && rawId !== '';
