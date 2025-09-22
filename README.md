@@ -84,7 +84,36 @@
 | ----------------------------------- |
 | ![CIWorkflow](./Readme/demo/CI.png) |
 
+### Ai agent
+
+🌟 How Craftivo Helps You Create Contracts Effortlessly 1. You provide the project info
+Example: “Build an e-commerce website for Acme Inc. starting January 15th.”
+
+    2.	We draft your contract automatically
+    •	Adds the client’s name and your name
+    •	Includes project description and clear deliverables
+    •	Sets out payment terms (hourly, fixed, or milestone-based)
+    •	Defines start and end dates
+
+    3.	Always personalized & complete
+
+If details are missing (like the client’s name), Craftivo looks them up in your system so your contract always feels polished and ready.
+
+    4.	Saved and linked to your project
+
+The final draft is stored securely inside Craftivo, attached to the right project and client. From there, you can review, share, or sign it anytime.
+
 <br><br>
+
+### Services, Validation and Testing
+
+| Services                              | Validation                             |
+| ------------------------------------- | -------------------------------------- |
+| ![Landing](./Readme/demo/Service.png) | ![fsdaf](./Readme/demo/validation.png) |
+
+| Testing Backend                              | Testing Frontend                         |
+| -------------------------------------------- | ---------------------------------------- |
+| ![Landing](./Readme/demo/backendTesting.png) | ![fsdaf](./Readme/demo/frontTesting.png) |
 
 <!-- Deployment -->
 <img src="./Readme/title7.svg"/>
