@@ -519,15 +519,6 @@
   gap: 10px;
 }
 
-.error-banner {
-  padding: 10px 12px;
-  border: 1px solid #fca5a5;
-  background: #fef2f2;
-  color: #b91c1c;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
 @media (max-width: 1024px) {
   .templates-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
