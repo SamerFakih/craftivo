@@ -63,9 +63,13 @@
 | --------------------------------------- | ----------------------------------------- |
 | ![Invoices](./Readme/demo/invoices.png) | ![Contracts](./Readme/demo/contracts.png) |
 
-| Ai Contracts                              |
+| Ai Contracts                              | CSV Export Report                  |
+| ----------------------------------------- | ---------------------------------- |
+| ![Invoices](./Readme/demo/aiContract.gif) | ![Invoices](./Readme/demo/CSV.gif) |
+
+| New Invoice                               |
 | ----------------------------------------- |
-| ![Invoices](./Readme/demo/aiContract.gif) |
+| ![Invoices](./Readme/demo/newInvoice.gif) |
 
 ### AI Automation
 
