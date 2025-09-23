@@ -107,6 +107,10 @@ If details are missing (like the client’s name), Craftivo looks them up in you
 
 The final draft is stored securely inside Craftivo, attached to the right project and client. From there, you can review, share, or sign it anytime.
 
+| AI Agent Diagram                              |
+| --------------------------------------------- |
+| ![AI Agent](./Readme/demo/AiAgentDiagram.jpg) |
+
 <br><br>
 
 ### Services, Validation and Testing
