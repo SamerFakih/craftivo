@@ -134,7 +134,7 @@ The final draft is stored securely inside Craftivo, attached to the right projec
 
 - Screenshots of Swagger tests for the core APIs: Login, Create a client, and update a time entry.
 
-| Swagger API 1                                  | Swagger API 2                                    | Swagger API 3                                        |
+| Swagger login API                                  | Swagger Clients API                                     | Swagger  Time Entries API                                         |
 | ---------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------- |
 | ![SwaggerAPI1](./Readme/demo/swaggerLogin.png) | ![SwaggerAPI2](./Readme/demo/swaggerClients.png) | ![SwaggerAPI3](./Readme/demo/swaggerTimeEntries.png) |
 
